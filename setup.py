@@ -1,9 +1,15 @@
 from setuptools import setup, find_packages
 
+# Read the long description from README.md or README.rst
+with open("README.md", "r") as f:
+    long_description = f.read()
+
 setup(
     name='wrench-code-library',
     version='0.1.0',
     author='willem@wrench.ai',
+    long_description=long_description,
+    long_description_content_type="text/markdown",  # or "text/x-rst" if you used reStructuredText
     packages=find_packages(),
     install_requires=[
         'colorama~=0.4.6',
