@@ -60,6 +60,7 @@ class _RdsSuperClass:
     Note: This class is obfuscated and instantiated upon import, so you should only import the instantiated object, `rdsInstance`.
 
     """
+
     def __init__(self, secrets_path='../resources/secrets/Secrets.env'):
         # root_folder = os.path.abspath(os.path.join(os.getcwd(), '..'))
         root_folder = os.getcwd()
@@ -69,9 +70,18 @@ class _RdsSuperClass:
         self.secrets_input = secrets_path
         self.secrets_path = os.path.abspath(os.path.join(root_folder, self.secrets_input))
         self.method = None
-        self._load_configuration()
+        self.initialized = False
+        try:
+            self.load_configuration()
+            self.initialized = True
+        except Exception as e:
+            wrench_logger.debug("Initialization of RDS instance failed")
+            pass
 
-    def _load_configuration(self):
+    def load_configuration(self, secret_loc=None):
+        if secret_loc is not None:
+            self.secrets_path = os.path.abspath(os.path.join(os.getcwd(), secret_loc))
+
         self._secrets_finder()
         load_dotenv(self.secrets_path)
         self._host = os.getenv('PGHOST')
@@ -87,7 +97,7 @@ class _RdsSuperClass:
             try:
                 if parent_count > 5:
                     raise ValueError('Maximum parent count reached.')
-
+                wrench_logger.debug(f'Trying Secrets Path: {self.secrets_path}')
                 if pathlib.Path(self.secrets_path).is_file():
                     wrench_logger.info(f"Found Secrets file at {self.secrets_path}")
                     break  # Exit loop if file exists
@@ -106,6 +116,9 @@ class _RdsSuperClass:
                 raise e
 
     def connect(self):
+        if not self.initialized:
+            wrench_logger.error('RDS Class is not initialized please run the load_configuration() method')
+            raise NotImplementedError
 
         try:
             self.connection = psycopg2.connect(
@@ -123,7 +136,7 @@ class _RdsSuperClass:
 
     def execute_query(self, query, output=None, method='fetchall'):
         if self.connection is None:
-            wrench_logger.warning("Database connection is not established. Cannot execute query.")
+            wrench_logger.error("Database connection is not established. Cannot execute query.")
             return None
 
         cursor = self.connection.cursor()

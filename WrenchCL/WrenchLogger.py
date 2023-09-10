@@ -126,6 +126,16 @@ class _wrench_logger:
             self.file_handler.close()
             self.logger.removeHandler(self.file_handler)
 
+    def setLevel(self, level: str) -> None:
+        """
+        Change the reporting level of the logger.
+
+        Parameters:
+            level (str): The desired logging level as a string (e.g., 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
+        """
+        numeric_level = self._set_logging_level(level)
+        self.logger.setLevel(numeric_level)
+
     # Main Functional Methods
     def _log(self, level: int, msg: str) -> None:
         """
@@ -319,5 +329,6 @@ class _wrench_logger:
 
         if colorama_imported:
             init()
+
 
 wrench_logger = _wrench_logger()
