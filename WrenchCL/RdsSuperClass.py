@@ -82,13 +82,26 @@ class _RdsSuperClass:
         if secret_loc is not None:
             self.secrets_path = os.path.abspath(os.path.join(os.getcwd(), secret_loc))
 
-        self._secrets_finder()
-        load_dotenv(self.secrets_path)
-        self._host = os.getenv('PGHOST')
-        self._port = os.getenv('PGPORT')
-        self._database = os.getenv('PGDATABASE')
-        self._user = os.getenv('PGUSER')
-        self._password = os.getenv('PGPASSWORD')
+        if 'PGPASSWORD' in locals() and 'PGHOST' in locals() and 'PGDATABASE' in locals() \
+                and 'PGUSER' in locals() and 'PGPASSWORD' in locals():
+            wrench_logger.debug('Found secrets in environment')
+            self._host = PGHOST
+            self._port = PGPORT
+            self._database = PGDATABASE
+            self._user = PGUSER
+            self._password = PGPASSWORD
+        else:
+            if os.getenv('PGHOST') is None or os.getenv('PGPORT') is None or os.getenv('PGDATABASE') \
+                    is None or os.getenv('PGUSER') is None or os.getenv('PGPASSWORD') is None:
+                self._secrets_finder()
+                load_dotenv(self.secrets_path)
+            else:
+                wrench_logger.debug(f'Found environment variables')
+            self._host = os.getenv('PGHOST')
+            self._port = os.getenv('PGPORT')
+            self._database = os.getenv('PGDATABASE')
+            self._user = os.getenv('PGUSER')
+            self._password = os.getenv('PGPASSWORD')
 
     def _secrets_finder(self):
         parent_count = 0

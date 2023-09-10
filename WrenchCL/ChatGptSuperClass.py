@@ -29,9 +29,13 @@ class ChatGptSuperClass:
         self.secrets_path = os.path.abspath(os.path.join(os.getcwd(), self.secrets_input))
         self._secrets_finder()
 
-        load_dotenv(self.secrets_path)
-        openai.api_key = os.getenv('CHATGPT_API_KEY')
-        self.request_url = os.getenv('CHATGPT_API_ENDPOINT')
+        if 'CHATGPT_API_KEY' in locals():
+            openai.api_key = os.getenv('CHATGPT_API_KEY')
+            self.request_url = os.getenv('CHATGPT_API_ENDPOINT')
+        else:
+            load_dotenv(self.secrets_path)
+            openai.api_key = os.getenv('CHATGPT_API_KEY')
+            self.request_url = os.getenv('CHATGPT_API_ENDPOINT')
         wrench_logger.debug(f'Found request url: {self.request_url}')
 
     def _secrets_finder(self):
