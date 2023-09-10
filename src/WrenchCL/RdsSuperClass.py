@@ -7,7 +7,7 @@ import pandas as pd
 import psycopg2
 from _decimal import Decimal
 from dotenv import load_dotenv
-from src.WrenchLogger import wrench_logger
+from WrenchCL.WrenchLogger import wrench_logger
 
 
 class _RdsSuperClass:

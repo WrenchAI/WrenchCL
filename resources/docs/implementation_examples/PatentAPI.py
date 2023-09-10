@@ -1,8 +1,8 @@
 import json
 
-from src.ApiSuperClass import ApiSuperClass
-from src.WrenchLogger import wrench_logger
-from src.RdsSuperClass import rdsInstance
+from src.WrenchCL.ApiSuperClass import ApiSuperClass
+from src.WrenchCL import wrench_logger
+from src.WrenchCL import rdsInstance
 from datetime import datetime
 
 # https://patentsview.org/apis/api-endpoints/patentsbeta

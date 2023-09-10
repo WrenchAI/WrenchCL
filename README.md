@@ -40,7 +40,8 @@ To use `ApiSuperClass` for your specific API, create a subclass that implements 
 ### Example
 
 ```python
-from src.ApiSuperClass import ApiSuperClass
+from src.WrenchCL.ApiSuperClass import ApiSuperClass
+
 
 class YourApiSubClass(ApiSuperClass):
     def __init__(self, your_params):
@@ -63,10 +64,11 @@ To use `_RdsSuperClass` for specific database operations, you don't need to crea
 ### Example
 
 ```python
-from src.Components.RdsSuperClass import rdsInstance
+from src.WrenchCL import rdsInstance
 
 # Regular Implementation
 rdsInstance.connect()
+
 
 # Overriding Methods
 class YourDatabaseSubClass(_RdsSuperClass):
