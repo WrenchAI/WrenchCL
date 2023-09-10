@@ -82,6 +82,7 @@ class _RdsSuperClass:
         if secret_loc is not None:
             self.secrets_path = os.path.abspath(os.path.join(os.getcwd(), secret_loc))
 
+        # Add to readme how to overwrite secrets, so we can handle them where needed
         if 'PGPASSWORD' in locals() and 'PGHOST' in locals() and 'PGDATABASE' in locals() \
                 and 'PGUSER' in locals() and 'PGPASSWORD' in locals():
             wrench_logger.debug('Found secrets in environment')
