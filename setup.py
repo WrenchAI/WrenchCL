@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='wrench-code-library',
-    version='0.1.0',
+    version='1.0.0',
     author='willem@wrench.ai',
     long_description=long_description,
     long_description_content_type="text/markdown",  # or "text/x-rst" if you used reStructuredText
