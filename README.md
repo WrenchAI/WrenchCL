@@ -3,9 +3,15 @@
 <p align="center">
   <a href="https://pypi.org/project/wrench-code-library/"><img src="https://badge.fury.io/py/wrench-code-library.svg" alt="PyPI version" height="20"/></a>
   <img src="https://img.shields.io/badge/python-3.x-blue" alt="Python Version" height="20"/>
-  <br>
   <img src="https://img.shields.io/badge/repo-private-red" alt="Private Repo" height="20"/>
   <a href="https://github.com/Kydoimos97"><img src="https://img.shields.io/badge/maintainer-Kydoimos97-yellow" alt="Maintainer" height="20"/></a>
+  <br>
+  <a href="https://github.com/WrenchAI/wrench-code-library/stargazers"><img src="https://img.shields.io/github/stars/WrenchAI/wrench-code-library.svg" alt="GitHub Stars" height="20"/></a>
+  <a href="https://github.com/WrenchAI/wrench-code-library/network/members"><img src="https://img.shields.io/github/forks/WrenchAI/wrench-code-library.svg" alt="GitHub Forks" height="20"/></a>
+  <a href="https://github.com/WrenchAI/wrench-code-library/issues"><img src="https://img.shields.io/github/issues/WrenchAI/wrench-code-library.svg" alt="GitHub Issues" height="20"/></a>
+  <a href="https://github.com/WrenchAI/wrench-code-library/pulls"><img src="https://img.shields.io/github/issues-pr/WrenchAI/wrench-code-library.svg" alt="GitHub Pull Requests" height="20"/></a>
+
+  
 </p>
 
 ## Description
