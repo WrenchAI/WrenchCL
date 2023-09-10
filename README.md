@@ -24,3 +24,25 @@ class YourApiSubClass(ApiSuperClass):
     def fetch_data(self, batch_size=100, last_record_sort_value=None, last_record_unique_id=None, page=None):
         # your implementation here
         pass
+```
+
+## Extending the _RdsSuperClass
+
+To use `_RdsSuperClass` for your specific database operations.
+You don't need to create a subclass if no methods have to be overwritten.
+
+Here's a template to get you started:
+
+```python
+from src.Components.RdsSuperClass import rdsInstance
+
+# Regular Implementation
+rdsInstance.connect()
+
+# Overwrite
+class YourDatabaseSubClass(_RdsSuperClass):
+    def __init__(self, your_params):
+        super().__init__('your_secrets_path')
+        # your initialization code here
+
+    # Override or extend existing methods as needed
