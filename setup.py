@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 setup(
-    name='wrench-code-library',
+    name='WrenchCL',
     version='AUTO_BUMP_VERSION',
     author='willem@wrench.ai',
     long_description=long_description,
