@@ -207,6 +207,7 @@ class _wrench_logger:
         if colorama_imported and color:
             try:
                 hex_check = os.getenv('hex_color_palette')
+                print(hex_check)
                 if hex_check is not None:
                     reset_var = ColoramaStyle.RESET_ALL
                     white_col = ColoramaStyle.RESET_ALL
@@ -214,7 +215,7 @@ class _wrench_logger:
                     reset_var = ColoramaStyle.RESET_ALL
                     white_col = ColoramaFore.LIGHTWHITE_EX
             except:
-                wrench_logger.error('Hex Check Failed defaulting to white')
+                print('Hex Check Failed defaulting to white')
                 reset_var = ColoramaStyle.RESET_ALL
                 white_col = ColoramaFore.LIGHTWHITE_EX
 
