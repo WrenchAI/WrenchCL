@@ -1,15 +1,18 @@
 <h1 align="center">Wrench Code Library</h1>
 
 <p align="center">
+  <a href="https://pypi.org/project/wrench-code-library/"><img src="https://badge.fury.io/py/wrench-code-library.svg" alt="PyPI version" height="20"/></a>
   <img src="https://img.shields.io/badge/python-3.x-blue" alt="Python Version" height="20"/>
+  <br>
   <img src="https://img.shields.io/badge/repo-private-red" alt="Private Repo" height="20"/>
-  <a href="https://github.com/Kydoimos97"><img src="https://img.shields.io/badge/maintainer-Kydoimos97-blue" alt="Maintainer" height="20"/></a>
+  <a href="https://github.com/Kydoimos97"><img src="https://img.shields.io/badge/maintainer-Kydoimos97-yellow" alt="Maintainer" height="20"/></a>
 </p>
-
 
 ## Description
 
 This is a code library designed to improve code reusability and standardize access to APIs, RDS, and logging functionalities.
+
+**Pypi Link: [https://pypi.org/project/wrench-code-library/](https://pypi.org/project/wrench-code-library/)**
 
 ## Installation
 
@@ -67,11 +70,3 @@ class YourDatabaseSubClass(_RdsSuperClass):
 
     # Override or extend existing methods as needed
 ```
-```
-
-### Notes
-
-- The badges at the top are placeholders. Replace `yourusername` and `yourrepository` with your actual GitHub username and repository name.
-- I've added section headers and clarified some of the text to make the document easier to read.
-
-Remember to update the `long_description` in your `setup.py` to read from this improved README, and set `long_description_content_type` to `text/markdown`.
