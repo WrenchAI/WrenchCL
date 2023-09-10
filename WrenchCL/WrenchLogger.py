@@ -68,6 +68,7 @@ class _wrench_logger:
             __new__(cls, *args, **kwargs): Implements the Singleton pattern.
             __init__(level, file_name_append_mode): Initializes the logger.
             release_resources(): Releases file handler resources.
+            setLevel(level): Change the reporting level of the logger.
 
         Main Functional Methods:
             _log(level, msg): Logs a message at a specific logging level.
@@ -280,7 +281,12 @@ class _wrench_logger:
         root_folder = os.getcwd()
         log_dir = os.path.abspath(os.path.join(root_folder, f'../resources/logs/'))
         if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
+            try:
+                os.makedirs(log_dir)
+            except PermissionError:
+                timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
+                print("Permission error defaulting to working dir.")
+                return f'log-{timestamp}.log'
         if file_name_append_mode is None:
             timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
             return os.path.abspath(os.path.join(log_dir, f'log-{timestamp}.log'))
