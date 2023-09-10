@@ -18,14 +18,14 @@
 
 This is a code library designed to improve code reusability and standardize access to APIs, RDS, and logging functionalities.
 
-**Pypi Link: [https://pypi.org/project/wrench-code-library/](https://pypi.org/project/wrench-code-library/)**
+**Pypi Link: [https://pypi.org/project/WrenchCL/](https://pypi.org/project/WrenchCL/)**
 
 ## Installation
 
 To install the package, simply run:
 
 ```bash
-pip install wrench-code-library
+pip install WrenchCL
 ```
 
 ## Extending the ApiSuperClass
