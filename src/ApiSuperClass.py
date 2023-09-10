@@ -3,7 +3,7 @@ import time
 
 import pandas as pd
 import requests
-from src.Components.WrenchLogger import wrench_logger
+from src.WrenchLogger import wrench_logger
 
 
 class MaxRetriesExceededError(Exception):

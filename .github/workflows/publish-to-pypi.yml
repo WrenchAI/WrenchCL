@@ -1,0 +1,21 @@
+name: Publish Python 🐍 distributions 📦 to PyPI
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-n-publish:
+    runs-on: ubuntu-latest
+    environment: pypi-deployment
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - run: pip install setuptools wheel
+    - run: python setup.py sdist bdist_wheel
+    - uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}

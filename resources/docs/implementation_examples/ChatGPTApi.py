@@ -1,4 +1,4 @@
-from src.Components.ChatGptSuperClass import ChatGptSuperClass
+from src.ChatGptSuperClass import ChatGptSuperClass
 
 class svs_body_handler(ChatGptSuperClass):
 

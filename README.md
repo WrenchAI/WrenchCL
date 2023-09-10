@@ -10,7 +10,8 @@ To use `ApiSuperClass` for your specific API, you'll need to create a subclass t
 Here's a template to get you started:
 
 ```python
-from src.Components.ApiSuperClass import ApiSuperClass
+from src.ApiSuperClass import ApiSuperClass
+
 
 class YourApiSubClass(ApiSuperClass):
     def __init__(self, your_params):

@@ -1,10 +1,9 @@
 import json
-import os
 
-from src.Components.ApiSuperClass import ApiSuperClass
-from src.Components.WrenchLogger import wrench_logger
-from src.Components.RdsSuperClass import rdsInstance
-from datetime import date, datetime
+from src.ApiSuperClass import ApiSuperClass
+from src.WrenchLogger import wrench_logger
+from src.RdsSuperClass import rdsInstance
+from datetime import datetime
 
 # https://patentsview.org/apis/api-endpoints/patentsbeta
 # Alternative: https://patentsview.org/apis/api-endpoints/patents
