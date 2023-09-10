@@ -15,7 +15,7 @@ jobs:
         python-version: '3.x'
     - run: pip install setuptools wheel
     - run: python setup.py sdist bdist_wheel
-    - uses: pypa/gh-action-pypi-publish@master
+    - uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
