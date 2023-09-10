@@ -136,6 +136,8 @@ class _wrench_logger:
         """
         numeric_level = self._set_logging_level(level)
         self.logger.setLevel(numeric_level)
+        self.file_handler.setLevel(numeric_level)
+        self.console_handler.setLevel(numeric_level)
 
     # Main Functional Methods
     def _log(self, level: int, msg: str) -> None:
@@ -203,8 +205,19 @@ class _wrench_logger:
             color (str, optional): The color code for colorama. Default is None.
         """
         if colorama_imported and color:
-            reset_var = ColoramaStyle.RESET_ALL
-            white_col = ColoramaFore.LIGHTWHITE_EX
+            try:
+                hex_check = os.getenv('hex_color_palette')
+                if hex_check is not None:
+                    reset_var = ColoramaStyle.RESET_ALL
+                    white_col = ColoramaStyle.RESET_ALL
+                else:
+                    reset_var = ColoramaStyle.RESET_ALL
+                    white_col = ColoramaFore.LIGHTWHITE_EX
+            except:
+                wrench_logger.error('Hex Check Failed defaulting to white')
+                reset_var = ColoramaStyle.RESET_ALL
+                white_col = ColoramaFore.LIGHTWHITE_EX
+
             format_str = f"{color}%(levelname)-8s: %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | {white_col}%(message)s{reset_var}"
         else:
             format_str = f"%(levelname)-8s: %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | %(message)s"
