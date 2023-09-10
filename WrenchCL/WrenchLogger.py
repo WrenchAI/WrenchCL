@@ -204,14 +204,9 @@ class _wrench_logger:
         Parameters:
             color (str, optional): The color code for colorama. Default is None.
         """
-        if colorama_imported and color:
-            if 'hex_color_palette' in locals():
-                reset_var = ColoramaStyle.RESET_ALL
-                white_col = ColoramaStyle.RESET_ALL
-            else:
-                reset_var = ColoramaStyle.RESET_ALL
-                white_col = ColoramaFore.LIGHTWHITE_EX
-
+        if colorama_imported and color and 'hex_color_palette' not in locals():
+            reset_var = ColoramaStyle.RESET_ALL
+            white_col = ColoramaFore.LIGHTWHITE_EX
             format_str = f"{color}%(levelname)-8s: %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | {white_col}%(message)s{reset_var}"
         else:
             format_str = f"%(levelname)-8s: %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | %(message)s"
