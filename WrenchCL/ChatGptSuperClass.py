@@ -21,11 +21,7 @@ class ChatGptSuperClass:
         self.secrets_path = pathlib.Path(self.secrets_input)
         self.message = None
 
-        # Run Methods
-        self._load_configuration()
-        self.fetch_response()
-
-    def _load_configuration(self):
+    def load_configuration(self):
         # Add to readme how to overwrite secrets, so we can handle them where needed
         self.secrets_path = os.path.abspath(os.path.join(os.getcwd(), self.secrets_input))
         if 'CHATGPT_API_KEY' in globals() and 'CHATGPT_API_ENDPOINT' in globals():
