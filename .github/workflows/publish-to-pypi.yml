@@ -19,12 +19,23 @@ jobs:
     # Auto bump version
     - name: Auto bump version
       run: |
-        VERSION=$(awk -F= '/^version =/ { print $2}' setup.py | sed "s/[',]//g" | awk '{$1=$1;print}')
+        # Fetch the current version
+        VERSION=$(awk -F\' '/version=/ { print $2}' setup.py)
+        echo "Current version is $VERSION"
+        
+        # Increment the version
         NEW_VERSION=$(echo "$VERSION" | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
-        sed -i "s/version = '$VERSION'/version = '$NEW_VERSION'/" setup.py
+        echo "New version will be $NEW_VERSION"
+        
+        # Replace the version in setup.py
+        sed -i "s/version='$VERSION'/version='$NEW_VERSION'/" setup.py
+        
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git commit -m "Bump version to $NEW_VERSION" -a
+        
+        # Commit changes
+        git add setup.py  # Make sure to stage the changes you've made
+        git commit -m "Bump version to $NEW_VERSION"
 
     - run: python setup.py sdist bdist_wheel
     - uses: pypa/gh-action-pypi-publish@release/v1
