@@ -14,30 +14,23 @@ jobs:
     - uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-    - run: pip install setuptools wheel
-
-    # Auto bump version
+    
+    - name: Clear dist directory
+      run: rm -rf dist/*
+    
     - name: Auto bump version
       run: |
-        # Fetch the current version
         VERSION=$(awk -F\' '/version=/ { print $2}' setup.py)
-        echo "Current version is $VERSION"
-        
-        # Increment the version
         NEW_VERSION=$(echo "$VERSION" | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
-        echo "New version will be $NEW_VERSION"
-        
-        # Replace the version in setup.py
         sed -i "s/version='$VERSION'/version='$NEW_VERSION'/" setup.py
-        
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        
-        # Commit changes
-        git add setup.py  # Make sure to stage the changes you've made
+        git add setup.py
         git commit -m "Bump version to $NEW_VERSION"
-
+        
+    - run: pip install setuptools wheel
     - run: python setup.py sdist bdist_wheel
+    
     - uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
