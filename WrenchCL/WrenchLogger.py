@@ -205,17 +205,10 @@ class _wrench_logger:
             color (str, optional): The color code for colorama. Default is None.
         """
         if colorama_imported and color:
-            try:
-                hex_check = os.getenv('hex_color_palette')
-                print(hex_check)
-                if hex_check is not None:
-                    reset_var = ColoramaStyle.RESET_ALL
-                    white_col = ColoramaStyle.RESET_ALL
-                else:
-                    reset_var = ColoramaStyle.RESET_ALL
-                    white_col = ColoramaFore.LIGHTWHITE_EX
-            except:
-                print('Hex Check Failed defaulting to white')
+            if 'hex_color_palette' in locals():
+                reset_var = ColoramaStyle.RESET_ALL
+                white_col = ColoramaStyle.RESET_ALL
+            else:
                 reset_var = ColoramaStyle.RESET_ALL
                 white_col = ColoramaFore.LIGHTWHITE_EX
 
