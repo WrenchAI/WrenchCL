@@ -28,7 +28,7 @@ class ChatGptSuperClass:
     def _load_configuration(self):
         # Add to readme how to overwrite secrets, so we can handle them where needed
         self.secrets_path = os.path.abspath(os.path.join(os.getcwd(), self.secrets_input))
-        if 'CHATGPT_API_KEY' in locals() and 'CHATGPT_API_ENDPOINT' in locals():
+        if 'CHATGPT_API_KEY' in globals() and 'CHATGPT_API_ENDPOINT' in globals():
             wrench_logger.debug(f'Found Secrets variables')
             openai.api_key = CHATGPT_API_KEY
             self.request_url = CHATGPT_API_ENDPOINT

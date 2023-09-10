@@ -83,8 +83,8 @@ class _RdsSuperClass:
             self.secrets_path = os.path.abspath(os.path.join(os.getcwd(), secret_loc))
 
         # Add to readme how to overwrite secrets, so we can handle them where needed
-        if 'PGPASSWORD' in locals() and 'PGHOST' in locals() and 'PGDATABASE' in locals() \
-                and 'PGUSER' in locals() and 'PGPASSWORD' in locals():
+        if 'PGPASSWORD' in globals() and 'PGHOST' in globals() and 'PGDATABASE' in globals() \
+                and 'PGUSER' in globals() and 'PGPASSWORD' in globals():
             wrench_logger.debug('Found secrets in environment')
             self._host = PGHOST
             self._port = PGPORT
