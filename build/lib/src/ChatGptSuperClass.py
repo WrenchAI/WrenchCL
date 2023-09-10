@@ -9,7 +9,7 @@ import requests
 from dotenv import load_dotenv
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 
-from src.WrenchCL import wrench_logger
+from WrenchCL import wrench_logger
 
 
 class ChatGptSuperClass:

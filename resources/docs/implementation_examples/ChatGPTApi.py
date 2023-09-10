@@ -1,4 +1,4 @@
-from src.WrenchCL import ChatGptSuperClass
+from WrenchCL import ChatGptSuperClass
 
 class svs_body_handler(ChatGptSuperClass):
 
