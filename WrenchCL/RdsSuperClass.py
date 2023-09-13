@@ -6,133 +6,39 @@ from datetime import datetime
 import pandas as pd
 import psycopg2
 from _decimal import Decimal
-from dotenv import load_dotenv
 from WrenchCL.WrenchLogger import wrench_logger
 
 
 class _RdsSuperClass:
-    """
-    Superclass for Managing PostgreSQL Database Operations with Secrets Management.
-
-    This class provides a convenient way to connect to a PostgreSQL database, execute queries, and parse results. It also manages secrets for database connection parameters by reading from an environment file.
-
-    How to Use:
-    -----------
-    1. Import the instantiated object:
-        ```python
-        from your_module import rdsInstance
-        ```
-
-    2. Connect to the database:
-        ```python
-        rdsInstance.connect()
-        ```
-
-    3. Execute a query:
-        ```python
-        result = rdsInstance.execute_query("SELECT * FROM table", output='json', method='fetchall')
-        ```
-
-    4. Parse result to JSON or DataFrame:
-        ```python
-        json_result = rdsInstance.parse_to_json()
-        df_result = rdsInstance.parse_to_dataframe()
-        ```
-
-    5. Close the database connection:
-        ```python
-        rdsInstance.close()
-        ```
-
-    Attributes:
-    -----------
-    - connection (psycopg2.connection): The database connection object.
-    - result (Any): The result of the last executed query.
-    - column_names (List[str]): Column names of the last query result.
-    - secrets_input (str): Relative path to the secrets file.
-    - secrets_path (str): Absolute path to the secrets file.
-    - method (str): The fetch method used in the last query ('fetchall' or 'fetchone').
-
-    Methods:
-    --------
-    Refer to the class definition for detailed information on each method.
-
-    Note: This class is obfuscated and instantiated upon import, so you should only import the instantiated object, `rdsInstance`.
-
-    """
-
-    def __init__(self, secrets_path='../resources/secrets/Secrets.env'):
+    def __init__(self):
         # root_folder = os.path.abspath(os.path.join(os.getcwd(), '..'))
+        self._host = None
+        self._port = None
+        self._database = None
+        self._user = None
+        self._password = None
         root_folder = os.getcwd()
         self.connection = None
         self.result = None
         self.column_names = None
-        self.secrets_input = secrets_path
-        self.secrets_path = os.path.abspath(os.path.join(root_folder, self.secrets_input))
         self.method = None
         self.initialized = False
-        try:
-            self.load_configuration()
-            self.initialized = True
-        except Exception as e:
-            wrench_logger.debug("Initialization of RDS instance failed")
-            pass
 
-    def load_configuration(self, secret_loc=None):
-        if secret_loc is not None:
-            self.secrets_path = os.path.abspath(os.path.join(os.getcwd(), secret_loc))
+    def load_configuration(self, PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD):
+        self._host = PGHOST
+        self._port = PGPORT
+        self._database = PGDATABASE
+        self._user = PGUSER
+        self._password = PGPASSWORD
+        self.initialized = True
 
-        # Add to readme how to overwrite secrets, so we can handle them where needed
-        if 'PGPASSWORD' in globals() and 'PGHOST' in globals() and 'PGDATABASE' in globals() \
-                and 'PGUSER' in globals() and 'PGPASSWORD' in globals():
-            wrench_logger.debug('Found secrets in environment')
-            self._host = PGHOST
-            self._port = PGPORT
-            self._database = PGDATABASE
-            self._user = PGUSER
-            self._password = PGPASSWORD
-        else:
-            if os.getenv('PGHOST') is None or os.getenv('PGPORT') is None or os.getenv('PGDATABASE') \
-                    is None or os.getenv('PGUSER') is None or os.getenv('PGPASSWORD') is None:
-                self._secrets_finder()
-                load_dotenv(self.secrets_path)
-            else:
-                wrench_logger.debug(f'Found environment variables')
-            self._host = os.getenv('PGHOST')
-            self._port = os.getenv('PGPORT')
-            self._database = os.getenv('PGDATABASE')
-            self._user = os.getenv('PGUSER')
-            self._password = os.getenv('PGPASSWORD')
-
-    def _secrets_finder(self):
-        parent_count = 0
-        while True:
-            time.sleep(0.05)
-            try:
-                if parent_count > 5:
-                    raise ValueError('Maximum parent count reached.')
-                wrench_logger.debug(f'Trying Secrets Path: {self.secrets_path}')
-                if pathlib.Path(self.secrets_path).is_file():
-                    wrench_logger.info(f"Found Secrets file at {self.secrets_path}")
-                    break  # Exit loop if file exists
-                else:
-                    wrench_logger.debug(f'File not found: {self.secrets_path}. Trying parent directory...')
-                    root_folder = pathlib.Path.cwd()
-                    for _ in range(parent_count):
-                        root_folder = root_folder.parent
-                    self.secrets_path = os.path.join(root_folder, self.secrets_input)
-                    parent_count += 1
-            except ValueError as ve:
-                wrench_logger.error(f'No suitable secret path found after 5 iterations. Check your secrets path.')
-                raise ve
-            except Exception as e:
-                wrench_logger.error(f'An unexpected error occurred while loading secrets | {e}')
-                raise e
-
-    def connect(self):
+    def connect(self, PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD):
         if not self.initialized:
-            wrench_logger.error('RDS Class is not initialized please run the load_configuration() method')
-            raise NotImplementedError
+            try:
+                self.load_configuration(PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD)
+            except:
+                wrench_logger.error('RDS Class is not initialized please run the load_configuration() method')
+                raise NotImplementedError
 
         try:
             self.connection = psycopg2.connect(
