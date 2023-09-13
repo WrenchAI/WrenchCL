@@ -32,13 +32,10 @@ class _RdsSuperClass:
         self._password = PGPASSWORD
         self.initialized = True
 
-    def connect(self, PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD):
+    def connect(self):
         if not self.initialized:
-            try:
-                self.load_configuration(PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD)
-            except:
-                wrench_logger.error('RDS Class is not initialized please run the load_configuration() method')
-                raise NotImplementedError
+            wrench_logger.error('RDS Class is not initialized please run the load_configuration() method')
+            raise NotImplementedError
 
         try:
             self.connection = psycopg2.connect(
