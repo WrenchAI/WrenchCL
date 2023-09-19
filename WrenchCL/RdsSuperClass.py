@@ -1,58 +1,83 @@
-import json
-import os
-import pathlib
 import time
-from datetime import datetime
-import pandas as pd
+import json
 import psycopg2
-from _decimal import Decimal
+from sshtunnel import SSHTunnelForwarder
 from WrenchCL.WrenchLogger import wrench_logger
+from decimal import Decimal
+import datetime
+import pandas as pd
 
 
-class _RdsSuperClass:
+class SshTunnelManager:
+    def __init__(self, ssh_config):
+        self.ssh_config = ssh_config
+        self.tunnel = None
+
+    def start_tunnel(self):
+        self.tunnel = SSHTunnelForwarder(
+            (self.ssh_config['SSH_SERVER'], self.ssh_config['SSH_PORT']),
+            ssh_username=self.ssh_config['SSH_USER'],
+            ssh_password=self.ssh_config['SSH_PASSWORD'],
+            remote_bind_address=(self.ssh_config['PGHOST'], self.ssh_config['PGPORT'])
+        )
+        self.tunnel.start()
+        return '127.0.0.1', self.tunnel.local_bind_port
+
+    def stop_tunnel(self):
+        if self.tunnel:
+            self.tunnel.stop()
+
+
+class RDS:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(RDS, cls).__new__(cls)
+        return cls._instance
+
     def __init__(self):
-        # root_folder = os.path.abspath(os.path.join(os.getcwd(), '..'))
-        self._host = None
-        self._port = None
-        self._database = None
-        self._user = None
-        self._password = None
-        root_folder = os.getcwd()
+        self.config = None
         self.connection = None
-        self.result = None
-        self.column_names = None
-        self.method = None
-        self.initialized = False
+        self.ssh_manager = None
+        self.result = None  # Initialize the result variable
+        self.column_names = None  # Initialize column names variable
+        self.method = 'fetchall'  # Default method
 
-    def load_configuration(self, PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD):
-        self._host = PGHOST
-        self._port = PGPORT
-        self._database = PGDATABASE
-        self._user = PGUSER
-        self._password = PGPASSWORD
-        self.initialized = True
+    def load_configuration(self, db_config):
+        self.config = db_config
 
-    def connect(self):
-        if not self.initialized:
-            wrench_logger.error('RDS Class is not initialized please run the load_configuration() method')
-            raise NotImplementedError
+    def _connect(self):
+        host, port = self.config['PGHOST'], self.config['PGPORT']
 
-        try:
-            self.connection = psycopg2.connect(
-                host=self._host,
-                port=self._port,
-                database=self._database,
-                user=self._user,
-                password=self._password
-            )
-            wrench_logger.debug(
-                "Database connection established successfully with host {}.".format(self._host))
-        except Exception as e:
-            wrench_logger.error("Failed to establish database connection: {}".format(e))
-            self.connection = None
+        if 'SSH_TUNNEL' in self.config:
+            self.ssh_manager = SshTunnelManager(self.config['SSH_TUNNEL'])
+            host, port = self.ssh_manager.start_tunnel()
+
+        self.connection = psycopg2.connect(
+            host=host,
+            port=port,
+            database=self.config['PGDATABASE'],
+            user=self.config['PGUSER'],
+            password=self.config['PGPASSWORD']
+        )
+
+    def __enter__(self):
+        self._connect()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Handle any exceptions if you need
+        if self.connection:
+            self.connection.close()
+            wrench_logger.debug("Database connection closed automatically via __exit__.")
+
+        if self.ssh_manager:
+            self.ssh_manager.stop_tunnel()
+            wrench_logger.debug("SSH tunnel closed automatically via __exit__.")
 
     def execute_query(self, query, output=None, method='fetchall'):
-        if self.connection is None:
+        if not self.connection:
             wrench_logger.error("Database connection is not established. Cannot execute query.")
             return None
 
@@ -63,38 +88,35 @@ class _RdsSuperClass:
             self.connection.commit()
             minutes, seconds = divmod(time.time() - start_time, 60)
             wrench_logger.info(
-                "Query executed successfully, Query execution time: {:0>2}:{:05.2f}".format(int(minutes), seconds))
-            if cursor.description:
-                if method.lower() == 'fetchall':
-                    self.result = cursor.fetchall()
-                    self.method = 'fetchall'
-                elif method.lower() == 'fetchone':
-                    self.result = cursor.fetchone()
-                    self.method = 'fetchone'
-                else:
-                    wrench_logger.error("Invalid method please use either FetchOne or FetchAll")
-                try:
-                    self.column_names = [desc[0] for desc in cursor.description]
-                except:
-                    pass
-            else:
-                self.result = None
-        except Exception as e:
-            wrench_logger.error("Failed to execute query: {}".format(e))
-            self.result = 'ERROR'
+                f"Query executed successfully, Query execution time: {int(minutes):02}:{seconds:05.2f}")
 
-        if output is not None:
-            if output.lower() == "json":
-                return self.parse_to_json()
-            elif output.lower() == 'df' or output.lower() == 'dataframe':
-                return self.parse_to_dataframe()
+            result = None
+            if cursor.description:
+                self.column_names = [desc[0] for desc in cursor.description]
+                if method.lower() == 'fetchall':
+                    result = cursor.fetchall()
+                elif method.lower() == 'fetchone':
+                    result = cursor.fetchone()
+                else:
+                    wrench_logger.error("Invalid method; please use either 'fetchone' or 'fetchall'")
             else:
-                return self.result
-        else:
-            return self.result
+                result = None
+
+            if output:
+                if output.lower() == "json":
+                    return self.parse_to_json()
+                elif output.lower() in ['df', 'dataframe']:
+                    return self.parse_to_dataframe()
+                else:
+                    return result
+            else:
+                return result
+
+        except Exception as e:
+            wrench_logger.error(f"Failed to execute query: {e}")
+            return 'ERROR'
 
     def parse_to_json(self):
-        print(self.result)
         if self.result is None:
             wrench_logger.warning("Result is None, cannot parse to JSON.")
             return None
@@ -127,9 +149,11 @@ class _RdsSuperClass:
             return None
 
     def close(self):
-        if self.connection:
-            self.connection.close()
-            wrench_logger.debug("Database connection closed successfully.")
+        """
+        Manually close the database connection and SSH tunnel (if established).
+        """
+        self.__exit__(None, None, None)
+        wrench_logger.debug("Database connection and SSH tunnel (if established) closed manually via close().")
 
     @staticmethod
     def _handle_special_types(obj):
@@ -140,4 +164,25 @@ class _RdsSuperClass:
         raise TypeError("Type not serializable")
 
 
-rdsInstance = _RdsSuperClass()
+rdsInstance = RDS()
+
+# if __name__ == '__main__':
+#     config = {
+#         'PGHOST': 'host',
+#         'PGPORT': 5432,
+#         'PGDATABASE': 'db',
+#         'PGUSER': 'user',
+#         'PGPASSWORD': 'pass',
+#         'SSH_TUNNEL': {
+#             'SSH_SERVER': 'ssh_host',
+#             'SSH_PORT': 22,
+#             'SSH_USER': 'ssh_user',
+#             'SSH_PASSWORD': 'ssh_pass'
+#         }
+#     }
+#
+#
+#     rds_instance.load_configuration(config)
+#     with rds_instance as db:
+#         result = db.execute_query("SELECT * FROM some_table")
+#         print(result)
