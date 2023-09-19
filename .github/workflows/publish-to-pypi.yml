@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build-n-publish:
@@ -21,8 +22,10 @@ jobs:
     - name: Clear dist directory
       run: rm -rf dist/*
 
-    # Auto bump version and push tag
-    - name: Auto bump version and push tag
+    # Auto bump version, push tag, and create a release
+    - name: Auto bump version, push tag, and create release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
         if [[ -z "$LATEST_TAG" ]]; then
@@ -32,11 +35,22 @@ jobs:
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
         sed -i "s/version='.*'/version='$NEW_VERSION'/" setup.py
 
-        # Configure Git and push new tag
+        # Configure Git, push new tag
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git tag $NEW_VERSION
         git push origin $NEW_VERSION
+
+        # Create a GitHub release
+        curl -s -X POST \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/$GITHUB_REPOSITORY/releases \
+          -d '{
+            "tag_name": "'"$NEW_VERSION"'",
+            "name": "Release '"$NEW_VERSION"'",
+            "body": "Auto-generated release for version '"$NEW_VERSION"'"
+          }'
 
     # Echo NEW_VERSION for debugging or later use
     - name: Echo NEW_VERSION
