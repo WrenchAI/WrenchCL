@@ -52,6 +52,24 @@ jobs:
             "body": "Auto-generated release for version '"$NEW_VERSION"'"
           }'
 
+        # Removing older tags/releases beyond the two most recent
+        OLDEST_TAGS=$(git tag -l | sort -V | head -n -3)
+        for TAG in $OLDEST_TAGS; do
+          # Delete tag from git
+          git tag -d $TAG
+          git push --delete origin $TAG
+          
+          # Delete release from GitHub
+          RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                           -H "Accept: application/vnd.github.v3+json" \
+                           https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$TAG \
+                           | jq '.id')
+          curl -s -X DELETE \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID
+        done
+
     # Echo NEW_VERSION for debugging or later use
     - name: Echo NEW_VERSION
       run: echo "New Version is $NEW_VERSION"
