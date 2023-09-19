@@ -1,12 +1,7 @@
 import ast
 import json
-import os
-import pathlib
-import time
-
 import openai
 import requests
-from dotenv import load_dotenv
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 
 from WrenchCL.WrenchLogger import wrench_logger

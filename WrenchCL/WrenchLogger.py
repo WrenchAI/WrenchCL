@@ -1,9 +1,10 @@
+import inspect
 import logging
 import os
 import sys
 from datetime import datetime
 import traceback
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 try:
     from colorama import init, Fore as ColoramaFore, Style as ColoramaStyle
@@ -15,89 +16,7 @@ except ImportError:
 
 
 class _wrench_logger:
-    """
-    Logger Class for Configuring Logging with File and Console Handlers.
-
-    This class is designed to be a Singleton, meaning it will only allow one instance per unique combination of `level` and `file_name_append_mode`. It provides a configurable logging utility that supports both file-based and console-based logging. It utilizes Python's built-in `logging` module and optionally integrates with the `colorama` package for colored console outputs.
-
-    How to Use:
-    -----------
-    1. Import the instantiated object:
-        ```python
-        from your_module import wrench_logger
-        ```
-
-    2. Use the logger to log messages:
-        ```python
-        wrench_logger.info("This is an info message.")
-        wrench_logger.warning("This is a warning message.")
-        wrench_logger.error("This is an error message.")
-        wrench_logger.critical("This is a critical message.")
-        wrench_logger.debug("This is a debug message.")
-        ```
-
-    3. Log exceptions and tracebacks:
-        ```python
-        try:
-            # some code that raises an exception
-        except Exception as e:
-            wrench_logger.log_traceback(e)
-        ```
-
-    4. Log headers for better readability:
-        ```python
-        wrench_logger.header("Your Header Text", size=80)
-        ```
-
-    5. Release resources when done:
-        ```python
-        wrench_logger.release_resources()
-        ```
-
-    Attributes:
-    -----------
-    - logging_level (int): The logging level for both file and console handlers.
-    - base_format (logging.Formatter): The default logging format.
-    - filename (str): The name of the log file.
-    - file_handler (logging.FileHandler): File handler for logging.
-    - console_handler (logging.StreamHandler): Console handler for logging.
-    - logger (logging.Logger): The underlying logger object.
-
-    Methods:
-        Lifecycle Methods:
-            __new__(cls, *args, **kwargs): Implements the Singleton pattern.
-            __init__(level, file_name_append_mode): Initializes the logger.
-            release_resources(): Releases file handler resources.
-            setLevel(level): Change the reporting level of the logger.
-
-        Main Functional Methods:
-            _log(level, msg): Logs a message at a specific logging level.
-            _log_with_color(level, text, color): Logs a message with optional color.
-            info(text): Logs an informational message.
-            warning(text): Logs a warning message.
-            error(text): Logs an error message.
-            critical(text): Logs a critical message.
-            debug(text): Logs a debug message.
-
-        Formatting Methods:
-            _log_header(text, size, newline): Logs a header text, centered and separated by dashes.
-            _handlerFormat(color): Configures the console handler's formatter with optional color.
-
-        Supplementary Methods:
-            log_traceback(exception): Logs the traceback of an exception.
-            header(text, size, newline): Logs a header, similar to `_log_header`, but intended for external use.
-
-        Private Utility Methods:
-            _get_base_format(): Returns a logging formatter with a specific format.
-            _set_logging_level(level): Converts a logging level string to its corresponding constant.
-            _set_filename(file_name_append_mode): Generates the log file name.
-
-        Configuration Methods:
-            _configure_file_handler(): Configures and returns a file handler for logging.
-            _configure_console_handler(): Configures and returns a console handler for logging.
-            _initialize_logger(): Initializes the logger with file and console handlers.
-    """
-    _instances = {}
+    _instance = None
 
     # Lifecycle Methods
     def __new__(cls, *args: Any, **kwargs: Any) -> 'log':
@@ -106,11 +25,10 @@ class _wrench_logger:
         """
         level = kwargs.get('level', 'INFO')
         file_name_append_mode = kwargs.get('file_name_append_mode', None)
-        key = hash((level, file_name_append_mode))
-        if key not in cls._instances:
+        if not cls._instance:
             instance = super(_wrench_logger, cls).__new__(cls)
-            cls._instances[key] = instance
-        return cls._instances[key]
+            cls._instance = instance
+        return cls._instance
 
     def __init__(self, level: str = 'INFO', file_name_append_mode: Optional[str] = None) -> None:
         self.base_format = self._get_base_format()
@@ -139,6 +57,30 @@ class _wrench_logger:
         self.file_handler.setLevel(numeric_level)
         self.console_handler.setLevel(numeric_level)
 
+    def set_log_file_location(self, new_append_mode: str) -> None:
+        """
+        Change the file append mode, copy content from the old file to the new one,
+        and optionally delete the old file.
+
+        Parameters:
+            new_append_mode (str): The new append mode for the log filename.
+        """
+        # Get the old file's name
+        old_filename = self.filename
+
+        # Set the new append mode and update the filename
+        self.filename = self._set_filename(new_append_mode)
+
+        # Reconfigure file handler to use the new filename
+        self._reconfigure_file_handler()
+
+        # Copy the content of the old file to the new one
+        with open(old_filename, 'r') as old_file, open(self.filename, 'a') as new_file:
+            new_file.write(old_file.read())
+
+        # Optionally, delete the old file
+        os.remove(old_filename)
+
     # Main Functional Methods
     def _log(self, level: int, msg: str) -> None:
         """
@@ -149,10 +91,24 @@ class _wrench_logger:
             msg (str): The message to be logged.
         """
         if self.logger.isEnabledFor(level):
-            caller_info = self.logger.findCaller(stack_info=False)
+            earliest_frame = inspect.stack()[-1]
+
+            file_name = earliest_frame.filename
+            line_no = earliest_frame.lineno
+            func_name = earliest_frame.function
+
+            # If the function is <module>, process the code_context
+            if func_name == '<module>':
+                context_line = earliest_frame.code_context[0]
+                func_name = context_line.split('(')[0].strip()  # This will extract 'test_stack' from 'test_stack()'
+                func_name = func_name + "()"
+
+            if "wrench_logger" in func_name:
+                func_name = '[Caller]'
+
             record = self.logger.makeRecord(
-                self.logger.name, level, caller_info[0], caller_info[1],
-                msg, None, None, caller_info[2], None
+                self.logger.name, level, file_name, line_no,
+                msg, None, None, func_name, None
             )
             self.logger.handle(record)
 
@@ -212,12 +168,25 @@ class _wrench_logger:
             else:
                 print("Hex Environment Detected Changing Color")
                 reset_var = ColoramaStyle.RESET_ALL
-                white_col = ColoramaFore.Gre
+                white_col = ColoramaFore.RESET
                 format_str = f"{color}%(levelname)-8s: %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s |{reset_var} \x1b[38;20m %(message)s \x1b[0m"
         else:
             format_str = f"%(levelname)-8s: %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | %(message)s"
 
         self.console_handler.setFormatter(logging.Formatter(format_str, datefmt='%Y-%m-%d %H:%M:%S'))
+
+    def _reconfigure_file_handler(self) -> None:
+        """
+        Reconfigure the file handler to use the updated filename.
+        """
+        # Close and remove the old file handler
+        if self.file_handler:
+            self.file_handler.close()
+            self.logger.removeHandler(self.file_handler)
+
+        # Configure the new file handler with the updated filename
+        self.file_handler = self._configure_file_handler()
+        self.logger.addHandler(self.file_handler)
 
     # Supplementary Methods
     def log_traceback(self, exception: Exception) -> None:
@@ -277,29 +246,42 @@ class _wrench_logger:
     @staticmethod
     def _set_filename(file_name_append_mode: Optional[str]) -> str:
         """
-        Generates the log file name based on the provided `file_name_append_mode`.
+    Generates the log file name based on the provided `file_name_append_mode`.
 
-        Parameters:
-            file_name_append_mode (str or None): Additional information to append to the log file name.
+    Parameters:
+        file_name_append_mode (str or None): Additional information to append to the log file name.
 
-        Returns:
-            str: The log file name with a directory path.
-        """
-        # root_folder = os.path.abspath(os.path.join(os.getcwd(), '..'))
-        root_folder = os.getcwd()
-        log_dir = os.path.abspath(os.path.join(root_folder, f'../resources/logs/'))
+    Returns:
+        str: The log file name with a directory path.
+    """
+
+        def find_project_root(anchor='.git') -> str:
+            """Finds the project root by searching for a specified anchor. If not found, returns the current working directory."""
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            while current_dir != os.path.dirname(current_dir):  # Stop when reaching the root directory
+                if os.path.exists(os.path.join(current_dir, anchor)):
+                    return current_dir
+                current_dir = os.path.dirname(current_dir)
+            return os.getcwd()
+
+        root_folder = find_project_root()
+        log_dir = os.path.join(root_folder, 'resources', 'logs')
+
         if not os.path.exists(log_dir):
             try:
                 os.makedirs(log_dir)
             except PermissionError:
-                timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
-                print("Permission error defaulting to working dir.")
-                return f'log-{timestamp}.log'
-        if file_name_append_mode is None:
-            timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
-            return os.path.abspath(os.path.join(log_dir, f'log-{timestamp}.log'))
+                log_dir = os.getcwd()  # If creation of the log directory fails, use the current working directory
+
+        if file_name_append_mode:
+            log_file_name = os.path.abspath(file_name_append_mode)
+        elif root_folder == os.getcwd():
+            log_file_name = 'python.log'
         else:
-            return os.path.abspath(os.path.join(log_dir, file_name_append_mode.replace('/', '_')))
+            timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
+            log_file_name = f'log-{timestamp}.log'
+
+        return os.path.join(log_dir, log_file_name)
 
     # Configuration Methods
     def _configure_file_handler(self) -> Optional[logging.FileHandler]:
