@@ -1,12 +1,10 @@
 name: Publish Python 🐍 distributions 📦 to PyPI
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    push:
-      branches:
-        - main
 
 jobs:
   build-n-publish:
@@ -24,20 +22,53 @@ jobs:
     - name: Clear dist directory
       run: rm -rf dist/*
 
-    - name: Auto bump version
+    # Auto bump version, push tag, and create a release
+    - name: Auto bump version, push tag, and create release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
         if [[ -z "$LATEST_TAG" ]]; then
-          echo "No tags found. Halting the workflow."
-          exit 1
+          LATEST_TAG="0.0.0"
         fi
         NEW_VERSION=$(echo "$LATEST_TAG" | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-        sed -i "s/version='AUTO_BUMP_VERSION'/version='$NEW_VERSION'/" setup.py
+        sed -i "s/version='.*'/version='$NEW_VERSION'/" setup.py
+
+        # Configure Git, push new tag
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add setup.py
-        git commit -m "Bump version to $NEW_VERSION"
+        git tag $NEW_VERSION
+        git push origin $NEW_VERSION
+
+        # Create a GitHub release
+        curl -s -X POST \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/$GITHUB_REPOSITORY/releases \
+          -d '{
+            "tag_name": "'"$NEW_VERSION"'",
+            "name": "Release '"$NEW_VERSION"'",
+            "body": "Auto-generated release for version '"$NEW_VERSION"'"
+          }'
+
+        # Removing older tags/releases beyond the two most recent
+        OLDEST_TAGS=$(git tag -l | sort -V | head -n -3)
+        for TAG in $OLDEST_TAGS; do
+          # Delete tag from git
+          git tag -d $TAG
+          git push --delete origin $TAG
+          
+          # Delete release from GitHub
+          RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                           -H "Accept: application/vnd.github.v3+json" \
+                           https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$TAG \
+                           | jq '.id')
+          curl -s -X DELETE \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID
+        done
 
     # Echo NEW_VERSION for debugging or later use
     - name: Echo NEW_VERSION
