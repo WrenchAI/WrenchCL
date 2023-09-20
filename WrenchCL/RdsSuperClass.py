@@ -1,6 +1,9 @@
+import io
 import os
 import time
 import json
+
+import paramiko
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
 from WrenchCL.WrenchLogger import wrench_logger
@@ -10,17 +13,19 @@ import pandas as pd
 
 
 class SshTunnelManager:
-    def __init__(self, ssh_config):
-        self.ssh_config = ssh_config
+    def __init__(self, config):
+        self.config = config
+        self.ssh_config = config['SSH_TUNNEL']
         self.tunnel = None
 
     def start_tunnel(self):
+        wrench_logger.warning(f"{os.environ.get('RSA_KEY', None) if self.ssh_config.get('USE_RSA_ENV', False) else None}")
         self.tunnel = SSHTunnelForwarder(
-            (self.ssh_config['SSH_SERVER'], self.ssh_config['SSH_PORT']),
+            ssh_address_or_host = (self.ssh_config['SSH_SERVER'], self.ssh_config['SSH_PORT']),
             ssh_username=self.ssh_config['SSH_USER'],
             ssh_password=self.ssh_config.get('SSH_PASSWORD', None),
-            ssh_pkey=os.environ.get('RSA_KEY', None) if self.ssh_config.get('USE_RSA_ENV', False) else self.ssh_config.get('SSH_KEY_PATH', None),
-            remote_bind_address=(self.ssh_config['PGHOST'], self.ssh_config['PGPORT'])
+            ssh_pkey= paramiko.RSAKey(file_obj=io.StringIO(os.environ['RSA_KEY'])) if self.ssh_config.get('USE_RSA_ENV', False) else self.ssh_config.get('SSH_KEY_PATH', None),
+            remote_bind_address=(self.config['PGHOST'], self.config['PGPORT'])
         )
         self.tunnel.start()
         return '127.0.0.1', self.tunnel.local_bind_port
@@ -48,14 +53,16 @@ class RDS:
 
     def load_configuration(self, db_config):
         self.config = db_config
+        wrench_logger.info(f"Config Loaded with {db_config}")
 
     def _connect(self):
         host, port = self.config['PGHOST'], self.config['PGPORT']
 
         if 'SSH_TUNNEL' in self.config:
-            self.ssh_manager = SshTunnelManager(self.config['SSH_TUNNEL'])
+            self.ssh_manager = SshTunnelManager(self.config)
             host, port = self.ssh_manager.start_tunnel()
-
+            wrench_logger.info("SSH Tunnel Connected")
+        wrench_logger.info(f"Connecting to DB with {host}.{port} ")
         self.connection = psycopg2.connect(
             host=host,
             port=port,
