@@ -1,3 +1,4 @@
+import os
 import time
 import json
 import psycopg2
@@ -17,7 +18,8 @@ class SshTunnelManager:
         self.tunnel = SSHTunnelForwarder(
             (self.ssh_config['SSH_SERVER'], self.ssh_config['SSH_PORT']),
             ssh_username=self.ssh_config['SSH_USER'],
-            ssh_password=self.ssh_config['SSH_PASSWORD'],
+            ssh_password=self.ssh_config.get('SSH_PASSWORD', None),
+            ssh_pkey=os.environ.get('RSA_KEY', None) if self.ssh_config.get('USE_RSA_ENV', False) else self.ssh_config.get('SSH_KEY_PATH', None),
             remote_bind_address=(self.ssh_config['PGHOST'], self.ssh_config['PGPORT'])
         )
         self.tunnel.start()
@@ -165,24 +167,3 @@ class RDS:
 
 
 rdsInstance = RDS()
-
-# if __name__ == '__main__':
-#     config = {
-#         'PGHOST': 'host',
-#         'PGPORT': 5432,
-#         'PGDATABASE': 'db',
-#         'PGUSER': 'user',
-#         'PGPASSWORD': 'pass',
-#         'SSH_TUNNEL': {
-#             'SSH_SERVER': 'ssh_host',
-#             'SSH_PORT': 22,
-#             'SSH_USER': 'ssh_user',
-#             'SSH_PASSWORD': 'ssh_pass'
-#         }
-#     }
-#
-#
-#     rds_instance.load_configuration(config)
-#     with rds_instance as db:
-#         result = db.execute_query("SELECT * FROM some_table")
-#         print(result)
