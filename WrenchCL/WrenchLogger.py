@@ -1,4 +1,3 @@
-import inspect
 import logging
 import os
 import sys
@@ -14,6 +13,7 @@ except ImportError:
     colorama_imported = False
     logging.warning("colorama package not found. Colored logging is disabled.")
 
+_srcfile = os.path.normcase(logging._srcfile)
 
 class _wrench_logger:
     _instance = None
@@ -82,35 +82,33 @@ class _wrench_logger:
         os.remove(old_filename)
 
     # Main Functional Methods
-    def _log(self, level: int, msg: str) -> None:
-        """
-        Logs a message at a specific logging level.
+    def _log(self, level: int, msg: str, stack_info: bool = False) -> None:
+        f = sys._getframe(1)  # Start from the caller's frame
+        stacklevel = 1
+        sinfo = None
 
-        Parameters:
-            level (int): The logging level for the message.
-            msg (str): The message to be logged.
-        """
-        if self.logger.isEnabledFor(level):
-            earliest_frame = inspect.stack()[-1]
+        while stacklevel > 0:
+            next_f = f.f_back
+            if next_f is None:
+                break
+            f = next_f
+            if not self._is_internal_frame(f):
+                stacklevel -= 1
 
-            file_name = earliest_frame.filename
-            line_no = earliest_frame.lineno
-            func_name = earliest_frame.function
+        co = f.f_code
 
-            # If the function is <module>, process the code_context
-            if func_name == '<module>':
-                context_line = earliest_frame.code_context[0]
-                func_name = context_line.split('(')[0].strip()  # This will extract 'test_stack' from 'test_stack()'
-                func_name = func_name + "()"
+        if stack_info:
+            sinfo = "Stack (most recent call last):\n" + ''.join(traceback.format_stack(f))
 
-            if "wrench_logger" in func_name:
-                func_name = '[Caller]'
+        file_name = co.co_filename
+        line_no = f.f_lineno
+        func_name = co.co_name
 
-            record = self.logger.makeRecord(
-                self.logger.name, level, file_name, line_no,
-                msg, None, None, func_name, None
-            )
-            self.logger.handle(record)
+        record = self.logger.makeRecord(
+            self.logger.name, level, file_name, line_no,
+            msg, None, None, func_name, sinfo
+        )
+        self.logger.handle(record)
 
     def _log_with_color(self, level: int, text: str, color: Optional[str] = None) -> None:
         if colorama_imported and color:
@@ -211,6 +209,14 @@ class _wrench_logger:
         self._log_header(text, size, newline)
 
     # Private Utility Methods
+    @staticmethod
+    def _is_internal_frame(frame):
+        """Signal whether the frame is a CPython, logging, or WrenchCl module internal."""
+        filename = os.path.normcase(frame.f_code.co_filename)
+        return filename == _srcfile or \
+               "importlib" in filename and "_bootstrap" in filename or \
+               "WrenchCL" in filename or "WrenchLogger".lower() in filename.lower()
+
     @staticmethod
     def _get_base_format() -> logging.Formatter:
         """
@@ -328,3 +334,5 @@ class _wrench_logger:
 
 
 wrench_logger = _wrench_logger()
+
+import logging
