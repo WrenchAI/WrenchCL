@@ -19,12 +19,15 @@ class SshTunnelManager:
         self.tunnel = None
 
     def start_tunnel(self):
-        wrench_logger.warning(f"{os.environ.get('RSA_KEY', None) if self.ssh_config.get('USE_RSA_ENV', False) else None}")
+        wrench_logger.warning(
+            f"{os.environ.get('RSA_KEY', None) if self.ssh_config.get('USE_RSA_ENV', False) else None}")
         self.tunnel = SSHTunnelForwarder(
-            ssh_address_or_host = (self.ssh_config['SSH_SERVER'], self.ssh_config['SSH_PORT']),
+            ssh_address_or_host=(self.ssh_config['SSH_SERVER'], self.ssh_config['SSH_PORT']),
             ssh_username=self.ssh_config['SSH_USER'],
             ssh_password=self.ssh_config.get('SSH_PASSWORD', None),
-            ssh_pkey= paramiko.RSAKey(file_obj=io.StringIO(os.environ['RSA_KEY'])) if self.ssh_config.get('USE_RSA_ENV', False) else self.ssh_config.get('SSH_KEY_PATH', None),
+            ssh_pkey=paramiko.RSAKey(file_obj=io.StringIO(os.environ['RSA_KEY'])) if self.ssh_config.get('USE_RSA_ENV',
+                                                                                                         False) else self.ssh_config.get(
+                'SSH_KEY_PATH', None),
             remote_bind_address=(self.config['PGHOST'], self.config['PGPORT'])
         )
         self.tunnel.start()
@@ -103,13 +106,13 @@ class RDS:
             if cursor.description:
                 self.column_names = [desc[0] for desc in cursor.description]
                 if method.lower() == 'fetchall':
-                    result = cursor.fetchall()
+                    self.result = cursor.fetchall()
                 elif method.lower() == 'fetchone':
-                    result = cursor.fetchone()
+                    self.result = cursor.fetchone()
                 else:
                     wrench_logger.error("Invalid method; please use either 'fetchone' or 'fetchall'")
             else:
-                result = None
+                self.result = None
 
             if output:
                 if output.lower() == "json":
@@ -117,9 +120,9 @@ class RDS:
                 elif output.lower() in ['df', 'dataframe']:
                     return self.parse_to_dataframe()
                 else:
-                    return result
+                    return self.result
             else:
-                return result
+                return self.result
 
         except Exception as e:
             wrench_logger.error(f"Failed to execute query: {e}")
