@@ -19,8 +19,6 @@ class SshTunnelManager:
         self.tunnel = None
 
     def start_tunnel(self):
-        wrench_logger.warning(
-            f"{os.environ.get('RSA_KEY', None) if self.ssh_config.get('USE_RSA_ENV', False) else None}")
         self.tunnel = SSHTunnelForwarder(
             ssh_address_or_host=(self.ssh_config['SSH_SERVER'], self.ssh_config['SSH_PORT']),
             ssh_username=self.ssh_config['SSH_USER'],
@@ -56,7 +54,7 @@ class RDS:
 
     def load_configuration(self, db_config):
         self.config = db_config
-        wrench_logger.info(f"Config Loaded with {db_config}")
+        wrench_logger.debug(f"Config Loaded successfully")
 
     def _connect(self):
         host, port = self.config['PGHOST'], self.config['PGPORT']
