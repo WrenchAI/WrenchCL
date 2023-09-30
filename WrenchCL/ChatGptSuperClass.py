@@ -65,7 +65,7 @@ class ChatGptSuperClass:
             json_data.update({"functions": self.function})
 
         try:
-            wrench_logger.info("Getting ChatGPT Response...")
+            wrench_logger.debug("Getting ChatGPT Response...")
             response = requests.post(
                 self.request_url,
                 headers=headers,
@@ -73,10 +73,10 @@ class ChatGptSuperClass:
             )
 
             if response.status_code != 200:
-                wrench_logger.info(response.text)
+                wrench_logger.debug(response.text)
                 raise ConnectionError(f'ConnectionError: Invalid status code received = {response.status_code}')
             else:
-                wrench_logger.info("ChatGPT response successfully received")
+                wrench_logger.debug("ChatGPT response successfully received")
                 return response
         except Exception as e:
-            wrench_logger.error(f"Error while generating response | {e}")
+            wrench_logger.debug(f"Error while generating response | {e}")

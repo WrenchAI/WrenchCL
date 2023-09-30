@@ -62,8 +62,10 @@ class RDS:
         if 'SSH_TUNNEL' in self.config:
             self.ssh_manager = SshTunnelManager(self.config)
             host, port = self.ssh_manager.start_tunnel()
-            wrench_logger.info("SSH Tunnel Connected")
-        wrench_logger.info(f"Connecting to DB with {host}.{port} ")
+            wrench_logger.debug("SSH Tunnel Connected")
+        wrench_logger.debug(f"Connecting to DB with {host}.{port} ")
+
+        wrench_logger.setLevel("Debug")
         self.connection = psycopg2.connect(
             host=host,
             port=port,
@@ -71,6 +73,7 @@ class RDS:
             user=self.config['PGUSER'],
             password=self.config['PGPASSWORD']
         )
+        wrench_logger.setLevel("Debug")
 
     def __enter__(self):
         self._connect()
@@ -97,7 +100,7 @@ class RDS:
             cursor.execute(query)
             self.connection.commit()
             minutes, seconds = divmod(time.time() - start_time, 60)
-            wrench_logger.info(
+            wrench_logger.debug(
                 f"Query executed successfully, Query execution time: {int(minutes):02}:{seconds:05.2f}")
 
             result = None

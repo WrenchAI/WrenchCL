@@ -38,7 +38,7 @@ class ApiSuperClass:
             wrench_logger.error("Couldn't get page count. Exiting batch processor.")
             return
         else:
-            wrench_logger.info(f'Query will retrieve {page_count} grant entries.')
+            wrench_logger.debug(f'Query will retrieve {page_count} grant entries.')
 
         batch_count = math.ceil(page_count / batch_size)
         all_data = []
@@ -90,7 +90,7 @@ class ApiSuperClass:
                             time_per_batch = total_time / 1
                         eta = time_per_batch * (batch_count - batch)
 
-                        wrench_logger.info(
+                        wrench_logger.debug(
                             f'Current Batch: {batch + 1}/{batch_count}, Time per Batch: {time_per_batch:.2f}s, Batch ETA: {eta:.2f}s')
             else:
                 # Does this make sense?
@@ -100,6 +100,6 @@ class ApiSuperClass:
 
         end_time = time.time()
         total_run_time = end_time - start_time
-        wrench_logger.info(f'Total Run Time: {total_run_time:.2f}s')
+        wrench_logger.debug(f'Total Run Time: {total_run_time:.2f}s')
 
         return pd.DataFrame(all_data)
