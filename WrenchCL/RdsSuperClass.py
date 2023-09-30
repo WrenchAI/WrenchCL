@@ -19,6 +19,7 @@ class SshTunnelManager:
         self.tunnel = None
 
     def start_tunnel(self):
+        wrench_logger.setLevel("warning")
         self.tunnel = SSHTunnelForwarder(
             ssh_address_or_host=(self.ssh_config['SSH_SERVER'], self.ssh_config['SSH_PORT']),
             ssh_username=self.ssh_config['SSH_USER'],
@@ -28,6 +29,7 @@ class SshTunnelManager:
                 'SSH_KEY_PATH', None),
             remote_bind_address=(self.config['PGHOST'], self.config['PGPORT'])
         )
+        wrench_logger.revertLoggingLevel("warning")
         self.tunnel.start()
         return '127.0.0.1', self.tunnel.local_bind_port
 
@@ -65,7 +67,7 @@ class RDS:
             wrench_logger.debug("SSH Tunnel Connected")
         wrench_logger.debug(f"Connecting to DB with {host}.{port} ")
 
-        wrench_logger.setLevel("Debug")
+        wrench_logger.setLevel("Warning")
         self.connection = psycopg2.connect(
             host=host,
             port=port,
@@ -73,7 +75,7 @@ class RDS:
             user=self.config['PGUSER'],
             password=self.config['PGPASSWORD']
         )
-        wrench_logger.setLevel("Debug")
+        wrench_logger.revertLoggingLevel()
 
     def __enter__(self):
         self._connect()
