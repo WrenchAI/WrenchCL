@@ -15,6 +15,7 @@ except ImportError:
 
 _srcfile = os.path.normcase(logging._srcfile)
 
+
 class _wrench_logger:
     _instance = None
 
@@ -23,14 +24,13 @@ class _wrench_logger:
         """
         Implement the Singleton pattern to ensure a single instance per unique combination of `level` and `file_name_append_mode`.
         """
-        level = kwargs.get('level', 'INFO')
-        file_name_append_mode = kwargs.get('file_name_append_mode', None)
         if not cls._instance:
             instance = super(_wrench_logger, cls).__new__(cls)
             cls._instance = instance
         return cls._instance
 
     def __init__(self, level: str = 'INFO', file_name_append_mode: Optional[str] = None) -> None:
+        self.previous_level = None
         self.base_format = self._get_base_format()
         self.logging_level = self._set_logging_level(level)
         self.filename = self._set_filename(file_name_append_mode)
@@ -52,7 +52,14 @@ class _wrench_logger:
         Parameters:
             level (str): The desired logging level as a string (e.g., 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
         """
+        self.previous_level = level
         numeric_level = self._set_logging_level(level)
+        self.logger.setLevel(numeric_level)
+        self.file_handler.setLevel(numeric_level)
+        self.console_handler.setLevel(numeric_level)
+
+    def revertLoggingLevel(self):
+        numeric_level = self._set_logging_level(self.previous_level)
         self.logger.setLevel(numeric_level)
         self.file_handler.setLevel(numeric_level)
         self.console_handler.setLevel(numeric_level)
@@ -214,8 +221,8 @@ class _wrench_logger:
         """Signal whether the frame is a CPython, logging, or WrenchCl module internal."""
         filename = os.path.normcase(frame.f_code.co_filename)
         return filename == _srcfile or \
-               "importlib" in filename and "_bootstrap" in filename or \
-               "WrenchCL" in filename or "WrenchLogger".lower() in filename.lower()
+            "importlib" in filename and "_bootstrap" in filename or \
+            "WrenchCL" in filename or "WrenchLogger".lower() in filename.lower()
 
     @staticmethod
     def _get_base_format() -> logging.Formatter:
