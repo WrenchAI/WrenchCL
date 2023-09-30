@@ -29,7 +29,7 @@ class SshTunnelManager:
                 'SSH_KEY_PATH', None),
             remote_bind_address=(self.config['PGHOST'], self.config['PGPORT'])
         )
-        wrench_logger.revertLoggingLevel("warning")
+        wrench_logger.revertLoggingLevel()
         self.tunnel.start()
         return '127.0.0.1', self.tunnel.local_bind_port
 
