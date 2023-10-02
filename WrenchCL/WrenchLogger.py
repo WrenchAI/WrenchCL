@@ -52,17 +52,16 @@ class _wrench_logger:
         Parameters:
             level (str): The desired logging level as a string (e.g., 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
         """
-        self.previous_level = level
+        self.previous_level = self.logger.getEffectiveLevel()
         numeric_level = self._set_logging_level(level)
         self.logger.setLevel(numeric_level)
         self.file_handler.setLevel(numeric_level)
         self.console_handler.setLevel(numeric_level)
 
     def revertLoggingLevel(self):
-        numeric_level = self._set_logging_level(self.previous_level)
-        self.logger.setLevel(numeric_level)
-        self.file_handler.setLevel(numeric_level)
-        self.console_handler.setLevel(numeric_level)
+        self.logger.setLevel(self.previous_level)
+        self.file_handler.setLevel(self.previous_level)
+        self.console_handler.setLevel(self.previous_level)
 
     def set_log_file_location(self, new_append_mode: str) -> None:
         """
