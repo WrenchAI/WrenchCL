@@ -102,16 +102,19 @@ class RDS:
             cursor.execute(query)
             self.connection.commit()
             minutes, seconds = divmod(time.time() - start_time, 60)
-            wrench_logger.debug(
+            wrench_logger.info(
                 f"Query executed successfully, Query execution time: {int(minutes):02}:{seconds:05.2f}")
-
             result = None
+
+            wrench_logger.debug(f"SQL Pull Description: {cursor.description}")
             if cursor.description:
                 self.column_names = [desc[0] for desc in cursor.description]
                 if method.lower() == 'fetchall':
                     self.result = cursor.fetchall()
+                    wrench_logger.debug(f"FetchedAll result = {self.result}")
                 elif method.lower() == 'fetchone':
                     self.result = cursor.fetchone()
+                    wrench_logger.debug(f"FetchedOne result = {self.result}")
                 else:
                     wrench_logger.error("Invalid method; please use either 'fetchone' or 'fetchall'")
             else:
