@@ -307,7 +307,7 @@ class _wrench_logger:
             PermissionError, FileNotFoundError: If an error occurs while setting up the file handler.
         """
         try:
-            handler = logging.FileHandler(self.filename)
+            handler = logging.FileHandler(self.filename, encoding='utf-8')
             handler.setLevel(self.logging_level)
             handler.setFormatter(self.base_format)
             return handler
