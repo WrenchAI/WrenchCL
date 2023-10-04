@@ -91,7 +91,7 @@ class RDS:
             self.ssh_manager.stop_tunnel()
             wrench_logger.debug("SSH tunnel closed automatically via __exit__.")
 
-    def execute_query(self, query, output=None, method='fetchall'):
+    def execute_query(self, query, output='raw', method='fetchall'):
         if not self.connection:
             wrench_logger.error("Database connection is not established. Cannot execute query.")
             return None
@@ -120,15 +120,15 @@ class RDS:
             else:
                 self.result = None
 
-            if output:
-                if output.lower() == "json":
-                    return self.parse_to_json()
-                elif output.lower() in ['df', 'dataframe']:
-                    return self.parse_to_dataframe()
-                else:
-                    return self.result
-            else:
+            if output.lower() == "json":
+                return self.parse_to_json()
+            elif output.lower() in ['df', 'dataframe']:
+                return self.parse_to_dataframe()
+            elif output.lower() == 'raw':
                 return self.result
+            else:
+                wrench_logger.error('Please provide valid input for output argument [json, df, dataframe, raw]')
+                raise ValueError('Please provide valid input for output argument [json, df, dataframe, raw]')
 
         except Exception as e:
             wrench_logger.error(f"Failed to execute query: {e}")
