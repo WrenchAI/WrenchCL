@@ -91,7 +91,7 @@ class _wrench_logger:
     def _log(self, level: int, msg: str, stack_info: bool = False) -> None:
          # Initialize stack_level_index
         stack_level_index = 0
-        stack_trace = "--> InternalFrames"
+        stack_trace = " --> InternalLogFrames"
         last_level = ""
         # Loop to find the caller
         import time
