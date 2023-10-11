@@ -89,54 +89,60 @@ class _wrench_logger:
 
     # Main Functional Methods
     def _log(self, level: int, msg: str, stack_info: bool = False) -> None:
-        f = sys._getframe(1)  # Start from the caller's frame
-        stacklevel = 1
-        sinfo = None
-
-        while stacklevel > 0:
-            next_f = f.f_back
-            if next_f is None:
+         # Initialize stack_level_index
+        stack_level_index = 0
+        stack_trace = ""
+        last_level = ""
+        # Loop to find the caller
+        import time
+        while True:
+            filepath, line_no, func_name, sinfo = self.logger.findCaller(stack_info=stack_info, stacklevel=stack_level_index)
+            if self._is_internal_frame(filepath):
+                stack_level_index += 1
+                continue
+            elif stack_info and filepath != last_level:
+                stack_trace = f" --> {os.path.basename(filepath)}:{func_name if func_name != '<module>' else '<callerFunc>'}:{line_no}" + stack_trace
+                stack_level_index += 1
+                last_level = filepath
+                continue
+            else:
                 break
-            f = next_f
-            if not self._is_internal_frame(f):
-                stacklevel -= 1
+        # Handle stack_info
+        if stack_info and str(traceback.format_exc()) != "NoneType: None\n":
+            sinfo = f"Stack Trace: {stack_trace[3:]} \n{traceback.format_exc()}"
+        elif stack_info:
+            sinfo = f"Stack Trace: {stack_trace[3:]}"
+        else:
+            sinfo = None
 
-        co = f.f_code
-
-        if stack_info:
-            sinfo = "Stack (most recent call last):\n" + ''.join(traceback.format_stack(f))
-
-        file_name = co.co_filename
-        line_no = f.f_lineno
-        func_name = co.co_name
-
+        # Create and handle the log record
         record = self.logger.makeRecord(
-            self.logger.name, level, file_name, line_no,
-            msg, None, None, func_name, sinfo
+            self.logger.name, level, filepath, line_no,
+            msg, None, None, func_name, sinfo = sinfo
         )
         self.logger.handle(record)
 
-    def _log_with_color(self, level: int, text: str, color: Optional[str] = None) -> None:
+    def _log_with_color(self, level: int, text: str, color: Optional[str] = None, stack_info: Optional[bool] = False) -> None:
         if colorama_imported and color:
             self._handlerFormat(color)
-        self._log(level, text)
+        self._log(level, text, stack_info)
         if colorama_imported:
             self._handlerFormat()
 
-    def info(self, text: str) -> None:
-        self._log_with_color(logging.INFO, text, ColoramaFore.LIGHTGREEN_EX if colorama_imported else None)
+    def info(self, text: str, stack_info: Optional[bool] = False) -> None:
+        self._log_with_color(logging.INFO, text, ColoramaFore.LIGHTGREEN_EX if colorama_imported else None, stack_info)
 
-    def warning(self, text: str) -> None:
-        self._log_with_color(logging.WARNING, text, ColoramaFore.YELLOW if colorama_imported else None)
+    def warning(self, text: str, stack_info: Optional[bool] = False) -> None:
+        self._log_with_color(logging.WARNING, text, ColoramaFore.YELLOW if colorama_imported else None, stack_info)
 
-    def error(self, text: str) -> None:
-        self._log_with_color(logging.ERROR, text, ColoramaFore.LIGHTRED_EX if colorama_imported else None)
+    def error(self, text: str, stack_info: Optional[bool] = False) -> None:
+        self._log_with_color(logging.ERROR, text, ColoramaFore.LIGHTRED_EX if colorama_imported else None, stack_info)
 
-    def critical(self, text: str) -> None:
-        self._log_with_color(logging.CRITICAL, text, ColoramaFore.RED if colorama_imported else None)
+    def critical(self, text: str, stack_info: Optional[bool] = False) -> None:
+        self._log_with_color(logging.CRITICAL, text, ColoramaFore.RED if colorama_imported else None, stack_info)
 
-    def debug(self, text: str) -> None:
-        self._log_with_color(logging.DEBUG, text, ColoramaFore.LIGHTBLUE_EX if colorama_imported else None)
+    def debug(self, text: str, stack_info: Optional[bool] = False) -> None:
+        self._log_with_color(logging.DEBUG, text, ColoramaFore.LIGHTBLUE_EX if colorama_imported else None, stack_info)
 
     # Formatting Methods
     def _log_header(self, text: str, size: int = 80, newline: bool = True) -> None:
@@ -193,17 +199,7 @@ class _wrench_logger:
         self.logger.addHandler(self.file_handler)
 
     # Supplementary Methods
-    def log_traceback(self, exception: Exception) -> None:
-        """
-        Logs the traceback of an exception.
-
-        Parameters:
-            exception (Exception): The caught exception.
-        """
-        tb = traceback.format_exc()
-        self.logger.error(f"Exception: {exception}\nTraceback:\n{tb}")
-
-    def header(self, text: str, size: int, newline: bool = True) -> None:
+    def header(self, text: str, size: int = 80, newline: bool = True) -> None:
         """
         Logs a header, similar to `_log_header`, but intended for external use.
 
@@ -216,12 +212,10 @@ class _wrench_logger:
 
     # Private Utility Methods
     @staticmethod
-    def _is_internal_frame(frame):
-        """Signal whether the frame is a CPython, logging, or WrenchCl module internal."""
-        filename = os.path.normcase(frame.f_code.co_filename)
-        return filename == _srcfile or \
-            "importlib" in filename and "_bootstrap" in filename or \
-            "WrenchCL" in filename or "WrenchLogger".lower() in filename.lower()
+    def _is_internal_frame(filepath: str) -> bool:
+        """Check if the frame is internal to logging or WrenchLogger."""
+        normalized_filepath = os.path.normcase(filepath)
+        return '\\logging\\' in normalized_filepath or '\\wrenchlogger.py' in normalized_filepath.lower()
 
     @staticmethod
     def _get_base_format() -> logging.Formatter:
