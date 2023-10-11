@@ -91,7 +91,7 @@ class _wrench_logger:
     def _log(self, level: int, msg: str, stack_info: bool = False) -> None:
          # Initialize stack_level_index
         stack_level_index = 0
-        stack_trace = ""
+        stack_trace = "--> InternalFrames"
         last_level = ""
         # Loop to find the caller
         import time
@@ -100,18 +100,18 @@ class _wrench_logger:
             if self._is_internal_frame(filepath):
                 stack_level_index += 1
                 continue
-            elif stack_info and filepath != last_level:
-                stack_trace = f" --> {os.path.basename(filepath)}:{func_name if func_name != '<module>' else '<callerFunc>'}:{line_no}" + stack_trace
+            elif stack_info and f"{filepath}:{func_name}:{line_no}" != last_level:
+                stack_trace = f" --> {stack_level_index}|{os.path.basename(filepath)}:{func_name if func_name != '<module>' else '<callerFunc>'}:{line_no}" + stack_trace
                 stack_level_index += 1
-                last_level = filepath
+                last_level = f"{filepath}:{func_name}:{line_no}"
                 continue
             else:
                 break
         # Handle stack_info
         if stack_info and str(traceback.format_exc()) != "NoneType: None\n":
-            sinfo = f"Stack Trace: {stack_trace[3:]} \n{traceback.format_exc()}"
+            sinfo = f"Stack Trace: {stack_trace[4:]} \n{traceback.format_exc()}"
         elif stack_info:
-            sinfo = f"Stack Trace: {stack_trace[3:]}"
+            sinfo = f"Stack Trace: {stack_trace[4:]}"
         else:
             sinfo = None
 
