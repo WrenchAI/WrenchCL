@@ -9,10 +9,11 @@ from WrenchCL.WrenchLogger import wrench_logger
 
 class ChatGptSuperClass:
 
-    def __init__(self, endpoint=None, key=None):
+    def __init__(self, endpoint=None, key=None. timeout=None):
         self.returned_response = None
         self.response = None
         self.message = None
+        self.timeout = timeout
         self.request_url = endpoint
         self.chat_gpt_key = key
 
@@ -70,6 +71,7 @@ class ChatGptSuperClass:
                 self.request_url,
                 headers=headers,
                 json=json_data,
+                timeout=self.timeout        # can be None, or number of seconds
             )
 
             if response.status_code != 200:
