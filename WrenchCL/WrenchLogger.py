@@ -7,14 +7,10 @@ from typing import Any, Optional
 
 try:
     from colorama import init, Fore as ColoramaFore, Style as ColoramaStyle
-
     colorama_imported = True
 except ImportError:
     colorama_imported = False
     logging.warning("colorama package not found. Colored logging is disabled.")
-
-_srcfile = os.path.normcase(logging._srcfile)
-
 
 class _wrench_logger:
     _instance = None
@@ -107,7 +103,6 @@ class _wrench_logger:
         stack_trace = " --> InternalLogFrames"
         last_level = ""
         # Loop to find the caller
-        import time
         while True:
             filepath, line_no, func_name, sinfo = self.logger.findCaller(stack_info=stack_info,
                                                                          stacklevel=stack_level_index)
