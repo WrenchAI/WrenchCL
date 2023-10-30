@@ -51,7 +51,7 @@ class ChatGptSuperClass:
     def _function_generator(self):
         # This function is meant to be overwritten in a subclass.
         # If no function is meant to be passed make sure to pass self.function as None
-        raise not NotImplementedError
+        raise NotImplementedError
         pass
 
     @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3))
