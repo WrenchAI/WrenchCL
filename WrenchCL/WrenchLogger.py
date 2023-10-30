@@ -29,21 +29,26 @@ class _wrench_logger:
             cls._instance = instance
         return cls._instance
 
-    def __init__(self, level: str = 'INFO', file_name_append_mode: Optional[str] = None) -> None:
+    def __init__(self, level: str = 'INFO', file_logging=False, file_name_append_mode: Optional[str] = None) -> None:
         self.previous_level = None
+        self.file_logging = file_logging
         self.base_format = self._get_base_format()
         self.logging_level = self._set_logging_level(level)
         self.filename = self._set_filename(file_name_append_mode)
-        self.file_handler = self._configure_file_handler()
+        if self.file_logging:
+            self.file_handler = self._configure_file_handler()
         self.console_handler = self._configure_console_handler()
 
         self._initialize_logger()
 
     def release_resources(self) -> None:
         """Releases file handler resources."""
-        if self.file_handler:
-            self.file_handler.close()
-            self.logger.removeHandler(self.file_handler)
+        try:
+            if self.file_handler:
+                self.file_handler.close()
+                self.logger.removeHandler(self.file_handler)
+        except:
+            pass
 
     def setLevel(self, level: str) -> None:
         """
@@ -62,6 +67,14 @@ class _wrench_logger:
         self.logger.setLevel(self.previous_level)
         self.file_handler.setLevel(self.previous_level)
         self.console_handler.setLevel(self.previous_level)
+
+    def set_file_logging(self, file_logging: bool):
+        self.file_logging = file_logging
+        if not self.file_logging:
+            self.release_resources()
+        if self.file_logging:
+            self.file_handler = self._configure_file_handler()
+            self._initialize_logger()
 
     def set_log_file_location(self, new_append_mode: str) -> None:
         """
@@ -89,14 +102,15 @@ class _wrench_logger:
 
     # Main Functional Methods
     def _log(self, level: int, msg: str, stack_info: bool = False) -> None:
-         # Initialize stack_level_index
+        # Initialize stack_level_index
         stack_level_index = 0
         stack_trace = " --> InternalLogFrames"
         last_level = ""
         # Loop to find the caller
         import time
         while True:
-            filepath, line_no, func_name, sinfo = self.logger.findCaller(stack_info=stack_info, stacklevel=stack_level_index)
+            filepath, line_no, func_name, sinfo = self.logger.findCaller(stack_info=stack_info,
+                                                                         stacklevel=stack_level_index)
             if self._is_internal_frame(filepath):
                 stack_level_index += 1
                 continue
@@ -118,11 +132,12 @@ class _wrench_logger:
         # Create and handle the log record
         record = self.logger.makeRecord(
             self.logger.name, level, filepath, line_no,
-            msg, None, None, func_name, sinfo = sinfo
+            msg, None, None, func_name, sinfo=sinfo
         )
         self.logger.handle(record)
 
-    def _log_with_color(self, level: int, text: str, color: Optional[str] = None, stack_info: Optional[bool] = False) -> None:
+    def _log_with_color(self, level: int, text: str, color: Optional[str] = None,
+                        stack_info: Optional[bool] = False) -> None:
         if colorama_imported and color:
             self._handlerFormat(color)
         self._log(level, text, stack_info)
@@ -326,7 +341,8 @@ class _wrench_logger:
         """
         self.logger = logging.getLogger()
         self.logger.setLevel(self.logging_level)
-        self.logger.addHandler(self.file_handler)
+        if self.file_logging:
+            self.logger.addHandler(self.file_handler)
         self.logger.addHandler(self.console_handler)
 
         if colorama_imported:
@@ -334,5 +350,3 @@ class _wrench_logger:
 
 
 wrench_logger = _wrench_logger()
-
-import logging
