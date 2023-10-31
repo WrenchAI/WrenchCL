@@ -29,7 +29,7 @@ else:
 
 setup(
     name='WrenchCL',
-    version='1.2',
+    version='AUTO_BUMP_VERSION',
     author='willem@wrench.ai',
     long_description=long_description,
     long_description_content_type="text/markdown",
