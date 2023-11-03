@@ -19,7 +19,9 @@ def test_singleton_behavior():
 
 
 def test_log_file_creation(logger):
-    assert os.path.exists(logger.filename), "Log file not created"
+    assert not os.path.exists(logger.filename), "Log file not created"
+    logger.set_log_file_location()
+    assert os.path.exists(logger.filename), 'Log file created after turning on file logging'
 
 
 def test_setLevel(logger):

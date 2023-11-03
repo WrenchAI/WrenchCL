@@ -33,18 +33,18 @@ class _wrench_logger:
         self.filename = self._set_filename(file_name_append_mode)
         if self.file_logging:
             self.file_handler = self._configure_file_handler()
+        else:
+            self.file_handler = None
         self.console_handler = self._configure_console_handler()
-
+        self.file_handler = None
         self._initialize_logger()
 
     def release_resources(self) -> None:
         """Releases file handler resources."""
-        try:
-            if self.file_handler:
-                self.file_handler.close()
-                self.logger.removeHandler(self.file_handler)
-        except:
-            pass
+        if self.file_handler:
+            self.file_handler.close()
+            self.logger.removeHandler(self.file_handler)
+
 
     def setLevel(self, level: str) -> None:
         """
@@ -56,12 +56,15 @@ class _wrench_logger:
         self.previous_level = self.logger.getEffectiveLevel()
         numeric_level = self._set_logging_level(level)
         self.logger.setLevel(numeric_level)
-        self.file_handler.setLevel(numeric_level)
+        if self.file_handler:
+            self.file_handler.setLevel(numeric_level)
+
         self.console_handler.setLevel(numeric_level)
 
     def revertLoggingLevel(self):
         self.logger.setLevel(self.previous_level)
-        self.file_handler.setLevel(self.previous_level)
+        if self.file_handler:
+            self.file_handler.setLevel(self.previous_level)
         self.console_handler.setLevel(self.previous_level)
 
     def set_file_logging(self, file_logging: bool):
@@ -70,9 +73,9 @@ class _wrench_logger:
             self.release_resources()
         if self.file_logging:
             self.file_handler = self._configure_file_handler()
-            self._initialize_logger()
+        self._initialize_logger()
 
-    def set_log_file_location(self, new_append_mode: str) -> None:
+    def set_log_file_location(self, new_append_mode: Optional[str or None] = None) -> None:
         """
         Change the file append mode, copy content from the old file to the new one,
         and optionally delete the old file.
@@ -80,21 +83,30 @@ class _wrench_logger:
         Parameters:
             new_append_mode (str): The new append mode for the log filename.
         """
-        # Get the old file's name
-        old_filename = self.filename
+        if self.file_logging and new_append_mode is not None:
+            # Get the old file's name
+            old_filename = self.filename
 
-        # Set the new append mode and update the filename
-        self.filename = self._set_filename(new_append_mode)
+            # Set the new append mode and update the filename
+            self.filename = self._set_filename(new_append_mode)
 
-        # Reconfigure file handler to use the new filename
-        self._reconfigure_file_handler()
+            # Reconfigure file handler to use the new filename
+            self._reconfigure_file_handler()
 
-        # Copy the content of the old file to the new one
-        with open(old_filename, 'r') as old_file, open(self.filename, 'a') as new_file:
-            new_file.write(old_file.read())
+            # Copy the content of the old file to the new one
+            with open(old_filename, 'r') as old_file, open(self.filename, 'a') as new_file:
+                new_file.write(old_file.read())
 
-        # Optionally, delete the old file
-        os.remove(old_filename)
+            # Optionally, delete the old file
+            os.remove(old_filename)
+        elif not self.file_logging:
+            self.set_file_logging(True)
+            # Set the new append mode and update the filename
+            self.filename = self._set_filename(new_append_mode)
+            # Reconfigure file handler to use the new filename
+            self._reconfigure_file_handler()
+        else:
+            pass
 
     # Main Functional Methods
     def _log(self, level: int, msg: str, stack_info: bool = False) -> None:
@@ -165,12 +177,14 @@ class _wrench_logger:
             newline (bool, optional): Whether to prepend a newline before the header. Default is True.
         """
         header = text
-        self.file_handler.setFormatter(logging.Formatter(f'%(message)s'))
+        if self.file_handler:
+            self.file_handler.setFormatter(logging.Formatter(f'%(message)s'))
         self.console_handler.setFormatter(logging.Formatter(f'%(message)s'))
         if newline:
             logging.info("\n")
         logging.info(header.center(size, "-"))  # Print header centered in 80 characters
-        self.file_handler.setFormatter(self.base_format)
+        if self.file_handler:
+            self.file_handler.setFormatter(self.base_format)
         self._handlerFormat()
 
     def _handlerFormat(self, color: Optional[str] = None) -> None:
@@ -260,7 +274,7 @@ class _wrench_logger:
         return levels[level]
 
     @staticmethod
-    def _set_filename(file_name_append_mode: Optional[str]) -> str:
+    def _set_filename(file_name_append_mode: Optional = None) -> str:
         """
     Generates the log file name based on the provided `file_name_append_mode`.
 
@@ -270,7 +284,8 @@ class _wrench_logger:
     Returns:
         str: The log file name with a directory path.
     """
-
+        if file_name_append_mode is None:
+            file_name_append_mode = 'Python.log'
         def find_project_root(anchor='.git') -> str:
             """Finds the project root by searching for a specified anchor. If not found, returns the current working directory."""
             current_dir = os.path.dirname(os.path.abspath(__file__))
