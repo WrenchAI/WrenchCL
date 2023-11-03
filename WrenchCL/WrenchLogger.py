@@ -20,12 +20,13 @@ class _wrench_logger:
         """
         Implement the Singleton pattern to ensure a single instance per unique combination of `level` and `file_name_append_mode`.
         """
-        if not cls._instance:
-            instance = super(_wrench_logger, cls).__new__(cls)
-            cls._instance = instance
+        if cls._instance is None:
+            cls._instance = super(_wrench_logger, cls).__new__(cls)
         return cls._instance
 
     def __init__(self, level: str = 'INFO', file_logging=False, file_name_append_mode: Optional[str] = None) -> None:
+        if hasattr(self, '_initialized'):  # Check if __init__ has been called before
+            return  # If yes, do nothing
         self.previous_level = None
         self.file_logging = file_logging
         self.base_format = self._get_base_format()
@@ -38,6 +39,7 @@ class _wrench_logger:
         self.console_handler = self._configure_console_handler()
         self.file_handler = None
         self._initialize_logger()
+        self._initialized = True
 
     def release_resources(self) -> None:
         """Releases file handler resources."""

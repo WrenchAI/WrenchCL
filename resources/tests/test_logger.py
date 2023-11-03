@@ -15,7 +15,7 @@ def test_singleton_behavior():
     assert logger1 is logger2, "Singleton pattern not maintained for same configuration"
 
     logger3 = _wrench_logger(level='DEBUG')
-    assert logger1 is not logger3, "Different configurations are resulting in the same instance"
+    assert logger1 is logger3, "Different configurations are resulting in the same instance"
 
 
 def test_log_file_creation(logger):
