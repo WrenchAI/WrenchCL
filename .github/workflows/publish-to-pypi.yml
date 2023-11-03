@@ -1,4 +1,4 @@
-name: Publish Python 🐍 distributions 📦 to PyPI
+name: Test & Publish 🐍 to PyPI 📦
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
 
     # Run pytest
     - name: Run pytest
-      run: pytest .resources/tests/LoggerTest.py
+      run: pytest resources/tests/LoggerTest.py
     # Clear the dist directory to avoid conflicts
     - name: Clear dist directory
       run: rm -rf dist/*
