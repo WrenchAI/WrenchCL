@@ -41,6 +41,16 @@ jobs:
     - name: Run pytest
       run: pytest resources/tests
 
+    # Annotate if all tests pass
+    - name: Annotate successful test completion
+      if: success()
+      run: echo "::notice ::All tests passed! ✔️"
+
+    # Inform about manual workflow dispatch
+    - name: Manual workflow dispatch instruction
+      if: success()
+      run: echo "To publish your package, please invoke the 'build-n-publish' workflow manually."
+
   build-n-publish:
     runs-on: ubuntu-latest
     needs: run-pytest-tests # This ensures build-n-publish only runs if the run-pytest-tests job passes
