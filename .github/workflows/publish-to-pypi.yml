@@ -12,22 +12,29 @@ jobs:
     environment: pypi-deployment
     steps:
     - uses: actions/checkout@v2
+
+    # Fetch all tags
     - name: Fetch all tags
       run: git fetch --tags
+
+    # Setup Python
     - uses: actions/setup-python@v2
       with:
-        python-version: '3.x'
+        python-version: '3.x' # or any specific version
 
     # Install dependencies
     - name: Install dependencies
-      run: pip install pytest
+      run: |
+        pip install -r requirements.txt
+        pip install pytest
 
-    # Run pytest
+    # Install the package in editable mode
+    - name: Install the package in editable mode
+      run: pip install -e .
+
+    # Run pytest across all tests
     - name: Run pytest
-      run: pytest resources/tests/LoggerTest.py
-    # Clear the dist directory to avoid conflicts
-    - name: Clear dist directory
-      run: rm -rf dist/*
+      run: pytest resources/tests
 
     # Auto bump version, push tag, and create a release
     - name: Auto bump version, push tag, and create release
