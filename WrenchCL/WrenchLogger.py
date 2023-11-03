@@ -62,12 +62,14 @@ class _wrench_logger:
             self.file_handler.setLevel(numeric_level)
 
         self.console_handler.setLevel(numeric_level)
+        self.logging_level = numeric_level
 
     def revertLoggingLevel(self):
         self.logger.setLevel(self.previous_level)
         if self.file_handler:
             self.file_handler.setLevel(self.previous_level)
         self.console_handler.setLevel(self.previous_level)
+        self.logging_level = self.previous_level
 
     def set_file_logging(self, file_logging: bool):
         self.file_logging = file_logging
