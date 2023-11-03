@@ -63,6 +63,9 @@ jobs:
       with:
         python-version: '3.9'
 
+    - name: Fetch all tags
+      run: git fetch --tags
+
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
