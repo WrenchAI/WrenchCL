@@ -5,17 +5,17 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      versionIncrement:
+        description: 'Type of version increment: major, minor, patch'
+        required: true
+        default: 'patch'
 
 jobs:
-  build-n-publish:
+  test:
     runs-on: ubuntu-latest
-    environment: pypi-deployment
     steps:
     - uses: actions/checkout@v2
-
-    # Fetch all tags
-    - name: Fetch all tags
-      run: git fetch --tags
 
     # Setup Python
     - uses: actions/setup-python@v2
@@ -36,7 +36,25 @@ jobs:
     - name: Run pytest
       run: pytest resources/tests
 
-    # Auto bump version, push tag, and create a release
+  build-n-publish:
+    runs-on: ubuntu-latest
+    needs: test # This ensures build-n-publish only runs if the test job passes
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    environment: pypi-deployment
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install setuptools wheel
+        pip install -e .
+
+    # Auto bump version, push tag, and create release
     - name: Auto bump version, push tag, and create release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -45,7 +63,28 @@ jobs:
         if [[ -z "$LATEST_TAG" ]]; then
           LATEST_TAG="0.0.0"
         fi
-        NEW_VERSION=$(echo "$LATEST_TAG" | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
+        # Extract and increment version based on input
+        BASE_VERSION=$(echo "$LATEST_TAG" | cut -d 'v' -f 2)
+        MAJOR=$(echo "$BASE_VERSION" | cut -d '.' -f 1)
+        MINOR=$(echo "$BASE_VERSION" | cut -d '.' -f 2)
+        PATCH=$(echo "$BASE_VERSION" | cut -d '.' -f 3)
+        
+        case ${{ github.event.inputs.versionIncrement }} in
+          major)
+            MAJOR=$((MAJOR+1))
+            MINOR=0
+            PATCH=0
+            ;;
+          minor)
+            MINOR=$((MINOR+1))
+            PATCH=0
+            ;;
+          patch)
+            PATCH=$((PATCH+1))
+            ;;
+        esac
+        
+        NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
         sed -i "s/version='.*'/version='$NEW_VERSION'/" setup.py
 
@@ -78,22 +117,25 @@ jobs:
                            -H "Accept: application/vnd.github.v3+json" \
                            https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$TAG \
                            | jq '.id')
-          curl -s -X DELETE \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID
+          if [[ "$RELEASE_ID" != "null" ]]; then
+            curl -s -X DELETE \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID
+          fi
         done
 
     # Echo NEW_VERSION for debugging or later use
     - name: Echo NEW_VERSION
-      run: echo "New Version is $NEW_VERSION"
+      run: echo "New version is ${{ env.NEW_VERSION }}"
 
     # Build the package
-    - run: pip install setuptools wheel
-    - run: python setup.py sdist bdist_wheel
+    - name: Build the package
+      run: python setup.py sdist bdist_wheel
 
     # Publish to PyPI
-    - uses: pypa/gh-action-pypi-publish@release/v1
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
