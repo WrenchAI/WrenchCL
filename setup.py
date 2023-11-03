@@ -29,7 +29,7 @@ else:
 
 setup(
     name='WrenchCL',
-    version='AUTO_BUMP_VERSION',
+    version='0.0.1.dev0',
     author='willem@wrench.ai',
     description='This is a code library designed to improve code re-usability and standardize access to APIs, RDS, and logging functionalities',
     long_description=long_description,
