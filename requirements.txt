@@ -1,6 +1,5 @@
 setuptools
 boto3
-wrenchcl
 colorama
 pandas
 requests
