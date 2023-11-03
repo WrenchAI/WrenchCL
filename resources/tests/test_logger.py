@@ -22,12 +22,14 @@ def test_log_file_creation(logger):
     assert not os.path.exists(logger.filename), "Log file not created"
     logger.set_log_file_location()
     assert os.path.exists(logger.filename), 'Log file created after turning on file logging'
-
+    logger.release_resources()
+    os.remove(logger.filename)
 
 def test_setLevel(logger):
     logger.setLevel('DEBUG')
     assert logger.logging_level == logging.DEBUG, "setLevel() did not update the logger level correctly"
-
+    logger.revertLoggingLevel()
+    assert logger.logging_level == logging.INFO, "Logging level not successfully reverted"
 
 def test_info_log(logger, caplog):
     with caplog.at_level(logging.INFO):
@@ -64,7 +66,8 @@ def test_log_header(logger, caplog):
         assert "Test Header".center(80, "-") in caplog.text
 
 
-def test_invalid_logging_level():
+def test_invalid_logging_level(logger):
+    delattr(logger, '_initialized') #circumvent singleton behaviour
     with pytest.raises(ValueError, match="Invalid logging level"):
         _wrench_logger(level='INVALID_LEVEL')
 
