@@ -15,10 +15,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout
 
     # Setup Python
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python
       with:
         python-version: '3.9' # or any specific version
 
@@ -35,6 +35,13 @@ jobs:
     # Run pytest across all tests
     - name: Run pytest
       run: pytest resources/tests
+
+    - name: Annotate pytest failures
+      if: failure() # Only run if the previous step failed
+      uses: yuzutech/annotations-action
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        annotations: ${{ steps.pytest.outputs.annotations }}
 
   build-n-publish:
     runs-on: ubuntu-latest
