@@ -35,5 +35,6 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(),
-    install_requires=required
+    install_requires=required,
+    python_requires='>=3.9',
 )
