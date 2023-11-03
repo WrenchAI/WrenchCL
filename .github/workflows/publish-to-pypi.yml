@@ -18,6 +18,13 @@ jobs:
       with:
         python-version: '3.x'
 
+    # Install dependencies
+    - name: Install dependencies
+      run: pip install pytest
+
+    # Run pytest
+    - name: Run pytest
+      run: pytest .resources/tests/LoggerTest.py
     # Clear the dist directory to avoid conflicts
     - name: Clear dist directory
       run: rm -rf dist/*
