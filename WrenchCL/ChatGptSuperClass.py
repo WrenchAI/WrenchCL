@@ -9,10 +9,12 @@ from WrenchCL.WrenchLogger import wrench_logger
 
 class ChatGptSuperClass:
 
-    def __init__(self, endpoint=None, key=None):
+    def __init__(self, endpoint=None, key=None. timeout=None):
         self.returned_response = None
         self.response = None
+        self.status_code = None    # status code from post()
         self.message = None
+        self.timeout = timeout
         self.request_url = endpoint
         self.chat_gpt_key = key
 
@@ -70,8 +72,12 @@ class ChatGptSuperClass:
                 self.request_url,
                 headers=headers,
                 json=json_data,
+                timeout=self.timeout        # can be None, or number of seconds
             )
 
+            # save status code.  Needed to sub-class tro detect errors
+            self.status_code = response.status_code
+            
             if response.status_code != 200:
                 wrench_logger.debug(response.text)
                 raise ConnectionError(f'ConnectionError: Invalid status code received = {response.status_code}')
