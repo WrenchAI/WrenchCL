@@ -44,6 +44,15 @@ jobs:
     - name: Install plugin
       run: pip install pytest-github-actions-annotate-failures
 
+    - name: Set and export environment variables
+      run: |
+        export DD_CIVISIBILITY_AGENTLESS_ENABLED=${{ env.DD_CIVISIBILITY_AGENTLESS_ENABLED }}
+        export DD_API_KEY=${{ secrets.DD_API_KEY }}
+        export DD_SITE=${{ env.DD_SITE }}
+        export DD_SERVICE=${{ env.DD_SERVICE }}
+        export DD_ENV=${{ env.DD_ENV }}
+        printenv  # Optional: to verify the environment variables
+
     # Run pytest across all tests
     - name: Run pytest
       run: pytest --ddtrace
