@@ -10,6 +10,7 @@ from WrenchCL.WrenchLogger import wrench_logger
 class ChatGptSuperClass:
 
     def __init__(self, endpoint=None, key=None):
+        self.function = None
         self.returned_response = None
         self.response = None
         self.message = None
@@ -58,7 +59,7 @@ class ChatGptSuperClass:
     def chat_completion_request(self):
         headers = {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + openai.api_key,
+            "Authorization": "Bearer " + str(openai.api_key),
         }
         json_data = {"model": "gpt-4", "messages": self.message}
         if self.function is not None:
@@ -71,7 +72,6 @@ class ChatGptSuperClass:
                 headers=headers,
                 json=json_data,
             )
-
             if response.status_code != 200:
                 wrench_logger.debug(response.text)
                 raise ConnectionError(f'ConnectionError: Invalid status code received = {response.status_code}')
@@ -79,4 +79,4 @@ class ChatGptSuperClass:
                 wrench_logger.debug("ChatGPT response successfully received")
                 return response
         except Exception as e:
-            wrench_logger.debug(f"Error while generating response | {e}")
+            wrench_logger.error(f"Error while generating response | {e}")
