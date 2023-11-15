@@ -14,6 +14,7 @@ on:
 jobs:
   run-pytest-tests:
     runs-on: ubuntu-latest
+    environment: pypi-deployment
     env:
       DD_CIVISIBILITY_AGENTLESS_ENABLED: true
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
