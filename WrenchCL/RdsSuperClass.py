@@ -91,15 +91,36 @@ class RDS:
             self.ssh_manager.stop_tunnel()
             wrench_logger.debug("SSH tunnel closed automatically via __exit__.")
 
-    def execute_query(self, query, output='raw', method='fetchall'):
+    def batch_add_query(self, query, parameters=None):
+        cursor = self.connection.cursor()
+        if parameters is None:
+            cursor.execute(query)
+        else:
+            cursor.execute(query, parameters)
+
+    def batch_execute_query(self):
+        start_time = time.time()
+        try:
+            self.connection.commit()
+            minutes, seconds = divmod(time.time() - start_time, 60)
+            wrench_logger.info(f"Query executed successfully, Query execution time: {int(minutes):02}:{seconds:05.2f}")
+        except Exception as e:
+            wrench_logger.error(f"Failed to execute query: {e}")
+            return 'ERROR'
+
+    def execute_query(self, query, output='raw', method='fetchall', parameters=None):
         if not self.connection:
             wrench_logger.error("Database connection is not established. Cannot execute query.")
             return None
 
         cursor = self.connection.cursor()
+
         try:
             start_time = time.time()
-            cursor.execute(query)
+            if parameters is None:
+                cursor.execute(query)
+            else:
+                cursor.execute(query, parameters)
             self.connection.commit()
             minutes, seconds = divmod(time.time() - start_time, 60)
             wrench_logger.info(
