@@ -41,9 +41,11 @@ jobs:
     # Run pytest across all tests
     - name: Run pytest
       run: |
-        DD_CIVISIBILITY_AGENTLESS_ENABLED=true
-        DD_API_KEY=6fe5a8099dda2f7fb5375677252cc70d
-        DD_SITE='us5.datadoghq.com'
+        export DD_SITE=${{ env.DD_SITE }}
+        export DD_CIVISIBILITY_AGENTLESS_ENABLED=${{ env.DD_CIVISIBILITY_AGENTLESS_ENABLED }}
+        export DD_API_KEY=${{ secrets.DD_API_KEY }}
+        export DD_ENV=ci
+        export DD_SERVICE=wrenchcl
         DD_ENV=ci DD_SERVICE=wrenchcl pytest --ddtrace resources/tests
 
     # Annotate if all tests pass
