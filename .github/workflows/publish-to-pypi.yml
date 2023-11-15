@@ -48,6 +48,9 @@ jobs:
         export DD_SERVICE=wrenchcl
         DD_ENV=ci DD_SERVICE=wrenchcl pytest --ddtrace resources/tests
 
+    - name: Print environment variables
+      run: printenv
+
     # Annotate if all tests pass
     - name: Annotate successful test completion
       if: success()
