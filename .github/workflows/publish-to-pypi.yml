@@ -19,7 +19,7 @@ jobs:
       DD_CIVISIBILITY_AGENTLESS_ENABLED: true
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
       DD_SITE: 'us5.datadoghq.com'
-      DD_SERVICE: 'my-python-app'
+      DD_SERVICE: 'wrenchcl'
       DD_ENV: 'ci'
     steps:
     - uses: actions/checkout@v4
