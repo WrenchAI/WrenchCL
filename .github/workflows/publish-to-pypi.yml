@@ -42,11 +42,15 @@ jobs:
     - name: Run pytest
       run: |
         export DD_SITE=${{ env.DD_SITE }}
+        echo DD_SITE
         export DD_CIVISIBILITY_AGENTLESS_ENABLED=${{ env.DD_CIVISIBILITY_AGENTLESS_ENABLED }}
+        echo DD_CIVISIBILITY_AGENTLESS_ENABLED
         export DD_API_KEY=${{ secrets.DD_API_KEY }}
+        echo DD_API_KEY
         export DD_ENV=ci
-        export DD_SERVICE=wrenchcl
-        DD_ENV=ci DD_SERVICE=wrenchcl pytest --ddtrace resources/tests
+        echo DD_ENV
+        export DD_SERVICE=wrenchcl pytest --ddtrace resources/tests
+        echo DD_SERVICE
 
     - name: Print environment variables
       run: printenv
