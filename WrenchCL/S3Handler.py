@@ -77,7 +77,7 @@ class S3Handler:
         """
         try:
             self.s3_client.upload_file(file_path, bucket_name, s3_path)
-            wrench_logger.debug(f'File {file_path} uploaded to {s3_path} in bucket {bucket_name}.')
+            wrench_logger.info(f'File {file_path} uploaded to {s3_path} in bucket {bucket_name}.')
             return True
         except Exception as e:
             wrench_logger.error(f'Failed to upload file {file_path} to {s3_path} in bucket {bucket_name}: {e}')
@@ -96,7 +96,7 @@ class S3Handler:
         """
         try:
             self.s3_client.delete_object(Bucket=bucket_name, Key=s3_path)
-            wrench_logger.debug(f'File {s3_path} deleted from bucket {bucket_name}.')
+            wrench_logger.info(f'File {s3_path} deleted from bucket {bucket_name}.')
             return True
         except Exception as e:
             wrench_logger.error(f'Failed to delete file {s3_path} from bucket {bucket_name}: {e}')
