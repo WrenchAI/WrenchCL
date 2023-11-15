@@ -14,6 +14,12 @@ on:
 jobs:
   run-pytest-tests:
     runs-on: ubuntu-latest
+    env:
+      DD_CIVISIBILITY_AGENTLESS_ENABLED: true
+      DD_API_KEY: ${{ secrets.DD_API_KEY }}
+      DD_SITE: 'us5.datadoghq.com'
+      DD_SERVICE: 'my-python-app'
+      DD_ENV: 'ci'
     steps:
     - uses: actions/checkout@v4
 
@@ -40,20 +46,7 @@ jobs:
 
     # Run pytest across all tests
     - name: Run pytest
-      run: |
-        DD_SITE='us5.datadoghq.com'
-        DD_CIVISIBILITY_AGENTLESS_ENABLED=true
-        DD_API_KEY='6fe5a8099dda2f7fb5375677252cc70d'
-        DD_ENV=ci
-        DD_SERVICE=wrenchcl 
-        
-        echo 1, $DD_SITE
-        echo 2, $DD_CIVISIBILITY_AGENTLESS_ENABLED
-        echo 3, $DD_API_KEY
-        echo 4, $DD_ENV
-        echo 5, $DD_SERVICE
-        
-        pytest --ddtrace resources/tests
+      run: pytest --ddtrace
 
     # Annotate if all tests pass
     - name: Annotate successful test completion
