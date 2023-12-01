@@ -132,7 +132,7 @@ class RDS:
                 self.column_names = [desc[0] for desc in cursor.description]
                 if method.lower() == 'fetchall':
                     self.result = cursor.fetchall()
-                    wrench_logger.debug(f"FetchedAll result = {self.result}")
+                    wrench_logger.debug(f"FetchedAll result length = {len(self.result)}")
                 elif method.lower() == 'fetchone':
                     self.result = cursor.fetchone()
                     wrench_logger.debug(f"FetchedOne result = {self.result}")
