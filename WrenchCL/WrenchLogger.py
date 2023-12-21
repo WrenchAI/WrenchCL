@@ -31,11 +31,12 @@ class _wrench_logger:
         self.file_logging = file_logging
         self.base_format = self._get_base_format()
         self.logging_level = self._set_logging_level(level)
-        self.filename = self._set_filename(file_name_append_mode)
         if self.file_logging:
+            self.filename = self._set_filename(file_name_append_mode)
             self.file_handler = self._configure_file_handler()
         else:
             self.file_handler = None
+            self.filename = None
         self.console_handler = self._configure_console_handler()
         self.file_handler = None
         self._initialize_logger()
@@ -98,16 +99,20 @@ class _wrench_logger:
             self._reconfigure_file_handler()
 
             # Copy the content of the old file to the new one
-            with open(old_filename, 'r') as old_file, open(self.filename, 'a') as new_file:
-                new_file.write(old_file.read())
+            if old_filename is not None:
+                with open(old_filename, 'r') as old_file, open(self.filename, 'a') as new_file:
+                    new_file.write(old_file.read())
 
             # Optionally, delete the old file
             os.remove(old_filename)
         elif not self.file_logging:
-            self.set_file_logging(True)
             # Set the new append mode and update the filename
+            self.set_file_logging(True)
             self.filename = self._set_filename(new_append_mode)
-            # Reconfigure file handler to use the new filename
+            if not os.path.exists(self.filename):
+                # Create an empty file
+                with open(self.filename, 'w') as file:
+                    pass
             self._reconfigure_file_handler()
         else:
             pass
@@ -279,6 +284,7 @@ class _wrench_logger:
 
     @staticmethod
     def _set_filename(file_name_append_mode: Optional = None) -> str:
+        print("here")
         """
     Generates the log file name based on the provided `file_name_append_mode`.
 
@@ -299,12 +305,17 @@ class _wrench_logger:
 
         root_folder = find_project_root()
         log_dir = os.path.join(root_folder, 'resources', 'logs')
-
+        print(log_dir, os.path.exists(log_dir))
         if not os.path.exists(log_dir):
             try:
                 os.makedirs(log_dir)
+                print("mkdirs ran")
+            except Exception as e:
+                raise e
             except PermissionError:
                 log_dir = os.getcwd()  # If creation of the log directory fails, use the current working directory
+            except OSError:
+                log_dir = os.getcwd()
 
         if file_name_append_mode:
             log_file_name = os.path.abspath(file_name_append_mode)
@@ -328,10 +339,14 @@ class _wrench_logger:
             PermissionError, FileNotFoundError: If an error occurs while setting up the file handler.
         """
         try:
-            handler = logging.FileHandler(self.filename, encoding='utf-8')
-            handler.setLevel(self.logging_level)
-            handler.setFormatter(self.base_format)
-            return handler
+            if self.filename is not None:
+                handler = logging.FileHandler(self.filename, encoding='utf-8')
+                handler.setLevel(self.logging_level)
+                handler.setFormatter(self.base_format)
+                return handler
+            else:
+                logging.warning("Attempted filehandler creation while filename is set to None")
+                return None
         except (PermissionError, FileNotFoundError) as e:
             logging.error(f"Error setting up file handler: {e}")
             return None
