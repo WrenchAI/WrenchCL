@@ -288,8 +288,6 @@ class _wrench_logger:
     Returns:
         str: The log file name with a directory path.
     """
-        if file_name_append_mode is None:
-            file_name_append_mode = 'Python.log'
         def find_project_root(anchor='.git') -> str:
             """Finds the project root by searching for a specified anchor. If not found, returns the current working directory."""
             current_dir = os.path.dirname(os.path.abspath(__file__))
