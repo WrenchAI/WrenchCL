@@ -8,8 +8,8 @@ from WrenchCL.WrenchLogger import _wrench_logger
 
 @pytest.fixture
 def logger():
-    return _wrench_logger(level='DEBUG')
-
+    log_instance = _wrench_logger(level='INFO')
+    yield log_instance
 
 def test_singleton_behavior():
     logger1 = _wrench_logger(level='INFO')
@@ -19,23 +19,27 @@ def test_singleton_behavior():
     logger3 = _wrench_logger(level='DEBUG')
     assert logger1 is logger3, "Different configurations are resulting in the same instance"
 
-
 def test_log_file_creation(logger):
-    # Before calling set_log_file_location
     assert logger.filename is None, "Log file not created"
     logger.set_log_file_location()
-    # After calling set_log_file_location
-    assert os.path.exists(logger.filename), f'Log file created after turning on file logging {logger.filename}'
-    # Clean up if necessary
+    assert os.path.exists(logger.filename), 'Log file created after turning on file logging'
     logger.release_resources()
-    if os.path.exists(logger.filename):
+
+    try:
         os.remove(logger.filename)
+        if str(os.path.dirname(logger.filename)).split("\\")[-1].lower() == 'logs':
+            os.rmdir(os.path.dirname(logger.filename))
+            print("removed logs folder")
+    except:
+        pass
+
 
 def test_setLevel(logger):
     logger.setLevel('DEBUG')
     assert logger.logging_level == logging.DEBUG, "setLevel() did not update the logger level correctly"
     logger.revertLoggingLevel()
     assert logger.logging_level == logging.INFO, "Logging level not successfully reverted"
+
 
 def test_info_log(logger, caplog):
     with caplog.at_level(logging.INFO):
@@ -66,6 +70,7 @@ def test_debug_log(logger, caplog):
         logger.debug("Test debug message.")
         assert "Test debug message." in caplog.text
 
+
 def test_log_header(logger, caplog):
     with caplog.at_level(logging.INFO):
         logger.header("Test Header")
@@ -73,13 +78,13 @@ def test_log_header(logger, caplog):
 
 
 def test_invalid_logging_level(logger):
-    delattr(logger, '_initialized') #circumvent singleton behaviour
+    delattr(logger, '_initialized')  # circumvent singleton behaviour
     with pytest.raises(ValueError, match="Invalid logging level"):
         _wrench_logger(level='INVALID_LEVEL')
 
 
 
 
+
 if __name__ == "__main__":
     pytest.main([__file__])
-

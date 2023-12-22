@@ -38,7 +38,6 @@ class _wrench_logger:
             self.file_handler = None
             self.filename = None
         self.console_handler = self._configure_console_handler()
-        self.file_handler = None
         self._initialize_logger()
         self._initialized = True
 
@@ -47,7 +46,6 @@ class _wrench_logger:
         if self.file_handler:
             self.file_handler.close()
             self.logger.removeHandler(self.file_handler)
-
 
     def setLevel(self, level: str) -> None:
         """
@@ -106,9 +104,10 @@ class _wrench_logger:
             # Optionally, delete the old file
             os.remove(old_filename)
         elif not self.file_logging:
-            # Set the new append mode and update the filename
             self.set_file_logging(True)
+            # Set the new append mode and update the filename
             self.filename = self._set_filename(new_append_mode)
+            # Reconfigure file handler to use the new filename
             self._reconfigure_file_handler()
         else:
             pass
@@ -205,7 +204,6 @@ class _wrench_logger:
                 white_col = ColoramaFore.LIGHTWHITE_EX
                 format_str = f"{color}%(levelname)-8s: %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | {white_col}%(message)s{reset_var}"
             else:
-                print("Hex Environment Detected Changing Color")
                 reset_var = ColoramaStyle.RESET_ALL
                 white_col = ColoramaFore.RESET
                 format_str = f"{color}%(levelname)-8s: %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s |{reset_var} \x1b[38;20m %(message)s \x1b[0m"
@@ -225,7 +223,8 @@ class _wrench_logger:
 
         # Configure the new file handler with the updated filename
         self.file_handler = self._configure_file_handler()
-        self.logger.addHandler(self.file_handler)
+        if self.file_handler:
+            self.logger.addHandler(self.file_handler)
 
     # Supplementary Methods
     def header(self, text: str, size: int = 80, newline: bool = True) -> None:
@@ -332,13 +331,12 @@ class _wrench_logger:
             PermissionError, FileNotFoundError: If an error occurs while setting up the file handler.
         """
         try:
-            if self.filename is not None:
+            if self.filename:
                 handler = logging.FileHandler(self.filename, encoding='utf-8')
                 handler.setLevel(self.logging_level)
                 handler.setFormatter(self.base_format)
                 return handler
             else:
-                logging.warning("Attempted filehandler creation while filename is set to None")
                 return None
         except (PermissionError, FileNotFoundError) as e:
             logging.error(f"Error setting up file handler: {e}")
@@ -356,15 +354,17 @@ class _wrench_logger:
         return handler
 
     def _initialize_logger(self) -> None:
+
         """
         Initializes the logger with file and console handlers, and sets the logging level.
         """
         self.logger = logging.getLogger()
-        self.logger.setLevel(self.logging_level)
-        if self.file_logging:
-            self.logger.addHandler(self.file_handler)
-        self.logger.addHandler(self.console_handler)
 
+        self.logger.setLevel(self.logging_level)
+        if self.file_logging is True and self.file_handler:
+            self.logger.addHandler(self.file_handler)
+
+        self.logger.addHandler(self.console_handler)
         if colorama_imported:
             init()
 
