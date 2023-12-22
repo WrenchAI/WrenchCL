@@ -109,10 +109,6 @@ class _wrench_logger:
             # Set the new append mode and update the filename
             self.set_file_logging(True)
             self.filename = self._set_filename(new_append_mode)
-            if not os.path.exists(self.filename):
-                # Create an empty file
-                with open(self.filename, 'w') as file:
-                    pass
             self._reconfigure_file_handler()
         else:
             pass
@@ -284,7 +280,6 @@ class _wrench_logger:
 
     @staticmethod
     def _set_filename(file_name_append_mode: Optional = None) -> str:
-        print("here")
         """
     Generates the log file name based on the provided `file_name_append_mode`.
 
@@ -305,17 +300,15 @@ class _wrench_logger:
 
         root_folder = find_project_root()
         log_dir = os.path.join(root_folder, 'resources', 'logs')
-        print(log_dir, os.path.exists(log_dir))
         if not os.path.exists(log_dir):
             try:
                 os.makedirs(log_dir)
-                print("mkdirs ran")
-            except Exception as e:
-                raise e
             except PermissionError:
                 log_dir = os.getcwd()  # If creation of the log directory fails, use the current working directory
             except OSError:
                 log_dir = os.getcwd()
+            except Exception as e:
+                raise e
 
         if file_name_append_mode:
             log_file_name = os.path.abspath(file_name_append_mode)

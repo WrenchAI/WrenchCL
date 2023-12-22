@@ -21,21 +21,15 @@ def test_singleton_behavior():
 
 
 def test_log_file_creation(logger):
-    with patch('WrenchCL.WrenchLogger.os.makedirs') as mock_mkdir:
-        # Before calling set_log_file_location
-        assert not mock_mkdir.called, "os.mkdirs should not be called before set_log_file_location"
-        assert logger.filename is None, "Log file not created"
-        # Call set_log_file_location
-        print(logger.filename)
-        logger.set_log_file_location()
-        print(logger.filename)
-        # After calling set_log_file_location
-        #assert mock_mkdir.called, "os.mkdirs should be called after set_log_file_location"
-        assert os.path.exists(logger.filename), f'Log file created after turning on file logging {logger.filename}'
-        # Clean up if necessary
-        logger.release_resources()
-        if os.path.exists(logger.filename):
-            os.remove(logger.filename)
+    # Before calling set_log_file_location
+    assert logger.filename is None, "Log file not created"
+    logger.set_log_file_location()
+    # After calling set_log_file_location
+    assert os.path.exists(logger.filename), f'Log file created after turning on file logging {logger.filename}'
+    # Clean up if necessary
+    logger.release_resources()
+    if os.path.exists(logger.filename):
+        os.remove(logger.filename)
 
 def test_setLevel(logger):
     logger.setLevel('DEBUG')
