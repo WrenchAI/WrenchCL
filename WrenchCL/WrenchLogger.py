@@ -100,9 +100,8 @@ class _wrench_logger:
             if old_filename is not None:
                 with open(old_filename, 'r') as old_file, open(self.filename, 'a') as new_file:
                     new_file.write(old_file.read())
-
-            # Optionally, delete the old file
-            os.remove(old_filename)
+                # Optionally, delete the old file
+                os.remove(old_filename)
         elif not self.file_logging:
             self.set_file_logging(True)
             # Set the new append mode and update the filename
