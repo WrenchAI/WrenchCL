@@ -157,6 +157,10 @@ class _wrench_logger:
     def info(self, text: str, stack_info: Optional[bool] = False) -> None:
         self._log_with_color(logging.INFO, text, ColoramaFore.LIGHTGREEN_EX if colorama_imported else None, stack_info)
 
+    def context(self, text: str, stack_info: Optional[bool] = False) -> None:
+        self._log_with_color(logging.INFO, text, ColoramaFore.MAGENTA if colorama_imported else None, stack_info)
+
+
     def warning(self, text: str, stack_info: Optional[bool] = False) -> None:
         self._log_with_color(logging.WARNING, text, ColoramaFore.YELLOW if colorama_imported else None, stack_info)
 
