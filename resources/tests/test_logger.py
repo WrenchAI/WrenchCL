@@ -46,6 +46,11 @@ def test_info_log(logger, caplog):
         logger.info("Test info message.")
         assert "Test info message." in caplog.text
 
+def test_context_log(logger, caplog):
+    with caplog.at_level(logging.INFO):
+        logger.context("Test context message.")
+        assert "Test context message." in caplog.text
+
 
 def test_warning_log(logger, caplog):
     with caplog.at_level(logging.WARNING):
