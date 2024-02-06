@@ -10,6 +10,7 @@ class CensusEnricher:
         self.zip_info_df = pd.DataFrame()
         wrench_logger.info("ZipCodeEnricher initialized")
 
+
     def __call__(self, df : pd.DataFrame, zip_column='zip', process_info=False):
         if df.empty:
             wrench_logger.error("Empty Dataframe has been passed as an argument")
@@ -58,6 +59,7 @@ class CensusEnricher:
 
     def _prepare_dataframes_for_merge(self, df):
         wrench_logger.info("Preparing dataframes for merge")
+
         if not self.zip_info_df.empty and not df.empty:
             # Check for 'state' and 'county' columns in a case-insensitive manner
             lower_columns = df.columns.str.lower()
@@ -77,6 +79,7 @@ class CensusEnricher:
 
     def _merge_dataframes(self, df, zip_column):
         wrench_logger.info("Merging dataframes")
+
         if not self.zip_info_df.empty and "zipcode" in self.zip_info_df.columns:
             merged_df = pd.merge(df, self.zip_info_df, left_on=zip_column, right_on='zipcode', how='left')
             merged_df.drop('zipcode', axis=1, inplace=True)
