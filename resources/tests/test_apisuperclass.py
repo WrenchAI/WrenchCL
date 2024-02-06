@@ -1,7 +1,7 @@
 import pytest
 import requests
 from unittest.mock import MagicMock
-from WrenchCL import ApiSuperClass  # Replace 'your_module' with the actual module name
+from WrenchCL import ApiSuperClass
 from WrenchCL.ApiSuperClass import MaxRetriesExceededError
 import pandas as pd
 
