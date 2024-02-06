@@ -27,6 +27,7 @@ class _wrench_logger:
     def __init__(self, level: str = 'INFO', file_logging=False, file_name_append_mode: Optional[str] = None) -> None:
         if hasattr(self, '_initialized'):  # Check if __init__ has been called before
             return  # If yes, do nothing
+        self.running_on_lambda = 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
         self.previous_level = None
         self.file_logging = file_logging
         self.base_format = self._get_base_format()
@@ -148,10 +149,10 @@ class _wrench_logger:
 
     def _log_with_color(self, level: int, text: str, color: Optional[str] = None,
                         stack_info: Optional[bool] = False) -> None:
-        if colorama_imported and color:
+        if colorama_imported and color and not self.running_on_lambda:
             self._handlerFormat(color)
         self._log(level, text, stack_info)
-        if colorama_imported:
+        if colorama_imported or self.running_on_lambda:
             self._handlerFormat()
 
     def info(self, text: str, stack_info: Optional[bool] = False) -> None:
@@ -357,18 +358,24 @@ class _wrench_logger:
         return handler
 
     def _initialize_logger(self) -> None:
-
         """
         Initializes the logger with file and console handlers, and sets the logging level.
+        Adjusts initialization based on the running environment.
         """
         self.logger = logging.getLogger()
-
         self.logger.setLevel(self.logging_level)
-        if self.file_logging is True and self.file_handler:
+
+        # Clear existing handlers in the AWS Lambda environment to avoid duplicates
+        if self.running_on_lambda:
+            self.logger.handlers = []  # Clear existing handlers
+
+        if self.file_logging and self.file_handler:
             self.logger.addHandler(self.file_handler)
 
         self.logger.addHandler(self.console_handler)
-        if colorama_imported:
+
+        # Initialize colorama for colorful output if not running on AWS Lambda
+        if colorama_imported and not self.running_on_lambda:
             init()
 
 

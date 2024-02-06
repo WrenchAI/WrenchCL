@@ -11,6 +11,9 @@ class CensusEnricher:
         wrench_logger.info("ZipCodeEnricher initialized")
 
     def __call__(self, df, zip_column='zip', process_info=False):
+        if len(df) == 0:
+            wrench_logger.error("Empty Dataframe has been passed as an argument")
+            raise ValueError
         zip_column = zip_column.lower().strip()
         df.columns = df.columns.str.lower().str.strip()
         enriched_df = self.enrich_with_zip_info(df, zip_column)
