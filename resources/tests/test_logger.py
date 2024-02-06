@@ -1,3 +1,4 @@
+import sys
 from unittest.mock import patch
 
 import pytest
@@ -46,6 +47,11 @@ def test_info_log(logger, caplog):
         logger.info("Test info message.")
         assert "Test info message." in caplog.text
 
+def test_context_log(logger, caplog):
+    with caplog.at_level(logging.INFO):
+        logger.context("Test context message.")
+        assert "Test context message." in caplog.text
+
 
 def test_warning_log(logger, caplog):
     with caplog.at_level(logging.WARNING):
@@ -82,7 +88,32 @@ def test_invalid_logging_level(logger):
     with pytest.raises(ValueError, match="Invalid logging level"):
         _wrench_logger(level='INVALID_LEVEL')
 
+def test_lambda_environment_detection():
+    with patch.dict(os.environ, {'AWS_LAMBDA_FUNCTION_NAME': 'test_lambda_function'}):
+        lambda_logger = _wrench_logger(level='INFO')
+        assert lambda_logger.running_on_lambda, "Failed to detect AWS Lambda environment"
+        # Clean up by removing the logger instance to avoid interference with other tests
+        del lambda_logger
 
+def test_no_double_logging_in_lambda(caplog):
+    # Simulate AWS Lambda's default logging setup by adding a handler to the root logger
+    simulated_lambda_handler = logging.StreamHandler(sys.stdout)
+    logging.getLogger().addHandler(simulated_lambda_handler)
+
+    with patch.dict(os.environ, {'AWS_LAMBDA_FUNCTION_NAME': 'test_lambda_function'}), caplog.at_level(logging.INFO):
+        # Instantiate the logger after modifying the environment to simulate Lambda detection
+        lambda_logger = _wrench_logger(level='INFO')
+
+        lambda_logger.info("Test message for no double logging.")
+
+        # Count occurrences of the log message
+        occurrences = caplog.text.count("Test message for no double logging.")
+        assert occurrences == 1, "Log message should be logged exactly once in AWS Lambda environment"
+
+    # Cleanup: Remove the simulated Lambda handler from the root logger
+    logging.getLogger().removeHandler(simulated_lambda_handler)
+    # Reset the singleton instance to prevent test side effects
+    _wrench_logger._instance = None
 
 
 
