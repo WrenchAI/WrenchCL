@@ -103,7 +103,7 @@ class RDS:
         try:
             self.connection.commit()
             minutes, seconds = divmod(time.time() - start_time, 60)
-            wrench_logger.info(f"Query executed successfully, Query execution time: {int(minutes):02}:{seconds:05.2f}")
+            wrench_logger.context(f"Query executed successfully, Query execution time: {int(minutes):02}:{seconds:05.2f}")
         except Exception as e:
             wrench_logger.error(f"Failed to execute query: {e}")
             return 'ERROR'
@@ -123,7 +123,7 @@ class RDS:
                 cursor.execute(query, parameters)
             self.connection.commit()
             minutes, seconds = divmod(time.time() - start_time, 60)
-            wrench_logger.info(
+            wrench_logger.context(
                 f"Query executed successfully, Query execution time: {int(minutes):02}:{seconds:05.2f}")
             result = None
 
