@@ -10,8 +10,8 @@ class CensusEnricher:
         self.zip_info_df = pd.DataFrame()
         wrench_logger.info("ZipCodeEnricher initialized")
 
-    def __call__(self, df, zip_column='zip', process_info=False):
-        if len(df) == 0:
+    def __call__(self, df : pd.DataFrame, zip_column='zip', process_info=False):
+        if df.empty:
             wrench_logger.error("Empty Dataframe has been passed as an argument")
             raise ValueError
         zip_column = zip_column.lower().strip()
@@ -58,29 +58,34 @@ class CensusEnricher:
 
     def _prepare_dataframes_for_merge(self, df):
         wrench_logger.info("Preparing dataframes for merge")
+        if not self.zip_info_df.empty and not df.empty:
+            # Check for 'state' and 'county' columns in a case-insensitive manner
+            lower_columns = df.columns.str.lower()
+            if 'state' in lower_columns:
+                wrench_logger.info("Dropping existing 'state' column")
+                df.drop('state', axis=1, inplace=True)
+            if 'county' in lower_columns:
+                wrench_logger.info("Dropping existing 'county' column")
+                df.drop('county', axis=1, inplace=True)
 
-        # Check for 'state' and 'county' columns in a case-insensitive manner
-        lower_columns = df.columns.str.lower()
-        if 'state' in lower_columns:
-            wrench_logger.info("Dropping existing 'state' column")
-            df.drop('state', axis=1, inplace=True)
-        if 'county' in lower_columns:
-            wrench_logger.info("Dropping existing 'county' column")
-            df.drop('county', axis=1, inplace=True)
-
-        df['zip'] = pd.to_numeric(df['zip'], errors='coerce').astype('Int64')
-        self.zip_info_df = self.zip_info_df[pd.to_numeric(self.zip_info_df['zipcode'], errors='coerce').notna()]
-        self.zip_info_df['zipcode'] = self.zip_info_df['zipcode'].astype('Int64')
+            df['zip'] = pd.to_numeric(df['zip'], errors='coerce').astype('Int64')
+            self.zip_info_df = self.zip_info_df[pd.to_numeric(self.zip_info_df['zipcode'], errors='coerce').notna()]
+            self.zip_info_df['zipcode'] = self.zip_info_df['zipcode'].astype('Int64')
+        else:
+            self.zip_info_df = df
 
 
     def _merge_dataframes(self, df, zip_column):
         wrench_logger.info("Merging dataframes")
-        merged_df = pd.merge(df, self.zip_info_df, left_on=zip_column, right_on='zipcode', how='left')
-        # Remove one of the duplicate zip columns
-        merged_df.drop('zipcode', axis=1, inplace=True)
-        merged_df = merged_df.replace({pd.NA: None})
-        self._prepend_columns(merged_df)
-        return merged_df
+        if not self.zip_info_df.empty and "zipcode" in self.zip_info_df.columns:
+            merged_df = pd.merge(df, self.zip_info_df, left_on=zip_column, right_on='zipcode', how='left')
+            merged_df.drop('zipcode', axis=1, inplace=True)
+            merged_df = merged_df.replace({pd.NA: None})
+            self._prepend_columns(merged_df)
+            return merged_df
+        else:
+            merged_df = df
+            return merged_df
 
     def _prepend_columns(self, df):
         wrench_logger.info("Prepending 'census_' to zip enriched columns")
@@ -89,26 +94,29 @@ class CensusEnricher:
 
     def process_zip_info(self):
         # Remove specified columns
-        columns_to_remove = ['zipcode_type', 'post_office_city', 'common_city_list',
-                             'timezone', 'area_code_list', 'radius_in_miles',
-                             'bounds_west', 'bounds_east', 'bounds_north', 'bounds_south']
-        self.zip_info_df.drop(columns=columns_to_remove, inplace=True, errors='ignore')
+        if not self.zip_info_df.empty:
+            columns_to_remove = ['zipcode_type', 'post_office_city', 'common_city_list',
+                                 'timezone', 'area_code_list', 'radius_in_miles',
+                                 'bounds_west', 'bounds_east', 'bounds_north', 'bounds_south']
+            self.zip_info_df.drop(columns=columns_to_remove, inplace=True, errors='ignore')
 
-        # Calculate housing density
-        self.zip_info_df['housing_density'] = self.zip_info_df['housing_units'] / self.zip_info_df['land_area_in_sqmi']
+            # Calculate housing density
+            self.zip_info_df['housing_density'] = self.zip_info_df['housing_units'] / self.zip_info_df['land_area_in_sqmi']
 
-        # Calculate family size
-        self.zip_info_df['family_size'] = self.zip_info_df['population'] / self.zip_info_df['occupied_housing_units']
+            # Calculate family size
+            self.zip_info_df['family_size'] = self.zip_info_df['population'] / self.zip_info_df['occupied_housing_units']
 
-        # Calculate the percentage of housing value covered by median household income
-        self.zip_info_df['percent_home_value_covered_by_income'] = (self.zip_info_df['median_household_income'] / self.zip_info_df['median_home_value']) * 100
+            # Calculate the percentage of housing value covered by median household income
+            self.zip_info_df['percent_home_value_covered_by_income'] = (self.zip_info_df['median_household_income'] / self.zip_info_df['median_home_value']) * 100
 
-        # Calculate income per family member
-        self.zip_info_df['income_per_family_member'] = self.zip_info_df['median_household_income'] / self.zip_info_df['family_size']
+            # Calculate income per family member
+            self.zip_info_df['income_per_family_member'] = self.zip_info_df['median_household_income'] / self.zip_info_df['family_size']
 
-        # Handle potential divisions by zero
-        self.zip_info_df.replace([np.inf, -np.inf], np.nan, inplace=True)
-        self.zip_info_df.fillna(0, inplace=True)
+            # Handle potential divisions by zero
+            self.zip_info_df.replace([np.inf, -np.inf], np.nan, inplace=True)
+            self.zip_info_df.fillna(0, inplace=True)
+        else:
+            wrench_logger.error(f"Empty Dataframe returned selected zip column did not contain any zip codes. (Default zip column = Zip or zip)")
 
 # Example usage
 # Assuming 'result_df' is your DataFrame

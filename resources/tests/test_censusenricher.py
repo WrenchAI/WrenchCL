@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from uszipcode import SearchEngine
-
+import pandas.testing as pdt
 from WrenchCL import CensusEnricher  # replace 'your_module' with the actual module name
 
 @pytest.fixture
@@ -57,14 +57,12 @@ def test_missing_zip_column(census_enricher):
         census_enricher.enrich_with_zip_info(df_no_zip)
 
 def test_non_numeric_zip(census_enricher):
-    non_numeric_df = pd.DataFrame({'zip': ['abc', 'xyz'], 'other_column': [1, 2]})
+    non_numeric_df = pd.DataFrame({'zip': [7834920, 'xyz'], 'other_column': [1, 2]})
     enriched_df = census_enricher.enrich_with_zip_info(non_numeric_df)
-    # Assuming the enrichment adds specific columns related to zip information
-    # Replace 'enriched_column' with the actual column name(s) you expect to be enriched
-    assert all(enriched_df[enriched_df['zip'].isin(['abc', 'xyz'])]['enriched_column'].isna())
+    pdt.assert_frame_equal(enriched_df, non_numeric_df, check_dtype=False)
 
 def test_incorrect_data_type(census_enricher, sample_dataframe):
-    incorrect_df = pd.DataFrame({'zip': ['not a number', '12345'], 'other_column': [1, 2]})
+    incorrect_df = pd.DataFrame({'zip': ['not a number', True], 'other_column': [1, 2]})
     enriched_df = census_enricher.enrich_with_zip_info(incorrect_df)
-    assert all(enriched_df[enriched_df['zip'] == 'not a number']['enriched_column'].isna())
+    pdt.assert_frame_equal(enriched_df, incorrect_df, check_dtype=False)
 
