@@ -1,16 +1,21 @@
 import logging
 import os
+import random
+import string
 import sys
+import time
 from datetime import datetime
 import traceback
 from typing import Any, Optional
 
 try:
     from colorama import init, Fore as ColoramaFore, Style as ColoramaStyle
+
     colorama_imported = True
 except ImportError:
     colorama_imported = False
     logging.warning("colorama package not found. Colored logging is disabled.")
+
 
 class _wrench_logger:
     _instance = None
@@ -27,6 +32,8 @@ class _wrench_logger:
     def __init__(self, level: str = 'INFO', file_logging=False, file_name_append_mode: Optional[str] = None) -> None:
         if hasattr(self, '_initialized'):  # Check if __init__ has been called before
             return  # If yes, do nothing
+
+        self.run_id = self._generate_run_id()
         self.running_on_lambda = 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
         self.previous_level = None
         self.file_logging = file_logging
@@ -41,6 +48,27 @@ class _wrench_logger:
         self.console_handler = self._configure_console_handler()
         self._initialize_logger()
         self._initialized = True
+
+    @staticmethod
+    def _generate_run_id():
+        # Current date in YYMMDD format
+        date_seed = datetime.now().strftime("%y%m%d")  # 6 characters
+        random.seed(date_seed)
+        random_part_1 = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        # Use current minute and second as seeds for the random part
+
+
+         # Combine minute and second for the seed
+
+        # Generate a 4-character string seeded with minute and second information
+        now = datetime.now()
+        minute_second_seed = now.minute * 100 + now.second
+        random.seed(minute_second_seed)
+        random_part_2 = ''.join(random.choices(string.digits, k=4))
+
+        return f"R-{random_part_1}-{random_part_2}"
+
+
 
     def release_resources(self) -> None:
         """Releases file handler resources."""
@@ -161,7 +189,6 @@ class _wrench_logger:
     def context(self, text: str, stack_info: Optional[bool] = False) -> None:
         self._log_with_color(logging.INFO, text, ColoramaFore.MAGENTA if colorama_imported else None, stack_info)
 
-
     def warning(self, text: str, stack_info: Optional[bool] = False) -> None:
         self._log_with_color(logging.WARNING, text, ColoramaFore.YELLOW if colorama_imported else None, stack_info)
 
@@ -206,13 +233,13 @@ class _wrench_logger:
             if 'hex_color_palette' not in locals():
                 reset_var = ColoramaStyle.RESET_ALL
                 white_col = ColoramaFore.LIGHTWHITE_EX
-                format_str = f"{color}%(levelname)-8s: %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | {white_col}%(message)s{reset_var}"
+                format_str = f"{color}%(levelname)-8s:  [{self.run_id}] %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | {white_col}%(message)s{reset_var}"
             else:
                 reset_var = ColoramaStyle.RESET_ALL
                 white_col = ColoramaFore.RESET
-                format_str = f"{color}%(levelname)-8s: %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s |{reset_var} \x1b[38;20m %(message)s \x1b[0m"
+                format_str = f"{color}%(levelname)-8s: [{self.run_id}] %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s |{reset_var} \x1b[38;20m %(message)s \x1b[0m"
         else:
-            format_str = f"%(levelname)-8s: %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | %(message)s"
+            format_str = f"%(levelname)-8s: [{self.run_id}] %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | %(message)s"
 
         self.console_handler.setFormatter(logging.Formatter(format_str, datefmt='%Y-%m-%d %H:%M:%S'))
 
@@ -245,19 +272,21 @@ class _wrench_logger:
     # Private Utility Methods
     @staticmethod
     def _is_internal_frame(filepath: str) -> bool:
-        """Check if the frame is internal to logging or WrenchLogger."""
+        """Check if the frame is internal or not relevant (e.g., logging, wrenchlogger, __init__.py, or custom patterns)."""
         normalized_filepath = os.path.normcase(filepath)
-        return '\\logging\\' in normalized_filepath or '\\wrenchlogger.py' in normalized_filepath.lower()
+        return ('\\logging\\' in normalized_filepath or
+                '\\wrenchlogger.py' in normalized_filepath or
+                normalized_filepath.endswith('__init__.py') or
+                'pycaller' in normalized_filepath)
 
-    @staticmethod
-    def _get_base_format() -> logging.Formatter:
+    def _get_base_format(self) -> logging.Formatter:
         """
         Returns a logging formatter with a specific format.
 
         Returns:
             logging.Formatter: A logging formatter with a predefined format and date format.
         """
-        return logging.Formatter(f"%(levelname)-8s: "
+        return logging.Formatter(f"%(levelname)-8s: [{self.run_id}]"
                                  f"%(filename)s:%(funcName)s:%(lineno)d | "
                                  f"%(asctime)s | "
                                  f"%(message)s",
@@ -292,6 +321,7 @@ class _wrench_logger:
     Returns:
         str: The log file name with a directory path.
     """
+
         def find_project_root(anchor='.git') -> str:
             """Finds the project root by searching for a specified anchor. If not found, returns the current working directory."""
             current_dir = os.path.dirname(os.path.abspath(__file__))
