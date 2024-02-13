@@ -55,12 +55,6 @@ class _wrench_logger:
         date_seed = datetime.now().strftime("%y%m%d")  # 6 characters
         random.seed(date_seed)
         random_part_1 = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        # Use current minute and second as seeds for the random part
-
-
-         # Combine minute and second for the seed
-
-        # Generate a 4-character string seeded with minute and second information
         now = datetime.now()
         minute_second_seed = now.minute * 100 + now.second
         random.seed(minute_second_seed)
