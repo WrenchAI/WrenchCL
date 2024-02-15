@@ -134,33 +134,31 @@ jobs:
         # Cleanup older tags and releases
     - name: Cleanup older tags and releases
       run: |
-        get_three_recent_tags() {
-          echo "$(git tag -l | grep -P "^v\d+\.$1\.\d+$" | sort -V | tail -n 3)"
+        get_recent_tags() {
+          echo "$(git tag -l | sort -V | tail -n 50)"
         }
-
-        MAJOR_TAGS=$(get_three_recent_tags 0)
-        MINOR_TAGS=$(get_three_recent_tags 1)
-        PATCH_TAGS=$(get_three_recent_tags 2)
-
-        ALL_TAGS=$(echo "$MAJOR_TAGS $MINOR_TAGS $PATCH_TAGS" | tr ' ' '\n' | sort -V | uniq)
-
-        OLDEST_TAGS=$(comm -23 <(git tag -l | sort -V) <(echo "$ALL_TAGS"))
-
-        for TAG in $OLDEST_TAGS; do
-          git tag -d $TAG
-          git push --delete origin $TAG
-          
-          RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-                           -H "Accept: application/vnd.github.v3+json" \
-                           https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$TAG \
-                           | jq '.id')
-          if [[ "$RELEASE_ID" != "null" ]]; then
-            curl -s -X DELETE \
-              -H "Authorization: token $GITHUB_TOKEN" \
-              -H "Accept: application/vnd.github.v3+json" \
-              https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID
-          fi
-        done
+    
+        RECENT_TAGS=$(get_recent_tags)
+    
+        if [ $(echo "$RECENT_TAGS" | wc -l) -gt 50 ]; then  # Check if there are more than 50 tags
+          OLDEST_TAGS=$(comm -23 <(git tag -l | sort -V) <(echo "$RECENT_TAGS"))
+    
+          for TAG in $OLDEST_TAGS; do
+            git tag -d $TAG
+            git push --delete origin $TAG
+            
+            RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                             -H "Accept: application/vnd.github.v3+json" \
+                             https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$TAG \
+                             | jq '.id')
+            if [[ "$RELEASE_ID" != "null" ]]; then
+              curl -s -X DELETE \
+                -H "Authorization: token $GITHUB_TOKEN" \
+                -H "Accept: application/vnd.github.v3+json" \
+                https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID
+            fi
+          done
+        fi
 
     # Echo NEW_VERSION for debugging or later use
     - name: Echo NEW_VERSION
