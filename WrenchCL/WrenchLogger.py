@@ -269,7 +269,7 @@ class _wrench_logger:
         """Check if the frame is internal or not relevant (e.g., logging, wrenchlogger, __init__.py, or custom patterns)."""
         normalized_filepath = os.path.normcase(filepath)
         return ('\\logging\\' in normalized_filepath or
-                '\\wrenchlogger.py' in normalized_filepath or
+                '\\WrenchLogger.py' in normalized_filepath or
                 normalized_filepath.endswith('__init__.py') or
                 'pycaller' in normalized_filepath)
 
