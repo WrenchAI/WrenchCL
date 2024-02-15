@@ -48,6 +48,7 @@ class _wrench_logger:
         self.console_handler = self._configure_console_handler()
         self._initialize_logger()
         self._initialized = True
+        self.force_stack_trace = False
 
     @staticmethod
     def _generate_run_id():
@@ -62,7 +63,11 @@ class _wrench_logger:
 
         return f"R-{random_part_1}-{random_part_2}"
 
+    def overwrite_lambda_mode(self, setting: bool):
+        self.running_on_lambda = setting
 
+    def set_global_traceback(self, setting: bool):
+        self.force_stack_trace = setting
 
     def release_resources(self) -> None:
         """Releases file handler resources."""
@@ -140,6 +145,9 @@ class _wrench_logger:
         stack_level_index = 0
         stack_trace = " --> InternalLogFrames"
         last_level = ""
+
+        if self.force_stack_trace is True:
+            stack_info = True
         # Loop to find the caller
         while True:
             filepath, line_no, func_name, sinfo = self.logger.findCaller(stack_info=stack_info,
