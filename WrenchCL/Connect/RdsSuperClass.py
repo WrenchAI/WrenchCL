@@ -6,7 +6,7 @@ import json
 import paramiko
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
-from WrenchCL.WrenchLogger import wrench_logger
+from WrenchCL.Utility.WrenchLogger import wrench_logger
 from decimal import Decimal
 import datetime
 import pandas as pd
@@ -24,8 +24,7 @@ class SshTunnelManager:
             ssh_address_or_host=(self.ssh_config['SSH_SERVER'], self.ssh_config['SSH_PORT']),
             ssh_username=self.ssh_config['SSH_USER'],
             ssh_password=self.ssh_config.get('SSH_PASSWORD', None),
-            ssh_pkey=paramiko.RSAKey(file_obj=io.StringIO(os.environ['RSA_KEY'])) if self.ssh_config.get('USE_RSA_ENV',
-                                                                                                         False) else self.ssh_config.get(
+            ssh_pkey=paramiko.RSAKey(file_obj=io.StringIO(os.environ['RSA_KEY'])) if self.ssh_config.get('USE_RSA_ENV',                                                                                     False) else self.ssh_config.get(
                 'SSH_KEY_PATH', None),
             remote_bind_address=(self.config['PGHOST'], self.config['PGPORT'])
         )

@@ -2,7 +2,7 @@ import math
 import time
 import pandas as pd
 import requests
-from WrenchCL.WrenchLogger import wrench_logger
+from WrenchCL.Utility.WrenchLogger import wrench_logger
 
 
 class MaxRetriesExceededError(Exception):

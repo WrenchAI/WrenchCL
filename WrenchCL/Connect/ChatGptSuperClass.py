@@ -4,7 +4,7 @@ import openai
 import requests
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 
-from WrenchCL.WrenchLogger import wrench_logger
+from WrenchCL.Utility.WrenchLogger import wrench_logger
 
 
 class ChatGptSuperClass:

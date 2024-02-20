@@ -1,5 +1,5 @@
 import boto3
-from WrenchCL.WrenchLogger import wrench_logger
+from WrenchCL.Utility.WrenchLogger import wrench_logger
 
 
 class S3Handler:
