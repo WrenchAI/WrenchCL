@@ -295,6 +295,7 @@ class _wrench_logger:
         normalized_filepath = os.path.normcase(filepath)
         return ('\\logging\\' in normalized_filepath or
                 '\\WrenchLogger.py' in normalized_filepath or
+                'bootstrap.py' in normalized_filepath or
                 normalized_filepath.endswith('__init__.py') or
                 'pycaller' in normalized_filepath)
 
