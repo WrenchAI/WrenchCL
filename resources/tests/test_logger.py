@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 import logging
 import os
-from WrenchCL.WrenchLogger import _wrench_logger
+from WrenchCL.Utility.WrenchLogger import _wrench_logger
 
 
 @pytest.fixture

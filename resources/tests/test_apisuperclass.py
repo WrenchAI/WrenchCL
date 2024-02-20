@@ -2,7 +2,7 @@ import pytest
 import requests
 from unittest.mock import MagicMock
 from WrenchCL import ApiSuperClass
-from WrenchCL.ApiSuperClass import MaxRetriesExceededError
+from WrenchCL.Connect.ApiSuperClass import MaxRetriesExceededError
 import pandas as pd
 
 class TestApiSuperClass:

@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, patch
 
-from WrenchCL.S3Handler import S3Handler
+from WrenchCL.Connect.S3Handler import S3Handler
 
 
 @pytest.fixture(scope='function')

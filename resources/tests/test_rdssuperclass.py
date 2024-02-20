@@ -1,9 +1,7 @@
 import pytest
-from unittest.mock import MagicMock, patch
-import psycopg2
-import json
+from unittest.mock import MagicMock
 
-from WrenchCL.RdsSuperClass import RDS, SshTunnelManager
+from WrenchCL.Connect.RdsSuperClass import RDS, SshTunnelManager
 
 
 class MockSSHTunnelForwarder:

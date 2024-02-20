@@ -1,6 +1,6 @@
 import json
 
-from WrenchCL.ApiSuperClass import ApiSuperClass
+from WrenchCL.Connect.ApiSuperClass import ApiSuperClass
 from WrenchCL import wrench_logger
 from WrenchCL import rdsInstance
 from datetime import datetime
