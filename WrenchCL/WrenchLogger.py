@@ -50,6 +50,9 @@ class _wrench_logger:
         self._initialized = True
         self.force_stack_trace = False
 
+    def initiate_new_run(self):
+        self.run_id = self._generate_run_id()
+
     @staticmethod
     def _generate_run_id():
         # Current date in YYMMDD format
