@@ -73,6 +73,7 @@ def test_critical_log(logger, caplog):
 
 def test_debug_log(logger, caplog):
     with caplog.at_level(logging.DEBUG):
+        logger.setLevel("DEBUG")
         logger.debug("Test debug message.")
         assert "Test debug message." in caplog.text
 
