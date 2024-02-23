@@ -12,7 +12,6 @@ import pandas as pd
 @pytest.fixture
 def logger():
     log_instance = _wrench_logger(level='INFO')
-    log_instance.set_global_traceback(True)
     yield log_instance
 
 def test_singleton_behavior():
@@ -48,6 +47,11 @@ def test_setLevel(logger):
 def test_info_log(logger, caplog):
     with caplog.at_level(logging.INFO):
         logger.info("Test info message.")
+        assert "Test info message." in caplog.text
+
+def test_info_trace_back_log(logger, caplog):
+    with caplog.at_level(logging.INFO):
+        logger.info("Test info message.", stack_info=True)
         assert "Test info message." in caplog.text
 
 def test_expected_warn_log(logger, caplog):
