@@ -155,7 +155,7 @@ class _wrench_logger:
         while True:
             filepath, line_no, func_name, sinfo = self.logger.findCaller(stack_info=stack_info,
                                                                          stacklevel=stack_level_index)
-            if self._is_internal_frame(filepath):
+            if self._is_internal_frame(os.path.basename(filepath)):
                 stack_level_index += 1
                 continue
             elif stack_info and f"{filepath}:{func_name}:{line_no}" != last_level:
@@ -278,11 +278,17 @@ class _wrench_logger:
     @staticmethod
     def _is_internal_frame(filepath: str) -> bool:
         """Check if the frame is internal or not relevant (e.g., logging, wrenchlogger, __init__.py, or custom patterns)."""
-        normalized_filepath = os.path.normcase(filepath)
-        return ('\\logging\\' in normalized_filepath or
-                '\\WrenchLogger.py' in normalized_filepath or
-                normalized_filepath.endswith('__init__.py') or
-                'pycaller' in normalized_filepath)
+        check_strs = ['logging', 'wrenchlogger', 'pycaller', 'wrench_logger']
+        end_strs = ['__init__.py']
+        for cstr in check_strs:
+            if cstr in filepath.lower():
+                return True
+
+        for estr in end_strs:
+            if filepath.lower().endswith(estr):
+                return True
+
+        return False
 
     def _get_base_format(self) -> logging.Formatter:
         """
