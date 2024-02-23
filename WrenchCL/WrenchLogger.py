@@ -145,10 +145,12 @@ class _wrench_logger:
     # Main Functional Methods
     def _log(self, level: int, msg: str, stack_info: bool = False) -> None:
         # Initialize stack_level_index
-        stack_level_index = 0
+        stack_level_index = 1
         stack_trace = " --> InternalLogFrames"
         last_level = ""
-
+        write_flag = False
+        filepath_out, line_no_out, func_name_out, sinfo_out = self.logger.findCaller(stack_info=stack_info,
+                                                                                     stacklevel=stack_level_index)
         if self.force_stack_trace is True:
             stack_info = True
         # Loop to find the caller
@@ -159,12 +161,18 @@ class _wrench_logger:
                 stack_level_index += 1
                 continue
             elif stack_info and f"{filepath}:{func_name}:{line_no}" != last_level:
-                stack_trace = f" --> {stack_level_index}|{os.path.basename(filepath)}:{func_name if func_name != '<module>' else '<callerFunc>'}:{line_no}" + stack_trace
+                stack_trace = f" --> {stack_level_index}|{os.path.basename(filepath)}:{func_name}:{line_no}" + stack_trace
                 stack_level_index += 1
                 last_level = f"{filepath}:{func_name}:{line_no}"
-                continue
-            else:
-                break
+                if write_flag is False:
+                    filepath_out, line_no_out, func_name_out, sinfo_out = self.logger.findCaller(stack_info=stack_info,
+                                                                                                 stacklevel=stack_level_index)
+                    write_flag = True
+                if stack_info is True:
+                    continue
+                else:
+                    break
+
         # Handle stack_info
         if stack_info and str(traceback.format_exc()) != "NoneType: None\n":
             sinfo = f"Stack Trace: {stack_trace[4:]} \n{traceback.format_exc()}"
@@ -175,8 +183,15 @@ class _wrench_logger:
 
         # Create and handle the log record
         record = self.logger.makeRecord(
-            self.logger.name, level, filepath, line_no,
-            msg, None, None, func_name, sinfo=sinfo
+            name=self.logger.name,
+            level=level,
+            fn=filepath_out,
+            lno=line_no_out,
+            msg=msg,
+            args=None,
+            exc_info=None,
+            func=func_name_out,
+            sinfo=sinfo_out
         )
         self.logger.handle(record)
 
