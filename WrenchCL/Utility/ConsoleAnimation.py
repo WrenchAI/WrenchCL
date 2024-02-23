@@ -78,7 +78,6 @@ class ConsoleAnimation(threading.Thread):
         # First, validate total_length without changing animation_type
         valid_total_length = self._validate_and_set_total_length(total_length)
 
-        print(animation_type, valid_total_length)
         # Set animation_type based on the input and validity of total_length
         if (animation_type == 'bar' or animation_type == 2) and valid_total_length is not None:
             self.animation_type = 2  # Loading bar
@@ -94,6 +93,7 @@ class ConsoleAnimation(threading.Thread):
         self.start_time = None
         self.task = task.title() if isinstance(task, str) else "Processing"
         self.running_on_lambda = 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
+        self.elapsed_time = 0
     def overwrite_lambda_mode(self, setting: bool) -> None:
         self.running_on_lambda = setting
 
@@ -110,7 +110,6 @@ class ConsoleAnimation(threading.Thread):
         return None
 
     def run(self):
-        print(self.animation_type)
         if not self.running_on_lambda:
             self.start_time = time.time()  # Start time of the animation
             if self.animation_type == 1:
@@ -131,11 +130,11 @@ class ConsoleAnimation(threading.Thread):
         bar_length = 20
         percent = (self.current_progress / self.total_length) * 100 if self.total_length else 0
         bar_fill = int(percent / (100 / bar_length))
-        elapsed_time = time.time() - self.start_time
-        ips = self.current_progress / elapsed_time if elapsed_time > 0 else 0
-        estimated_total_time = elapsed_time / (
+        self.elapsed_time = time.time() - self.start_time
+        ips = self.current_progress / self.elapsed_time if self.elapsed_time > 0 else 0
+        estimated_total_time = self.elapsed_time / (
                 self.current_progress / self.total_length) if self.current_progress else 0
-        estimated_remaining_time = estimated_total_time - elapsed_time
+        estimated_remaining_time = estimated_total_time - self.elapsed_time
         formatted_remaining_time = self._format_time(estimated_remaining_time)
 
         # Color the percentage based on its value
@@ -161,7 +160,7 @@ class ConsoleAnimation(threading.Thread):
 
         timer_and_ips_info = ''
         if self.show_timer:
-            timer_and_ips_info = f'Stats: {Fore.LIGHTBLACK_EX}Elapsed:{Style.RESET_ALL} {self._format_time(elapsed_time)}{Fore.LIGHTBLACK_EX}, OpS: {Style.RESET_ALL}{ips:.2f}{Fore.LIGHTBLACK_EX}, Remaining: {Style.RESET_ALL}{formatted_remaining_time}'
+            timer_and_ips_info = f'Stats: {Fore.LIGHTBLACK_EX}Elapsed:{Style.RESET_ALL} {self._format_time(self.elapsed_time)}{Fore.LIGHTBLACK_EX}, OpS: {Style.RESET_ALL}{ips:.2f}{Fore.LIGHTBLACK_EX}, Remaining: {Style.RESET_ALL}{formatted_remaining_time}'
 
         sys.stdout.write(
             f'\r{self.task} : {bar} {percent_color}{percent:.2f}%{Style.RESET_ALL} Complete | {timer_and_ips_info}')
@@ -170,13 +169,13 @@ class ConsoleAnimation(threading.Thread):
     def _run_blinking_dot(self):
         dot_state = 0
         while not self._stop_event.is_set():
-            elapsed_time = time.time() - self.start_time
+            self.elapsed_time = time.time() - self.start_time
             dots = '.' * (dot_state % 3 + 1)  # Cycle through 1 to 3 dots.
 
             if colorama_imported:
-                sys.stdout.write(f"\r{Fore.CYAN}[{elapsed_time:.2f}s]{Style.RESET_ALL} {self.task} {Style.RESET_ALL}" + dots)
+                sys.stdout.write(f"\r{Fore.CYAN}[{self.elapsed_time:.2f}s]{Style.RESET_ALL} {self.task} {Style.RESET_ALL}" + dots)
             else:
-                sys.stdout.write(f"\r[{elapsed_time:.2f}s] {self.task}" + dots)
+                sys.stdout.write(f"\r[{self.elapsed_time:.2f}s] {self.task}" + dots)
 
             sys.stdout.flush()
             time.sleep(0.5)
@@ -190,7 +189,7 @@ class ConsoleAnimation(threading.Thread):
     def _run_loading_bar(self):
         while not self._stop_event.is_set() and self.current_progress <= self.total_length:
             self._draw_loading_bar()
-            time.sleep(0.1)  # Adjust based on actual progress updates rather than fixed sleep
+            time.sleep(0.2)  # Adjust based on actual progress updates rather than fixed sleep
 
     def update_progress(self):
         if self.total_length and self.animation_type != 1:
@@ -202,22 +201,43 @@ class ConsoleAnimation(threading.Thread):
         self.join()  # Wait for thread to finish
 
         # If it's a blinking dot animation, clear the line to clean up.
-        if self.animation_type == 1 or self.flush:
-            sys.stdout.write('\r' + ' ' * 60 + '\r')  # Clear the line
-            sys.stdout.flush()
-        # For LOADING_BAR, you might not clear the line, or you could do something else like printing a final message
-        else:
-            # Optionally print a completion message or leave as is for the bar to remain visible
-            # Example: Print a completion message
-            print(f"\n{self.task} completed.")  # Adjust as needed based on your requirements
+        if self.animation_type == 1:
+            if self.flush:
+                sys.stdout.write('\r' + ' ' * 60 + '\r')  # Clear the line
+                sys.stdout.flush()
+            if colorama_imported:
+                sys.stdout.write(f"{Fore.CYAN}[{self.elapsed_time:.2f}s] {Style.RESET_ALL}{self.task} : {Fore.LIGHTGREEN_EX}completed{Style.RESET_ALL}")
+            else:
+                sys.stdout.write(f"[{self.elapsed_time:.2f}s] {self.task} : Completed")
+        if self.animation_type == 2:
+            if colorama_imported:
+                sys.stdout.write(f"\n{Fore.CYAN}[{self.elapsed_time:.2f}s] {Style.RESET_ALL}{self.task} : {Fore.LIGHTGREEN_EX}completed{Style.RESET_ALL}")
+            else:
+                sys.stdout.write(f"\n[{self.elapsed_time:.2f}s] {self.task} : Completed")
 
 
 if __name__ == "__main__":
-    total_duration = 3  # Total duration in seconds
-    update_interval = 0.25  # How often to update the progress (in seconds)
+    total_duration = 2  # Total duration in seconds
+    update_interval = 0.5  # How often to update the progress (in seconds)
     total_updates = int(total_duration / update_interval)  # Calculate how many times to update based on interval
 
-    animation = ConsoleAnimation(animation_type=1, total_length=total_updates, show_timer=True, flush=False)
+    animation = ConsoleAnimation(animation_type="bar", total_length=total_updates, show_timer=True)
+    animation.start()
+
+    for _ in range(total_updates):
+        time.sleep(update_interval)  # Simulate work by sleeping
+        animation.update_progress()  # Update the progress of the animation
+
+    animation.stop()
+
+    # This is a visual test, so there's no assert statement. The success criteria are based on the visual output.
+    print("\nTest completed. The loading bar should have progressed over approximately 5 seconds.")
+
+    total_duration = 2  # Total duration in seconds
+    update_interval = 0.5  # How often to update the progress (in seconds)
+    total_updates = int(total_duration / update_interval)  # Calculate how many times to update based on interval
+
+    animation = ConsoleAnimation(animation_type="blink", total_length=total_updates, show_timer=True, flush = False)
     animation.start()
 
     for _ in range(total_updates):
