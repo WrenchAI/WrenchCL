@@ -1,12 +1,16 @@
+import json
 import logging
 import os
 import random
 import string
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import traceback
+from textwrap import fill
 from typing import Any, Optional
+
+import pandas as pd
 
 try:
     from colorama import init, Fore as ColoramaFore, Style as ColoramaStyle
@@ -30,6 +34,7 @@ class _wrench_logger:
         return cls._instance
 
     def __init__(self, level: str = 'INFO', file_logging=False, file_name_append_mode: Optional[str] = None) -> None:
+        self._start_time = None
         if hasattr(self, '_initialized'):  # Check if __init__ has been called before
             return  # If yes, do nothing
 
@@ -49,6 +54,12 @@ class _wrench_logger:
         self._initialize_logger()
         self._initialized = True
         self.force_stack_trace = False
+
+        logging.addLevelName(21, "CONTEXT")
+        logging.addLevelName(31, "HDL_WARN")
+        logging.addLevelName(41, "DATA")
+        logging.addLevelName(42, "HDL_ERR")
+        logging.addLevelName(43, 'RCV_ERR')
 
     def initiate_new_run(self):
         self.run_id = self._generate_run_id()
@@ -151,19 +162,18 @@ class _wrench_logger:
         write_flag = False
         filepath_out, line_no_out, func_name_out, sinfo_out = self.logger.findCaller(stack_info=stack_info,
                                                                                      stacklevel=stack_level_index)
-        if self.force_stack_trace is True:
-            stack_info = True
         # Loop to find the caller
-        while True:
+        while stack_level_index < (1000 if str(traceback.format_exc()) != "NoneType: None\n" else 10):
             filepath, line_no, func_name, sinfo = self.logger.findCaller(stack_info=stack_info,
                                                                          stacklevel=stack_level_index)
-            if self._is_internal_frame(os.path.basename(filepath)):
-                stack_level_index += 1
-                continue
-            elif stack_info and f"{filepath}:{func_name}:{line_no}" != last_level:
-                stack_trace = f" --> {stack_level_index}|{os.path.basename(filepath)}:{func_name}:{line_no}" + stack_trace
+            if f"{filepath}:{func_name}:{line_no}" != last_level:
+                if self.running_on_lambda:
+                    stack_trace = stack_trace + f" <-- {stack_level_index}|{os.path.basename(filepath)}:{func_name}:{line_no}"
+                else:
+                    stack_trace = stack_trace + f"\n -- {stack_level_index}|{os.path.basename(filepath)}:{func_name}:{line_no}"
                 stack_level_index += 1
                 last_level = f"{filepath}:{func_name}:{line_no}"
+
                 if write_flag is False:
                     filepath_out, line_no_out, func_name_out, sinfo_out = self.logger.findCaller(stack_info=stack_info,
                                                                                                  stacklevel=stack_level_index)
@@ -172,12 +182,18 @@ class _wrench_logger:
                     continue
                 else:
                     break
+            if self._is_internal_frame(os.path.normpath(filepath)):
+                stack_level_index += 1
+                continue
+            else:
+                break
 
         # Handle stack_info
-        if stack_info and str(traceback.format_exc()) != "NoneType: None\n":
-            sinfo = f"Stack Trace: {stack_trace[4:]} \n{traceback.format_exc()}"
-        elif stack_info:
-            sinfo = f"Stack Trace: {stack_trace[4:]}"
+        if stack_info:
+            if str(traceback.format_exc()) != "NoneType: None\n":
+                sinfo = f"\n ---Stack Trace--- {stack_trace[4:]} \n {traceback.format_exc()}"
+            else:
+                sinfo = f"Stack Trace: {self._format_data(stack_trace[4:])}"
         else:
             sinfo = None
 
@@ -191,7 +207,7 @@ class _wrench_logger:
             args=None,
             exc_info=None,
             func=func_name_out,
-            sinfo=sinfo_out
+            sinfo=sinfo
         )
         self.logger.handle(record)
 
@@ -199,29 +215,121 @@ class _wrench_logger:
                         stack_info: Optional[bool] = False) -> None:
         if colorama_imported and color and not self.running_on_lambda:
             self._handlerFormat(color)
+
+        if self.force_stack_trace and level >= 30:
+            stack_info = True
         self._log(level, text, stack_info)
+
         if colorama_imported or self.running_on_lambda:
             self._handlerFormat()
 
     def info(self, text: str, stack_info: Optional[bool] = False) -> None:
-        self._log_with_color(logging.INFO, text, ColoramaFore.LIGHTGREEN_EX if colorama_imported else None, stack_info)
+        """Log information that might be helpful but isn't essential."""
+        self._log_with_color(logging.INFO, text, ColoramaFore.LIGHTBLUE_EX if colorama_imported else None, stack_info)
+
+    log_info = INFO = info  # Aliases for info
 
     def context(self, text: str, stack_info: Optional[bool] = False) -> None:
-        self._log_with_color(logging.INFO, text, ColoramaFore.MAGENTA if colorama_imported else None, stack_info)
+        """Log contextual information for better understanding of the flow."""
+        self._log_with_color(21, text, ColoramaFore.CYAN if colorama_imported else None, stack_info)
+
+    log_context = CONTEXT = context  # Aliases for context
 
     def warning(self, text: str, stack_info: Optional[bool] = False) -> None:
+        """Log issues that aren't errors but might warrant investigation."""
         self._log_with_color(logging.WARNING, text, ColoramaFore.YELLOW if colorama_imported else None, stack_info)
 
+    log_warning = WARNING = warning  # Aliases for warning
+
+    def HDL_WARN(self, text: str, stack_info: Optional[bool] = False) -> None:
+        """Log warnings that have been handled and do not require further action."""
+        self._log_with_color(31, text, ColoramaFore.LIGHTMAGENTA_EX if colorama_imported else None, stack_info)
+
+    log_handled_warning = log_hdl_warn = HDL_WARN  # Aliases for HDL_WARN
+
     def error(self, text: str, stack_info: Optional[bool] = False) -> None:
+        """Log errors that could disrupt normal program flow."""
         self._log_with_color(logging.ERROR, text, ColoramaFore.LIGHTRED_EX if colorama_imported else None, stack_info)
 
+    log_error = ERROR = error  # Aliases for error
+
+    def data(self, data: Any, wrap_length: Optional[int] = None, max_rows: Optional[int] = None,
+             stack_info: Optional[bool] = False) -> None:
+        """Log Data in a lower contrast, handling formatting for readability."""
+        formatted_data = self._format_data(data, wrap_length, max_rows)
+        self._log_with_color(41, formatted_data, ColoramaFore.LIGHTWHITE_EX if colorama_imported else None, stack_info)
+
+    log_data = print_data = DATA = data
+
+    def HDL_ERR(self, text: str, stack_info: Optional[bool] = False) -> None:
+        """Log errors that have been handled but still need to be reported."""
+        self._log_with_color(42, text, ColoramaFore.MAGENTA if colorama_imported else None, stack_info)
+
+    log_handled_error = log_hdl_err = HDL_ERR  # Aliases for HDL_ERR
+
+    def RECV_ERR(self, text: str, stack_info: Optional[bool] = False) -> None:
+        """Log errors from which the system can recover with or without manual intervention."""
+        self._log_with_color(43, text, ColoramaFore.RED if colorama_imported else None, stack_info)
+
+    log_recoverable_error = log_recv_err = RECV_ERR  # Aliases for RECV_ERR
+
     def critical(self, text: str, stack_info: Optional[bool] = False) -> None:
-        self._log_with_color(logging.CRITICAL, text, ColoramaFore.RED if colorama_imported else None, stack_info)
+        """Log critical issues that require immediate attention."""
+        self._log_with_color(logging.CRITICAL, text, ColoramaFore.RED if colorama_imported else None,
+                             stack_info)
+
+    log_critical = CRITICAL = critical  # Aliases for critical
 
     def debug(self, text: str, stack_info: Optional[bool] = False) -> None:
-        self._log_with_color(logging.DEBUG, text, ColoramaFore.LIGHTBLUE_EX if colorama_imported else None, stack_info)
+        """Log detailed information, typically of interest only when diagnosing problems."""
+        self._log_with_color(logging.DEBUG, text, ColoramaFore.LIGHTGREEN_EX if colorama_imported else None, stack_info)
+
+    log_debug = DEBUG = debug  # Aliases for debug
 
     # Formatting Methods
+
+    def _format_data(self, data, wrap_length=None, max_rows=None, color=True, stack_trace=False):
+        """Format data for logging, applying wrapping and color formatting where applicable."""
+        # Determine the prefix based on the data type
+        if isinstance(data, dict):
+            prefix_str = f"DataType: {type(data).__name__}, Data Length: {len(data)}"
+            formatted_text = json.dumps(data, indent=4)
+        elif isinstance(data, pd.DataFrame):
+            prefix_str = f"DataType: {type(data).__name__}, Shape: {data.shape[0]} rows & {data.shape[1]} columns"
+            with pd.option_context('display.max_rows', max_rows, 'display.max_columns', None):
+                formatted_text = str(data)
+        elif isinstance(data, (list, tuple, set)):
+            prefix_str = f"DataType: {type(data).__name__}, Length: {len(data)}"
+            formatted_text = '\n'.join([str(item) for item in data])
+        else:
+            prefix_str = f"DataType: {type(data).__name__}, Length: {len(data)}"
+            formatted_text = str(data)
+
+        # Combine prefix and data, applying wrapping if specified
+        if wrap_length:
+            wrapped_text = '\n'.join([fill(line, wrap_length) for line in formatted_text.splitlines()])
+        else:
+            wrapped_text = formatted_text
+
+        # Add color and whitespace for visual distinction
+        if colorama_imported and color and not self.running_on_lambda:
+            if not stack_trace:
+                final_text = f"\n{ColoramaFore.LIGHTBLUE_EX}{prefix_str}\n{ColoramaFore.LIGHTBLACK_EX}{wrapped_text}{ColoramaFore.RESET}\n"
+            else:
+                final_text = f"\n{ColoramaFore.LIGHTBLACK_EX}{wrapped_text}{ColoramaFore.RESET}\n"
+        elif not self.running_on_lambda:
+            final_text = f"\n\n{wrapped_text}\n"
+        else:
+            # In environments like AWS Lambda, where color might not be supported or desired
+            final_text = wrapped_text.replace("\n", "- - -")
+
+        return final_text
+
+    @staticmethod
+    def _wrap_text(text: str, wrap_length: int) -> str:
+        import textwrap
+        return '\n'.join(textwrap.wrap(text, wrap_length))
+
     def _log_header(self, text: str, size: int = 80, newline: bool = True) -> None:
         """
         Logs a header text, centered and separated by dashes.
@@ -250,10 +358,13 @@ class _wrench_logger:
             color (str, optional): The color code for colorama. Default is None.
         """
         if colorama_imported and color:
-            if 'hex_color_palette' not in locals():
+            if 'hex_color_palette' not in locals() and color != ColoramaFore.LIGHTWHITE_EX:
                 reset_var = ColoramaStyle.RESET_ALL
                 white_col = ColoramaFore.LIGHTWHITE_EX
-                format_str = f"{color}%(levelname)-8s:  [{self.run_id}] %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | {white_col}%(message)s{reset_var}"
+                format_str = f"{color}%(levelname)-8s:  [{self.run_id}] %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | {white_col}%(message)s {reset_var}"
+            elif 'hex_color_palette' not in locals() and color == ColoramaFore.LIGHTWHITE_EX:
+                reset_var = ColoramaStyle.RESET_ALL
+                format_str = f"{color}-----%(levelname)s----- %(message)s{reset_var}"
             else:
                 reset_var = ColoramaStyle.RESET_ALL
                 white_col = ColoramaFore.RESET
@@ -289,10 +400,12 @@ class _wrench_logger:
         """
         self._log_header(text, size, newline)
 
+    def compact_header(self, text, size=40):
+        self.header(text, size, False, )
+
     # Private Utility Methods
     @staticmethod
     def _is_internal_frame(filepath: str) -> bool:
-        """Check if the frame is internal or not relevant (e.g., logging, wrenchlogger, __init__.py, or custom patterns)."""
         check_strs = ['logging', 'wrenchlogger', 'pycaller', 'wrench_logger']
         end_strs = ['__init__.py']
         for cstr in check_strs:
@@ -433,6 +546,39 @@ class _wrench_logger:
         # Initialize colorama for colorful output if not running on AWS Lambda
         if colorama_imported and not self.running_on_lambda:
             init()
+        
+    def start_time(self):
+        """Start a timer for performance measurement."""
+        self._start_time = time.time()
 
+    def log_time(self, message: str = "Elapsed time", format: str = "seconds", stack_info: Optional[bool] = False):
+        """
+        Log the elapsed time since start_time() was called with an optional message.
+        
+        Args:
+        - message: The message to prefix the time with.
+        - format: The format to display the time in ("seconds" or "formatted").
+        - stack_info: Whether to include stack info.
+        """
+        if hasattr(self, '_start_time'):
+            elapsed_time = time.time() - self._start_time
+            if format == "seconds":
+                time_str = f"{elapsed_time:.2f} seconds"
+            elif format == "formatted":
+                # Convert seconds to a timedelta object, then format as days, hours, minutes, and seconds
+                td = timedelta(seconds=elapsed_time)
+                time_str = str(td)
+            else:
+                self.warning("Invalid format specified for log_time(). Defaulting to seconds.")
+                time_str = f"{elapsed_time:.2f} seconds"
+
+            self.info(f"{message}: {time_str}", stack_info)
+        else:
+            self.warning("Timer was not started with start_time() before calling log_time().")
+
+    # Alias for log_time
+    Time = log_time
+        
+        
 
 wrench_logger = _wrench_logger()
