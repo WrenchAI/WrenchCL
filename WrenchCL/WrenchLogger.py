@@ -193,7 +193,7 @@ class _wrench_logger:
             if str(traceback.format_exc()) != "NoneType: None\n":
                 sinfo = f"\n ---Stack Trace--- {stack_trace[4:]} \n {traceback.format_exc()}"
             else:
-                sinfo = f"Stack Trace: {self._format_data(stack_trace[4:])}"
+                sinfo = f"Stack Trace: {self._format_data(stack_trace[4:], stack_trace = True)}"
         else:
             sinfo = None
 
@@ -292,17 +292,17 @@ class _wrench_logger:
         """Format data for logging, applying wrapping and color formatting where applicable."""
         # Determine the prefix based on the data type
         if isinstance(data, dict):
-            prefix_str = f"DataType: {type(data).__name__}, Data Length: {len(data)}"
+            prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
             formatted_text = json.dumps(data, indent=4)
         elif isinstance(data, pd.DataFrame):
-            prefix_str = f"DataType: {type(data).__name__}, Shape: {data.shape[0]} rows & {data.shape[1]} columns"
+            prefix_str = f"DataType: {type(data).__name__} | Shape: {data.shape[0]} rows | {data.shape[1]} columns"
             with pd.option_context('display.max_rows', max_rows, 'display.max_columns', None):
                 formatted_text = str(data)
         elif isinstance(data, (list, tuple, set)):
-            prefix_str = f"DataType: {type(data).__name__}, Length: {len(data)}"
+            prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
             formatted_text = '\n'.join([str(item) for item in data])
         else:
-            prefix_str = f"DataType: {type(data).__name__}, Length: {len(data)}"
+            prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
             formatted_text = str(data)
 
         # Combine prefix and data, applying wrapping if specified
