@@ -1,3 +1,4 @@
+import json
 import sys
 from unittest.mock import patch
 
@@ -5,6 +6,7 @@ import pytest
 import logging
 import os
 from WrenchCL.WrenchLogger import _wrench_logger
+import pandas as pd
 
 
 @pytest.fixture
@@ -46,6 +48,78 @@ def test_info_log(logger, caplog):
     with caplog.at_level(logging.INFO):
         logger.info("Test info message.")
         assert "Test info message." in caplog.text
+
+def test_info_trace_back_log(logger, caplog):
+    with caplog.at_level(logging.INFO):
+        logger.info("Test info message.", stack_info=True)
+        assert "Test info message." in caplog.text
+
+def test_expected_warn_log(logger, caplog):
+    with caplog.at_level(logging.INFO):
+        logger.HDL_WARN("Test Handled Warning message.")
+        assert "Test Handled Warning message." in caplog.text
+
+def test_data_log(logger, caplog):
+    # Test logging a dictionary
+    test_dict = {
+        "id": 123,
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "roles": ["admin", "user"],
+        "preferences": {
+            "notifications": "email",
+            "theme": "dark"
+        }
+    }
+
+    with caplog.at_level(logging.INFO):
+        logger.DATA(test_dict, wrap_length=50)
+        assert "name" in caplog.text and "John Doe" in caplog.text
+
+    caplog.clear()
+
+    # Test logging a list
+    test_list = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape", "honeydew"]
+    with caplog.at_level(logging.INFO):
+        logger.DATA(test_list)
+        assert "apple" in caplog.text and "banana" in caplog.text
+
+    caplog.clear()
+
+    # Test logging a long string
+    test_string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+    with caplog.at_level(logging.INFO):
+        logger.DATA(test_string, wrap_length=50)
+        assert "Lorem ipsum dolor sit amet" in caplog.text
+
+    caplog.clear()
+
+    # Test logging a pandas DataFrame
+    data = {
+        "Name": ["John Doe", "Jane Doe", "Alice Johnson", "Bob Smith"],
+        "Age": [28, 34, 24, 45],
+        "Email": [
+            "john.doe@example.com",
+            "jane.doe@example.com",
+            "alice.johnson@example.com",
+            "bob.smith@example.com"
+        ]
+    }
+    test_dataframe = pd.DataFrame(data)
+    with caplog.at_level(logging.INFO):
+        logger.DATA(test_dataframe, max_rows=None)
+        # For the DataFrame, you might want to check for a specific value or header in the log
+        assert "John Doe" in caplog.text and "Email" in caplog.text
+
+def test_expected_err_log(logger, caplog):
+    with caplog.at_level(logging.INFO):
+        logger.HDL_ERR("Test Handled Error message.")
+        assert "Test Handled Error message." in caplog.text
+
+def test_recoverable_err_log(logger, caplog):
+    with caplog.at_level(logging.INFO):
+        logger.RECV_ERR("Test REC Error message.")
+        assert "Test REC Error message." in caplog.text
 
 def test_context_log(logger, caplog):
     with caplog.at_level(logging.INFO):
