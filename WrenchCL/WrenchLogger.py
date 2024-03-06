@@ -163,7 +163,7 @@ class _wrench_logger:
         filepath_out, line_no_out, func_name_out, sinfo_out = self.logger.findCaller(stack_info=stack_info,
                                                                                      stacklevel=stack_level_index)
         # Loop to find the caller
-        while stack_level_index < (1000 if str(traceback.format_exc()) != "NoneType: None\n" else 10):
+        while stack_level_index < (1000 if str(traceback.format_exc()) != "NoneType: None\n" else 1000):
             filepath, line_no, func_name, sinfo = self.logger.findCaller(stack_info=stack_info,
                                                                          stacklevel=stack_level_index)
             if f"{filepath}:{func_name}:{line_no}" != last_level:
@@ -225,13 +225,13 @@ class _wrench_logger:
 
     def info(self, text: str, stack_info: Optional[bool] = False) -> None:
         """Log information that might be helpful but isn't essential."""
-        self._log_with_color(logging.INFO, text, ColoramaFore.LIGHTBLUE_EX if colorama_imported else None, stack_info)
+        self._log_with_color(logging.INFO, text, ColoramaFore.LIGHTGREEN_EX if colorama_imported else None, stack_info)
 
     log_info = INFO = info  # Aliases for info
 
     def context(self, text: str, stack_info: Optional[bool] = False) -> None:
         """Log contextual information for better understanding of the flow."""
-        self._log_with_color(21, text, ColoramaFore.CYAN if colorama_imported else None, stack_info)
+        self._log_with_color(21, text, ColoramaFore.LIGHTMAGENTA_EX if colorama_imported else None, stack_info)
 
     log_context = CONTEXT = context  # Aliases for context
 
@@ -243,13 +243,13 @@ class _wrench_logger:
 
     def HDL_WARN(self, text: str, stack_info: Optional[bool] = False) -> None:
         """Log warnings that have been handled and do not require further action."""
-        self._log_with_color(31, text, ColoramaFore.LIGHTMAGENTA_EX if colorama_imported else None, stack_info)
+        self._log_with_color(31, text, ColoramaFore.MAGENTA if colorama_imported else None, stack_info)
 
     log_handled_warning = log_hdl_warn = HDL_WARN  # Aliases for HDL_WARN
 
     def error(self, text: str, stack_info: Optional[bool] = False) -> None:
         """Log errors that could disrupt normal program flow."""
-        self._log_with_color(logging.ERROR, text, ColoramaFore.LIGHTRED_EX if colorama_imported else None, stack_info)
+        self._log_with_color(logging.ERROR, text, ColoramaFore.RED if colorama_imported else None, stack_info)
 
     log_error = ERROR = error  # Aliases for error
 
@@ -263,13 +263,13 @@ class _wrench_logger:
 
     def HDL_ERR(self, text: str, stack_info: Optional[bool] = False) -> None:
         """Log errors that have been handled but still need to be reported."""
-        self._log_with_color(42, text, ColoramaFore.MAGENTA if colorama_imported else None, stack_info)
+        self._log_with_color(42, text, ColoramaFore.LIGHTMAGENTA_EX if colorama_imported else None, stack_info)
 
     log_handled_error = log_hdl_err = HDL_ERR  # Aliases for HDL_ERR
 
     def RECV_ERR(self, text: str, stack_info: Optional[bool] = False) -> None:
         """Log errors from which the system can recover with or without manual intervention."""
-        self._log_with_color(43, text, ColoramaFore.RED if colorama_imported else None, stack_info)
+        self._log_with_color(43, text, ColoramaFore.LIGHTRED_EX if colorama_imported else None, stack_info)
 
     log_recoverable_error = log_recv_err = RECV_ERR  # Aliases for RECV_ERR
 
@@ -282,7 +282,7 @@ class _wrench_logger:
 
     def debug(self, text: str, stack_info: Optional[bool] = False) -> None:
         """Log detailed information, typically of interest only when diagnosing problems."""
-        self._log_with_color(logging.DEBUG, text, ColoramaFore.LIGHTGREEN_EX if colorama_imported else None, stack_info)
+        self._log_with_color(logging.DEBUG, text, ColoramaFore.CYAN if colorama_imported else None, stack_info)
 
     log_debug = DEBUG = debug  # Aliases for debug
 
