@@ -60,17 +60,19 @@ class RDS:
             cls._instance = super(RDS, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, auto_close_connection = False):
         self.config = None
         self.connection = None
         self.ssh_manager = None
         self.result = None  # Initialize the result variable
         self.column_names = None  # Initialize column names variable
         self.method = 'fetchall'  # Default method
+        self.auto_close_connection = auto_close_connection
 
     def load_configuration(self, db_config):
         self.config = db_config
         wrench_logger.debug(f"Config Loaded successfully")
+        self._connect()
 
     def _connect(self):
         host, port = self.config['PGHOST'], self.config['PGPORT']
@@ -92,16 +94,17 @@ class RDS:
         wrench_logger.revertLoggingLevel()
 
     def __enter__(self):
-        self._connect()
+        if self.connection.closed:
+            self._connect()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Handle any exceptions if you need
-        if self.connection:
+        if self.connection and self.auto_close_connection:
             self.connection.close()
             wrench_logger.debug("Database connection closed automatically via __exit__.")
 
-        if self.ssh_manager:
+        if self.ssh_manager and self.auto_close_connection:
             self.ssh_manager.stop_tunnel()
             wrench_logger.debug("SSH tunnel closed automatically via __exit__.")
 
@@ -122,7 +125,19 @@ class RDS:
             wrench_logger.error(f"Failed to execute query: {e}")
             return 'ERROR'
 
-    def execute_query(self, query, output='raw', method='fetchall', parameters=None):
+    def _mogrify_query(self, query, parameters):
+        wrench_logger.context(f" Rds Parameters = {parameters}")
+        try:
+            mogrified_query = self.connection.cursor().mogrify(query, parameters)
+            mogrified_query = mogrified_query.decode()
+            wrench_logger.debug(f"Finished query = {mogrified_query}")
+        except Exception as e:
+            wrench_logger.error(f"An error occurred during the mogrifying the query: {e}")
+
+
+
+
+    def execute_query(self, query, mode, output='raw', method='fetchall', parameters=None):
         if not self.connection:
             wrench_logger.error("Database connection is not established. Cannot execute query.")
             return None
@@ -168,38 +183,6 @@ class RDS:
         except Exception as e:
             wrench_logger.error(f"Failed to execute query: {e}")
             return 'ERROR'
-
-    def parse_to_json(self):
-        if self.result is None:
-            wrench_logger.warning("Result is None, cannot parse to JSON.")
-            return None
-        try:
-            json_result = json.dumps(self.result, default=self._handle_special_types)
-            wrench_logger.debug("Result parsed to JSON successfully.")
-            return json_result
-        except Exception as e:
-            wrench_logger.error("Failed to parse result to JSON: {}".format(e))
-            return None
-
-    def parse_to_dataframe(self):
-        if self.result is None:
-            wrench_logger.warning("Result is None, cannot parse to DataFrame.")
-            return None
-        try:
-            if self.method == 'fetchall':
-                pass
-            elif self.method == 'fetchone':
-                self.result = [self.result]
-
-            if self.column_names is not None:
-                dataframe_result = pd.DataFrame(self.result, columns=self.column_names)
-            else:
-                dataframe_result = pd.DataFrame(self.result)
-            wrench_logger.debug("JSON parsed to DataFrame successfully.")
-            return dataframe_result
-        except Exception as e:
-            wrench_logger.error("Failed to parse JSON to DataFrame: {}".format(e))
-            return None
 
     def close(self):
         """
