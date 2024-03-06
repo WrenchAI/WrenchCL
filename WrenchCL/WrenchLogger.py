@@ -160,29 +160,30 @@ class _wrench_logger:
         stack_trace = " --> InternalLogFrames"
         last_level = ""
         write_flag = False
+        match_counter = 0
         filepath_out, line_no_out, func_name_out, sinfo_out = self.logger.findCaller(stack_info=stack_info,
                                                                                      stacklevel=stack_level_index)
+        if stack_level_index == 1:
+            first_index = f"{filepath_out}:{func_name_out}:{line_no_out}"
         # Loop to find the caller
-        while stack_level_index < (1000 if str(traceback.format_exc()) != "NoneType: None\n" else 1000):
+        while stack_level_index:
             filepath, line_no, func_name, sinfo = self.logger.findCaller(stack_info=stack_info,
                                                                          stacklevel=stack_level_index)
-            if f"{filepath}:{func_name}:{line_no}" != last_level:
+            if f"{filepath}:{func_name}:{line_no}" != last_level and (f"{filepath}:{func_name}:{line_no}" != first_index or stack_level_index == 1):
+                match_counter = 0
                 if self.running_on_lambda:
                     stack_trace = stack_trace + f" <-- {stack_level_index}|{os.path.basename(filepath)}:{func_name}:{line_no}"
                 else:
                     stack_trace = stack_trace + f"\n -- {stack_level_index}|{os.path.basename(filepath)}:{func_name}:{line_no}"
-                stack_level_index += 1
                 last_level = f"{filepath}:{func_name}:{line_no}"
 
-                if write_flag is False:
+                if write_flag is False and not self._is_internal_frame(os.path.normpath(filepath)):
                     filepath_out, line_no_out, func_name_out, sinfo_out = self.logger.findCaller(stack_info=stack_info,
                                                                                                  stacklevel=stack_level_index)
                     write_flag = True
-                if stack_info is True:
-                    continue
-                else:
-                    break
-            if self._is_internal_frame(os.path.normpath(filepath)):
+            else:
+                match_counter += 1
+            if self._is_internal_frame(os.path.normpath(filepath)) and match_counter <= 5 :
                 stack_level_index += 1
                 continue
             else:
@@ -191,7 +192,10 @@ class _wrench_logger:
         # Handle stack_info
         if stack_info:
             if str(traceback.format_exc()) != "NoneType: None\n":
-                sinfo = f"\n ---Stack Trace--- {stack_trace[4:]} \n {traceback.format_exc()}"
+                if colorama_imported:
+                    sinfo = f"\n ---Stack Trace--- \n {ColoramaFore.LIGHTBLACK_EX} {stack_trace[4:]} \n {ColoramaFore.RESET} ---Python Traceback--- {ColoramaFore.LIGHTBLACK_EX}\n {traceback.format_exc()} {ColoramaFore.RESET}"
+                else:
+                    sinfo = f"\n ---Stack Trace--- \n {stack_trace[4:]} \n ---Python Traceback--- \n {traceback.format_exc()}"
             else:
                 sinfo = f"Stack Trace: {self._format_data(stack_trace[4:], stack_trace = True)}"
         else:
@@ -406,10 +410,11 @@ class _wrench_logger:
     # Private Utility Methods
     @staticmethod
     def _is_internal_frame(filepath: str) -> bool:
-        check_strs = ['logging', 'wrenchlogger', 'pycaller', 'wrench_logger']
+        check_strs = ['WrenchLogger.py', '_pytest']
         end_strs = ['__init__.py']
+
         for cstr in check_strs:
-            if cstr in filepath.lower():
+            if cstr in filepath:
                 return True
 
         for estr in end_strs:
