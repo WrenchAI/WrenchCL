@@ -10,8 +10,6 @@ import traceback
 from textwrap import fill
 from typing import Any, Optional
 
-import pandas as pd
-
 try:
     from colorama import init, Fore as ColoramaFore, Style as ColoramaStyle
 
@@ -295,10 +293,15 @@ class _wrench_logger:
     def _format_data(self, data, wrap_length=None, max_rows=None, color=True, stack_trace=False):
         """Format data for logging, applying wrapping and color formatting where applicable."""
         # Determine the prefix based on the data type
+        try:
+            import pandas as pd
+        except ImportError:
+            pd = None
+
         if isinstance(data, dict):
             prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
             formatted_text = json.dumps(data, indent=4)
-        elif isinstance(data, pd.DataFrame):
+        elif pd and isinstance(data, pd.DataFrame):
             prefix_str = f"DataType: {type(data).__name__} | Shape: {data.shape[0]} rows | {data.shape[1]} columns"
             with pd.option_context('display.max_rows', max_rows, 'display.max_columns', None):
                 formatted_text = str(data)
