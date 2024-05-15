@@ -1,15 +1,10 @@
-import io
-import os
 import time
 import json
-
-import paramiko
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
 from WrenchCL.WrenchLogger import wrench_logger
 from decimal import Decimal
 import datetime
-import pandas as pd
 
 
 class SshTunnelManager:
@@ -24,9 +19,7 @@ class SshTunnelManager:
             ssh_address_or_host=(self.ssh_config['SSH_SERVER'], self.ssh_config['SSH_PORT']),
             ssh_username=self.ssh_config['SSH_USER'],
             ssh_password=self.ssh_config.get('SSH_PASSWORD', None),
-            ssh_pkey=paramiko.RSAKey(file_obj=io.StringIO(os.environ['RSA_KEY'])) if self.ssh_config.get('USE_RSA_ENV',
-                                                                                                         False) else self.ssh_config.get(
-                'SSH_KEY_PATH', None),
+            ssh_pkey=self.ssh_config.get('SSH_KEY_PATH', None),
             remote_bind_address=(self.config['PGHOST'], self.config['PGPORT'])
         )
         wrench_logger.revertLoggingLevel()
@@ -171,6 +164,13 @@ class RDS:
         if self.result is None:
             wrench_logger.warning("Result is None, cannot parse to DataFrame.")
             return None
+
+        try:
+            import pandas as pd
+        except ImportError:
+            wrench_logger.error("Pandas is not installed.")
+            raise NotImplementedError("pandas is required to parse to DataFrame.")
+
         try:
             if self.method == 'fetchall':
                 pass
@@ -186,6 +186,7 @@ class RDS:
         except Exception as e:
             wrench_logger.error("Failed to parse JSON to DataFrame: {}".format(e))
             return None
+
 
     def close(self):
         """
