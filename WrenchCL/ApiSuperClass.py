@@ -1,6 +1,5 @@
 import math
 import time
-import pandas as pd
 import requests
 from WrenchCL.WrenchLogger import wrench_logger
 
@@ -93,7 +92,6 @@ class ApiSuperClass:
                         wrench_logger.debug(
                             f'Current Batch: {batch + 1}/{batch_count}, Time per Batch: {time_per_batch:.2f}s, Batch ETA: {eta:.2f}s')
             else:
-                # Does this make sense?
                 wrench_logger.error(
                     f'MaxRetriesExceededError: Exceeded maximum retries of {max_retries}. Operation failed.')
                 raise MaxRetriesExceededError(f'Exceeded maximum retries of {max_retries}. Operation failed.')
@@ -102,4 +100,9 @@ class ApiSuperClass:
         total_run_time = end_time - start_time
         wrench_logger.debug(f'Total Run Time: {total_run_time:.2f}s')
 
-        return pd.DataFrame(all_data)
+        try:
+            import pandas as pd
+            return pd.DataFrame(all_data)
+        except ImportError:
+            wrench_logger.warning("Pandas is not installed. Returning raw data.")
+            return all_data
