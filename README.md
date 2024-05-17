@@ -1,7 +1,7 @@
 <br><br>
-<div style="text-align: center;">
+<div align="center">
    <img src="resources/Img/logo.svg" alt="Logo" style="display: inline-block; vertical-align: middle; margin-bottom: -50px; width: 90%; max-width: 800px;">
-<div class="shields">
+<div align="center">
     <a href="https://pypi.org/project/WrenchCL/">
       <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/WrenchCL?logo=pypi&logoColor=green&color=green">
     </a>
@@ -14,7 +14,7 @@
   </div>
 </div>
 
-<div style="text-align: center;">
+<div align="center">
  <hr>
 
   ## Overview
