@@ -37,20 +37,23 @@
  <hr>
 
   ## Important Notices
-  <ul style="list-style-type: none; padding: 0; text-align: center;">
-    <li>Deprecation Notice: V1 is deprecated and will no longer receive updates or support. Users are encouraged to migrate to V2.</li>
-    <li>Compatibility: V2 is not compatible with legacy systems or the V1 branch. Ensure you review the documentation and migration guides before upgrading.</li>
-  </ul>
+  <div align="left">
+    <ul style="list-style-type: none; padding: 0; text-align: center;">
+      <li>Deprecation Notice: V1 is deprecated and will no longer receive updates or support. Users are encouraged to migrate to V2.</li>
+      <li>Compatibility: V2 is not compatible with legacy systems or the V1 branch. Ensure you review the documentation and migration guides before upgrading.</li>
+    </ul>
+  </div>
 
  <hr>
 
   ## Documentation
   For detailed documentation, installation instructions, and usage examples, please refer to the README files in the respective branches:
-  <ul style="list-style-type: none; padding: 0; text-align: center;">
-    <li><a href="https://github.com/WrenchAI/WrenchCL/blob/v2/README.md">V2 Documentation</a></li>
-    <li><a href="https://github.com/WrenchAI/WrenchCL/blob/v1/README.md">V1 Documentation</a></li>
-  </ul>
-
+  <div align="left">
+    <ul>
+      <li ><a href="https://github.com/WrenchAI/WrenchCL/blob/v2/README.md">V2 Documentation</a></li>
+      <li><a href="https://github.com/WrenchAI/WrenchCL/blob/v1/README.md">V1 Documentation</a></li>
+    </ul>
+  </div> 
  <hr>
 
   ## License
