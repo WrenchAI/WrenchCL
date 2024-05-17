@@ -6,7 +6,7 @@ mypy_boto3_s3~=1.34.105
 openai~=1.30.1
 psycopg2-binary~=2.9.9
 python-dotenv~=1.0.1
-python_magic~=0.4.27
+python-magic-bin==0.4.14
 Requests~=2.31.0
 sshtunnel~=0.4.0
 tenacity~=8.2.3
