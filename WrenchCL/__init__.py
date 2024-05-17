@@ -1,6 +1,6 @@
 # WrenchCL/__init__.py
 
-from .Tools import logger
+from .Tools.WrenchLogger import logger
 
 __all__ = [
     'logger',
