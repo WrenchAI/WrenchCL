@@ -15,8 +15,8 @@
 
 from boto3 import client as boto3client
 
-from Tools.DictValidator import validate_input_dict
-from Tools.WrenchLogger import logger
+from ..Tools.DictValidator import validate_input_dict
+from ..Tools.WrenchLogger import logger
 from .build_return_json import build_return_json
 from .trigger_dataflow_metrics import trigger_minimum_dataflow_metrics
 

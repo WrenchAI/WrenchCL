@@ -25,7 +25,7 @@ from datetime import datetime, timedelta
 from textwrap import fill
 from typing import Any, Optional
 
-from Decorators.SingletonClass import SingletonClass
+from ..Decorators.SingletonClass import SingletonClass
 
 try:
     from colorama import init, Fore as ColoramaFore, Style as ColoramaStyle

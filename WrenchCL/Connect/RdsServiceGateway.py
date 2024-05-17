@@ -19,10 +19,10 @@ from typing import Optional, Type, Any, Union, List, Tuple
 import psycopg2
 import psycopg2.extras
 
-from Connect import AwsClientHub
-from Decorators.SingletonClass import SingletonClass
-from Tools.Coalesce import coalesce
-from Tools.WrenchLogger import logger
+from .AWSClientHub import AwsClientHub
+from ..Decorators.SingletonClass import SingletonClass
+from ..Tools.Coalesce import coalesce
+from ..Tools.WrenchLogger import logger
 
 try:
     import pandas as pd

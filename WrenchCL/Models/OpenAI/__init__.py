@@ -13,40 +13,9 @@
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
 
-import time
+from .OpenAIFactory import OpenAIFactory
+from .OpenAIFactory import OpenAIGateway
+# Hiding ConversationManager by not including it in __all__
 
-from ..Tools.WrenchLogger import logger
 
-def TimedMethod(func):
-    """
-    Decorator that logs the execution time of the decorated function. This can be useful for monitoring performance
-    and identifying bottlenecks in the code.
-
-    :param func: The function to be decorated.
-    :type func: function
-    :returns: The decorated function that logs its execution time.
-    :rtype: function
-
-    **Example**::
-
-        >>> @TimedMethod
-        ... def example_function():
-        ...     time.sleep(2)
-        ...
-        >>> example_function()  # Logs: example_function took 2.00 seconds
-    """
-    def wrapper(*args, **kwargs):
-        """
-        Wraps the function call to log its execution time.
-
-        :param args: Positional arguments for the function.
-        :param kwargs: Keyword arguments for the function.
-        :returns: The result of the function call.
-        """
-        start = time.time()
-        result = func(*args, **kwargs)
-        elapsed = time.time() - start
-        logger.context(f"{func.__name__} took {elapsed:.2f} seconds")
-        return result
-
-    return wrapper
+__all__ = ['OpenAIFactory', 'OpenAIGateway']
