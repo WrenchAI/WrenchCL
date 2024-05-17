@@ -1,19 +1,18 @@
-def test_all_imports():
-    import_errors = []
+import pytest
 
-    # Import from WrenchCL._Internal
+def test_internal_import():
     try:
         import WrenchCL._Internal
     except ImportError as e:
-        import_errors.append(f"Importing WrenchCL._Internal failed: {e}")
+        pytest.fail(f"Importing WrenchCL._Internal failed: {e}")
 
-    # Import from WrenchCL.Connect
+def test_connect_import():
     try:
-        from WrenchCL.Connect import S3ServiceGateway, S
+        from WrenchCL.Connect import S3ServiceGateway, RdsServiceGateway, AwsClientHub
     except ImportError as e:
-        import_errors.append(f"Importing from WrenchCL.Connect failed: {e}")
+        pytest.fail(f"Importing from WrenchCL.Connect failed: {e}")
 
-    # Import from WrenchCL.DataFlow
+def test_dataflow_import():
     try:
         from WrenchCL.DataFlow import (
             build_return_json,
@@ -23,21 +22,21 @@ def test_all_imports():
             trigger_dataflow_metrics
         )
     except ImportError as e:
-        import_errors.append(f"Importing from WrenchCL.DataFlow failed: {e}")
+        pytest.fail(f"Importing from WrenchCL.DataFlow failed: {e}")
 
-    # Import from WrenchCL.Decorators
+def test_decorators_import():
     try:
         from WrenchCL.Decorators import Retryable, SingletonClass, TimedMethod
     except ImportError as e:
-        import_errors.append(f"Importing from WrenchCL.Decorators failed: {e}")
+        pytest.fail(f"Importing from WrenchCL.Decorators failed: {e}")
 
-    # Import from WrenchCL.Models.OpenAI
+def test_models_openai_import():
     try:
         from WrenchCL.Models.OpenAI import OpenAIFactory, OpenAIGateway
     except ImportError as e:
-        import_errors.append(f"Importing from WrenchCL.Models.OpenAI failed: {e}")
+        pytest.fail(f"Importing from WrenchCL.Models.OpenAI failed: {e}")
 
-    # Import from WrenchCL.Tools
+def test_tools_import():
     try:
         from WrenchCL.Tools import (
             coalesce,
@@ -49,17 +48,13 @@ def test_all_imports():
             get_metadata
         )
     except ImportError as e:
-        import_errors.append(f"Importing from WrenchCL.Tools failed: {e}")
+        pytest.fail(f"Importing from WrenchCL.Tools failed: {e}")
 
-    # Import logger from WrenchCL
+def test_logger_import():
     try:
         from WrenchCL import logger
     except ImportError as e:
-        import_errors.append(f"Importing logger from WrenchCL failed: {e}")
-
-    # Check if there were any import errors
-    assert not import_errors, f"Import errors occurred:\n" + "\n".join(import_errors)
+        pytest.fail(f"Importing logger from WrenchCL failed: {e}")
 
 if __name__ == "__main__":
-    import pytest
     pytest.main()
