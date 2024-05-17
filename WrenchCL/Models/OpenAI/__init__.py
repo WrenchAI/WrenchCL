@@ -13,6 +13,9 @@
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
 
+
+# WrenchCL/Models/OpenAI/__init__.py
+
 from .OpenAIFactory import OpenAIFactory
 from .OpenAIFactory import OpenAIGateway
 # Hiding ConversationManager by not including it in __all__
