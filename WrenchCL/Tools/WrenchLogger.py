@@ -1,3 +1,18 @@
+#  Copyright (c) $YEAR$. Copyright (c) $YEAR$ Wrench.AI., Willem van der Schans, Jeong Kim
+#
+#  MIT License
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+#  All works within the Software are owned by their respective creators and are distributed by Wrench.AI.
+#
+#  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
+#
+
 import json
 import logging
 import os
@@ -5,10 +20,12 @@ import random
 import string
 import sys
 import time
-from datetime import datetime, timedelta
 import traceback
+from datetime import datetime, timedelta
 from textwrap import fill
 from typing import Any, Optional
+
+from Decorators.SingletonClass import SingletonClass
 
 try:
     from colorama import init, Fore as ColoramaFore, Style as ColoramaStyle
@@ -18,24 +35,11 @@ except ImportError:
     colorama_imported = False
     logging.warning("colorama package not found. Colored logging is disabled.")
 
-
+@SingletonClass
 class _wrench_logger:
-    _instance = None
-
-    # Lifecycle Methods
-    def __new__(cls, *args: Any, **kwargs: Any) -> 'log':
-        """
-        Implement the Singleton pattern to ensure a single instance per unique combination of `level` and `file_name_append_mode`.
-        """
-        if cls._instance is None:
-            cls._instance = super(_wrench_logger, cls).__new__(cls)
-        return cls._instance
 
     def __init__(self, level: str = 'INFO', file_logging=False, file_name_append_mode: Optional[str] = None) -> None:
         self._start_time = None
-        if hasattr(self, '_initialized'):  # Check if __init__ has been called before
-            return  # If yes, do nothing
-
         self.run_id = self._generate_run_id()
         self.running_on_lambda = 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
         self.previous_level = None
@@ -167,7 +171,8 @@ class _wrench_logger:
         while stack_level_index:
             filepath, line_no, func_name, sinfo = self.logger.findCaller(stack_info=stack_info,
                                                                          stacklevel=stack_level_index)
-            if f"{filepath}:{func_name}:{line_no}" != last_level and (f"{filepath}:{func_name}:{line_no}" != first_index or stack_level_index == 1):
+            if f"{filepath}:{func_name}:{line_no}" != last_level and (
+                    f"{filepath}:{func_name}:{line_no}" != first_index or stack_level_index == 1):
                 match_counter = 0
                 if self.running_on_lambda:
                     stack_trace = stack_trace + f" <-- {stack_level_index}|{os.path.basename(filepath)}:{func_name}:{line_no}"
@@ -181,7 +186,7 @@ class _wrench_logger:
                     write_flag = True
             else:
                 match_counter += 1
-            if self._is_internal_frame(os.path.normpath(filepath)) and match_counter <= 5 :
+            if self._is_internal_frame(os.path.normpath(filepath)) and match_counter <= 5:
                 stack_level_index += 1
                 continue
             else:
@@ -195,26 +200,17 @@ class _wrench_logger:
                 else:
                     sinfo = f"\n ---Stack Trace--- \n {stack_trace[4:]} \n ---Python Traceback--- \n {traceback.format_exc()}"
             else:
-                sinfo = f"Stack Trace: {self._format_data(stack_trace[4:], stack_trace = True)}"
+                sinfo = f"Stack Trace: {self._format_data(stack_trace[4:], stack_trace=True)}"
         else:
             sinfo = None
 
         # Create and handle the log record
-        record = self.logger.makeRecord(
-            name=self.logger.name,
-            level=level,
-            fn=filepath_out,
-            lno=line_no_out,
-            msg=msg,
-            args=None,
-            exc_info=None,
-            func=func_name_out,
-            sinfo=sinfo
-        )
+        record = self.logger.makeRecord(name=self.logger.name, level=level, fn=filepath_out, lno=line_no_out, msg=msg,
+            args=None, exc_info=None, func=func_name_out, sinfo=sinfo)
         self.logger.handle(record)
 
     def _log_with_color(self, level: int, text: str, color: Optional[str] = None,
-                        stack_info: Optional[bool] = False) -> None:
+            stack_info: Optional[bool] = False) -> None:
         if colorama_imported and color and not self.running_on_lambda:
             self._handlerFormat(color)
 
@@ -225,65 +221,73 @@ class _wrench_logger:
         if colorama_imported or self.running_on_lambda:
             self._handlerFormat()
 
-    def info(self, text: str, stack_info: Optional[bool] = False) -> None:
+    def info(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log information that might be helpful but isn't essential."""
+        text = ' '.join(args)
         self._log_with_color(logging.INFO, text, ColoramaFore.LIGHTGREEN_EX if colorama_imported else None, stack_info)
 
     log_info = INFO = info  # Aliases for info
 
-    def context(self, text: str, stack_info: Optional[bool] = False) -> None:
+    def context(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log contextual information for better understanding of the flow."""
+        text = ' '.join(args)
         self._log_with_color(21, text, ColoramaFore.LIGHTMAGENTA_EX if colorama_imported else None, stack_info)
 
     log_context = CONTEXT = context  # Aliases for context
 
-    def warning(self, text: str, stack_info: Optional[bool] = False) -> None:
+    def warning(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log issues that aren't errors but might warrant investigation."""
+        text = ' '.join(args)
         self._log_with_color(logging.WARNING, text, ColoramaFore.YELLOW if colorama_imported else None, stack_info)
 
     log_warning = WARNING = warning  # Aliases for warning
 
-    def HDL_WARN(self, text: str, stack_info: Optional[bool] = False) -> None:
+    def HDL_WARN(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log warnings that have been handled and do not require further action."""
+        text = ' '.join(args)
         self._log_with_color(31, text, ColoramaFore.MAGENTA if colorama_imported else None, stack_info)
 
     log_handled_warning = log_hdl_warn = HDL_WARN  # Aliases for HDL_WARN
 
-    def error(self, text: str, stack_info: Optional[bool] = False) -> None:
+    def error(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log errors that could disrupt normal program flow."""
+        text = ' '.join(args)
         self._log_with_color(logging.ERROR, text, ColoramaFore.RED if colorama_imported else None, stack_info)
 
     log_error = ERROR = error  # Aliases for error
 
     def data(self, data: Any, wrap_length: Optional[int] = None, max_rows: Optional[int] = None,
-             stack_info: Optional[bool] = False) -> None:
+            stack_info: Optional[bool] = False) -> None:
         """Log Data in a lower contrast, handling formatting for readability."""
         formatted_data = self._format_data(data, wrap_length, max_rows)
         self._log_with_color(41, formatted_data, ColoramaFore.LIGHTWHITE_EX if colorama_imported else None, stack_info)
 
     log_data = print_data = DATA = data
 
-    def HDL_ERR(self, text: str, stack_info: Optional[bool] = False) -> None:
+    def HDL_ERR(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log errors that have been handled but still need to be reported."""
+        text = ' '.join(args)
         self._log_with_color(42, text, ColoramaFore.LIGHTMAGENTA_EX if colorama_imported else None, stack_info)
 
     log_handled_error = log_hdl_err = HDL_ERR  # Aliases for HDL_ERR
 
-    def RECV_ERR(self, text: str, stack_info: Optional[bool] = False) -> None:
+    def RECV_ERR(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log errors from which the system can recover with or without manual intervention."""
+        text = ' '.join(args)
         self._log_with_color(43, text, ColoramaFore.LIGHTRED_EX if colorama_imported else None, stack_info)
 
     log_recoverable_error = log_recv_err = RECV_ERR  # Aliases for RECV_ERR
 
-    def critical(self, text: str, stack_info: Optional[bool] = False) -> None:
+    def critical(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log critical issues that require immediate attention."""
-        self._log_with_color(logging.CRITICAL, text, ColoramaFore.RED if colorama_imported else None,
-                             stack_info)
+        text = ' '.join(args)
+        self._log_with_color(logging.CRITICAL, text, ColoramaFore.RED if colorama_imported else None, stack_info)
 
     log_critical = CRITICAL = critical  # Aliases for critical
 
-    def debug(self, text: str, stack_info: Optional[bool] = False) -> None:
+    def debug(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log detailed information, typically of interest only when diagnosing problems."""
+        text = ' '.join(args)
         self._log_with_color(logging.DEBUG, text, ColoramaFore.CYAN if colorama_imported else None, stack_info)
 
     log_debug = DEBUG = debug  # Aliases for debug
@@ -436,8 +440,7 @@ class _wrench_logger:
         return logging.Formatter(f"%(levelname)-8s: [{self.run_id}]"
                                  f"%(filename)s:%(funcName)s:%(lineno)d | "
                                  f"%(asctime)s | "
-                                 f"%(message)s",
-                                 datefmt='%Y-%m-%d %H:%M:%S')
+                                 f"%(message)s", datefmt='%Y-%m-%d %H:%M:%S')
 
     @staticmethod
     def _set_logging_level(level: str) -> int:
@@ -554,7 +557,7 @@ class _wrench_logger:
         # Initialize colorama for colorful output if not running on AWS Lambda
         if colorama_imported and not self.running_on_lambda:
             init()
-        
+
     def start_time(self):
         """Start a timer for performance measurement."""
         self._start_time = time.time()
@@ -586,7 +589,6 @@ class _wrench_logger:
 
     # Alias for log_time
     Time = log_time
-        
-        
 
-wrench_logger = _wrench_logger()
+
+logger = _wrench_logger()
