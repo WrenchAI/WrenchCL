@@ -1,365 +1,105 @@
-<h1 align="center">Wrench Code Library</h1>
+<style>
+.center-content {
+  text-align: center;
+}
+.inline-block-image {
+  display: inline-block;
+  vertical-align: middle;
+  margin-bottom: -50px;
+}
+.shields a {
+  display: inline-block;
+  margin: 10px;
+}
+.custom-list {
+  list-style-type: none;
+  padding: 0;
+  text-align: center;
+}
+.custom-list-item {
+  display: inline-block;
+  margin: 10px;
+}
+.button {
+  display: inline-block;
+  padding: 5px 5px;
+  font-size: 12px;
+  color: #fff;
+  background: linear-gradient(90deg, #e63680, #49414c);
+  border: none;
+  border-radius: 25px;
+  text-decoration: none;
+  margin: 0;
+}
+.divider {
+  height: 2px;
+  background: linear-gradient(90deg, #3f1628, #49414c);
+  margin: 20px 0;
+}
+.important-notice {
+  font-weight: bold;
+  color: #d9534f;
+}
+</style>
 
-<p align="center">
-    <a href="https://pypi.org/project/WrenchCL/" style="text-decoration: none;">
-        <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/WrenchCL?logo=pypi&logoColor=green&color=green">
+<div class="center-content">
+  <br><br>
+  <img src="Resources/Img/logo.svg" alt="Logo" class="inline-block-image">
+  <div class="shields">
+    <a href="https://pypi.org/project/WrenchCL/">
+      <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/WrenchCL?logo=pypi&logoColor=green&color=green">
     </a>
-    <img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/WrenchCL?logo=python&logoColor=blue&color=yellow">
-    <a href="https://github.com/Kydoimos97" style="text-decoration: none;">
-        <img src="https://img.shields.io/badge/Kydoimos97-cb632b?label=Code%20Maintainer" alt="Maintainer" height="20"/>
-    </a>    
-    <br> <br>
-    <a href="https://github.com/WrenchAI/WrenchCL/actions/workflows/publish-to-pypi.yml" style="text-decoration: none;">
-        <img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/WrenchAI/WrenchCL/publish-to-pypi.yml?event=push&logo=Github&label=Test%20%26%20Publish%20%F0%9F%90%8D%20to%20PyPI%20%F0%9F%93%A6">
+    <a href="https://github.com/Kydoimos97">
+      <img src="https://img.shields.io/badge/Kydoimos97-cb632b?label=Code%20Maintainer" alt="Maintainer" height="20"/>
     </a>
-</p>
+    <a href="https://github.com/WrenchAI/WrenchCL/actions/workflows/publish-to-pypi.yml">
+      <img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/WrenchAI/WrenchCL/publish-to-pypi.yml?event=push&logo=Github&label=Test%20%26%20Publish%20%F0%9F%90%8D%20to%20PyPI%20%F0%9F%93%A6">
+    </a>
+    </a>
+  </div>
+</div>
 
-## Description
+<div class="center-content">
+  <div class="divider"></div>
 
-This is a code library designed to improve code reusability and standardize access to APIs, RDS, and logging functionalities.
+  ## Overview
+  Welcome to the Wrench Code Library repository. This repository serves as the main entry point and contains important documentation and workflow configurations.
 
-**PyPI Link:** [WrenchCL on PyPI](https://pypi.org/project/WrenchCL/)
+  <div class="divider"></div>
 
-## Installation
+  ## Branches
 
-To install the package, simply run the following command:
+  ### V2 (Current Version)
+  The V2 branch is the latest stable release of our project. This version includes new features and improvements but is not backwards-compatible with WrenchCL v1.
+  <br> <br>
+  <a href="https://github.com/WrenchAI/WrenchCL/tree/v2"  class="button pypi">V2 branch Source</a>
 
-```bash
-pip install WrenchCL
-```
+  <div class="divider"></div>
 
-# User Guides
+  ### V1 (Deprecated)
+  The V1 branch is the previous version of our project. This version is now deprecated and will not receive further updates or support. It remains available for legacy compatibility.
+  <br> <br>
+  <a href="https://github.com/WrenchAI/WrenchCL/tree/v1" class="button pypi">V2 branch Source</a>
 
-# Wrench Logger
+  <div class="divider"></div>
 
-## Instantiation
+  ## Important Notices
+  <ul class="custom-list">
+    <li class="custom-list-item important-notice">Deprecation Notice: V1 is deprecated and will no longer receive updates or support. Users are encouraged to migrate to V2.</li>
+    <li class="custom-list-item important-notice">Compatibility: V2 is not compatible with legacy systems or the V1 branch. Ensure you review the documentation and migration guides before upgrading.</li>
+  </ul>
 
-WrenchCL can be imported using either of the following methods:
+  <div class="divider"></div>
 
-```python
-from WrenchCL import wrench_logger
-# or
-from WrenchCL.Utility import wrench_logger
-```
+  ## Documentation
+  For detailed documentation, installation instructions, and usage examples, please refer to the README files in the respective branches:
+  <ul class="custom-list">
+    <li class="custom-list-item"><a href="https://github.com/WrenchAI/WrenchCL/blob/v2/README.md" class="button pypi">V2 Documentation</a></li>
+    <li class="custom-list-item"><a href="https://github.com/WrenchAI/WrenchCL/blob/v1/README.md" class="button pypi">V1 Documentation</a></li>
+  </ul>
 
-It utilizes a singleton instance. Upon import, the `wrench_logger` automatically:
+  <div class="divider"></div>
 
-1. Generates a run ID.
-2. Checks the environment it's running on and sets the configuration accordingly.
-3. Sets the default logging format.
-4. Sets the logging level as specified.
-5. Configures the file logger if file logging is enabled.
-6. Configures the console logger.
-
-Since the class itself is not imported but the instance is, configuration is achieved through methods rather than arguments.
-
-## Logging Format Details
-
-Each log message encompasses the following information:
-
-- **Log Level:** Severity of the log (e.g., INFO, DEBUG).
-- **Run ID:** Unique identifier for the current run, aiding in distinguishing logs from different execution phases.
-- **File Name:** The Python file where the log call occurs.
-- **Function Name:** Function containing the log call.
-- **Line Number:** Exact line number of the log call.
-- **Timestamp:** Date and time when the log message was generated.
-- **Message:** Content of the log message.
-
-#### Format 
-
-```[Log Level]  :  [RunID] FileName:Method:Lineno  | DateTime | Message```
-
-```INFO    :  [R-2P19UD-6573] WrenchLogger.py:_log:156  | 2024-02-21 01:30:11 | RDS: Getting Entity Data```
-
-## Main Functional Methods
-
-<details>
-  <summary><span style="font-size: large;">Logging Methods</span></summary>
-
----
-
-#### `info` Method
-
-```python
-wrench_logger.info(self, text: str, stack_info: Optional[bool] = False) -> None
-```
-
-- **Usage:**
-
-  ```python
-  # Input
-  wrench_logger.info("Test info message.")
-  # Output 
-  INFO    :  [R-HH7GH3-9471] WrenchLogger.py:info:192  | 2024-02-22 12:15:04 | Test info message.
-  ```
-
-- **Color:** Green
-- **Use Case:** For printing information.
-
----
-
-#### `context` Method
-
-```python
-wrench_logger.context(self, text: str, stack_info: Optional[bool] = False) -> None
-```
-
-- **Usage:**
-
-  ```python
-    # Input
-  wrench_logger.context("Test context message.")
-  # Output 
-  INFO    :  [R-HH7GH3-9471] WrenchLogger.py:context:195  | 2024-02-22 12:15:04 | Test context message.
-  ```
-
-- **Color:** Purple
-- **Use Case:** For printing large volumes of context, making it easily distinguishable during testing.
-
----
-
-#### `warning` Method
-
-```python
-wrench_logger.warning(self, text: str, stack_info: Optional[bool] = False) -> None
-```
-
-- **Usage:**
-
-  ```python
-  # Input
-  wrench_logger.warning("Test warning message.")
-  # Output 
-  WARNING :  [R-HH7GH3-9471] WrenchLogger.py:warning:198  | 2024-02-22 12:15:04 | Test warning message.
-  ```
-
-- **Color:** Yellow
-- **Use Case:** For a handled exception.
-
----
-
-#### `error` Method
-
-```python
-wrench_logger.error(self, text: str, stack_info: Optional[bool] = False) -> None
-```
-
-- **Usage:**
-
-  ```python
-  # Input
-  wrench_logger.error("Test error message.")
-  # Output 
-  ERROR   :  [R-HH7GH3-9471] WrenchLogger.py:error:201  | 2024-02-22 12:15:04 | Test error message.
-  ```
-
-- **Color:** Red
-- **Use Case:** For handled or unhandled errors.
-
----
-
-#### `critical` Method
-
-```python
-wrench_logger.critical(self, text: str, stack_info: Optional[bool] = False) -> None
-```
-
-- **Usage:**
-
-  ```python
-  # Input
-  wrench_logger.critical("Test critical message.")
-  # Output 
-  CRITICAL:  [R-HH7GH3-9471] WrenchLogger.py:critical:204  | 2024-02-22 12:15:04 | Test critical message.
-  ```
-
-- **Color:** Light-red
-- **Use Case:** For high priority errors that significantly impact outputs or dependencies.
-
----
-
-#### `debug` Method
-
-```python
-wrench_logger.debug(self, text: str, stack_info: Optional[bool] = False) -> None
-```
-
-- **Usage:**
-
-  ```python
-  # Input
-  wrench_logger.debug("Test debug message.")
-  # Output 
-  DEBUG   :  [R-HH7GH3-1289] WrenchLogger.py:debug:207  | 2024-02-22 12:30:48 | Test debug message.
-  ```
-
-- **Color:** Light-blue
-- **Use Case:** For debugging information.
-
----
-
-#### `header` Method
-
-```python
-wrench_logger.header(self, text: str, size: int = 80, newline: bool = True) -> None
-```
-
-- **Usage:**
-
-  ```python
-  # Input
-  wrench_logger.header("Test Header")
-  # Output 
-
-    ----------------------------------Test Header-----------------------------------
-  ```
-
-- **Use Case:** To create sections in logs. 
-- `newline` adds a white line above the header. 
-- `size` determines the string's total length, filled with `-`.
-
-</details>
-
----
-
-## Configuration Methods
-
-<details>
-  <summary><span style="font-size: large;">Level and Configuration methods</span></summary>
-
----
-
-### Set Level
-
-```python
-wrench_logger.setLevel(self, level: str) -> None
-```
-
-- **Purpose:** Adjusts the logging level to control what severity of logs are emitted. 
-- Valid levels include ```"INFO", "DEBUG", "WARNING", "ERROR", and "CRITICAL".```
-
-
-**Example:**
-
-  ```python
-  wrench_logger.setLevel("DEBUG")
-  ```
-
-This sets the logging level to DEBUG, ensuring that all debug messages and above are logged.
-
----
-
-### Revert Logging Level
-
-```python
-wrench_logger.revertLoggingLevel(self) -> None
-```
-
-- **Purpose:** Reverts the logging level to the previous setting. Useful for temporary adjustments of log verbosity.
-
-**Example:**
-
-  ```python
-    # Initial Setting
-    wrench_logger.setLevel("DEBUG")
-    # -- non verbose code
-    wrench_logger.setLevel("INFO") # Switch to Info level
-    # -- verbose_function
-    wrench_logger.revertLoggingLevel() # Switch back to last level before info; debug
-  ```
-
----
-
-### Overwrite lambda mode
-
-```python
-wrench_logger.overwrite_lambda_mode(self, setting: bool) -> None
-```
-
-- **Purpose:** Overrides the default behavior for color logging in environments like AWS Lambda, where color logging might not be supported.
-
-**Example:**
-
-  ```python
-  wrench_logger.overwrite_lambda_mode(False)
-  ```
-
----
-
-### Set Global Traceback
-
-```python
-wrench_logger.set_global_traceback(self, setting: bool) -> None
-```
-
-- **Purpose:** Globally enables or disables the inclusion of traceback information in logs, aiding in debugging without having to enable it per log call.
-
-**Example:**
-
-  ```python
-  wrench_logger.set_global_traceback(True)
-  ```
-
-Enabling this will append traceback information to all log messages
-</details>
-
----
-
-<details>
-  <summary><span style="font-size: large;">File Logging Methods</span></summary>
-
----
-
-### Set log file location
-
-```python
-wrench_logger.set_log_file_location(self, path: str, new_append_mode: Optional[str] = None) -> None
-```
-
-- **Purpose:** Specifies the log file's location and the mode of appending to the log file. This is crucial for managing log file output and retention.
-
-**Example:**
-
-  ```python
-  wrench_logger.set_log_file_location("/var/log/my_app.log")
-  ```
-
-Sets the log file location to `/var/log/my_app.log`, directing all file-based logging output to this file.
-
----
-
-### Set file logging
-
-```python
-wrench_logger.set_file_logging(self, file_logging: bool) -> None
-```
-
-- **Purpose:** Enables or disables logging to a file. This method provides a straightforward way to toggle file logging according to runtime decisions.
-
-**Example:**
-
-  ```python
-  wrench_logger.set_file_logging(True)
-  ```
-
-This enables logging to a file, ensuring that logs are not only displayed in the console but also saved for later review.
-
----
-
-### Release Resources
-
-```python
-wrench_logger.release_resources(self) -> None
-```
-
-- **Purpose:** Ensures that all file handles and other resources are properly closed and released. This is particularly important in long-running applications to avoid resource leaks.
-
-**Example:**
-
-  ```python
-  wrench_logger.release_resources()
-  ```
-
-Calling this method when the application is shutting down or when logging needs to be reconfigured ensures that resources are cleanly released.
-
-</details>
+  ## License
+  This project is licensed under the MIT License
+</div>
