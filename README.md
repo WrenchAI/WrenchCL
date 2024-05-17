@@ -45,7 +45,7 @@ To interact with AWS RDS and S3 services, follow these steps:
 
 1. **Setup `AWSClientHub`**:
    ```python
-   from WrenchCL.Connections import AWSClientHub
+   from WrenchCL.Connections import AwsClientHub
 
    # Initialize the AWSClientHub using an env file or keyword arguments
    aws_client_hub = AWSClientHub(env_path="path/to/your/env/file")
@@ -115,7 +115,7 @@ To use OpenAI models, follow these steps:
 
 1. **Setup `OpenAIGateway`**:
    ```python
-   from WrenchCL.Models import OpenAIGateway
+   from WrenchCL.Models.OpenAI import OpenAIGateway
 
    # Initialize OpenAIGateway with your OpenAI API key
    openai_gateway = OpenAIGateway(api_key="your_openai_api_key")
@@ -147,7 +147,7 @@ To use OpenAI models, follow these steps:
 
 2. **Using `OpenAIFactory`**:
    ```python
-   from WrenchCL.Models import OpenAIFactory
+   from WrenchCL.Models.OpenAI import OpenAIFactory
 
    # Initialize OpenAIFactory with your OpenAI API key
    openai_factory = OpenAIFactory(api_key="your_openai_api_key")
