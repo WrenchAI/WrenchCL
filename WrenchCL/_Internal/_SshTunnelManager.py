@@ -13,7 +13,7 @@
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
 
-from Tools.WrenchLogger import logger
+from ..Tools.WrenchLogger import logger
 from sshtunnel import SSHTunnelForwarder
 
 class _SshTunnelManager:

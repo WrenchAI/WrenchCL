@@ -2,6 +2,6 @@
 
 from .RdsServiceGateway import RdsServiceGateway
 from .S3ServiceGateway import S3ServiceGateway
-from .AWSClientHub import AwsClientHub
+from .AwsClientHub import AwsClientHub
 
-__all__ = ['RdsServiceGateway', 'S3ServiceGateway', 'AWSClientHub']
+__all__ = ['RdsServiceGateway', 'S3ServiceGateway', 'AwsClientHub']

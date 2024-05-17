@@ -14,13 +14,13 @@
 #
 
 import io
-
 from botocore.exceptions import ClientError
 
-from Decorators.Retryable import Retryable
-from Decorators.SingletonClass import SingletonClass
-from Tools.WrenchLogger import logger
-from Connect.AWSClientHub import AwsClientHub
+from ..Decorators.Retryable import Retryable
+from ..Decorators.SingletonClass import SingletonClass
+from ..Tools.WrenchLogger import logger
+from .AwsClientHub import AwsClientHub
+
 
 @SingletonClass
 class S3ServiceGateway:

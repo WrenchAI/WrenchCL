@@ -1,4 +1,5 @@
 import os
+import platform
 from setuptools import setup, find_packages
 
 # Function to find a folder that ends with .egg-info
@@ -9,14 +10,14 @@ def find_egg_info_folder(path='.'):
     return None
 
 # Read the long description from README.md
-with open("README.md", "r") as f:
+with open("README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
 
 # First, attempt to read the dependencies from requirements.txt in the root directory
 required = []
 requirements_path = 'requirements.txt'
 if os.path.exists(requirements_path):
-    with open(requirements_path, "r") as f:
+    with open(requirements_path, "r", encoding="utf-8") as f:
         required = f.read().splitlines()
 else:
     # If requirements.txt is not found, locate the .egg-info folder and read requires.txt
@@ -24,14 +25,26 @@ else:
     if egg_info_folder:
         requires_path = os.path.join(egg_info_folder, 'requires.txt')
         if os.path.exists(requires_path):
-            with open(requires_path, "r") as f:
+            with open(requires_path, "r", encoding="utf-8") as f:
                 required = f.read().splitlines()
+
+# Add a note for Windows users to install python-magic-bin if python-magic isn't found
+if platform.system() == "Windows":
+    print(
+        "Note: If you encounter issues with python-magic on Windows, please install python-magic-bin manually:\n"
+        "pip install python-magic-bin~=0.4.14"
+    )
 
 setup(
     name='WrenchCL',
     version='0.0.1.dev0',
     author='willem@wrench.ai',
-    description='WrenchCL is a comprehensive library designed to facilitate seamless interactions with AWS services, OpenAI models, and various utility tools. This package aims to streamline the development process by providing robust components for database interactions, cloud storage, and AI-powered functionalities.',
+    description=(
+        'WrenchCL is a comprehensive library designed to facilitate seamless interactions with '
+        'AWS services, OpenAI models, and various utility tools. This package aims to streamline '
+        'the development process by providing robust components for database interactions, '
+        'cloud storage, and AI-powered functionalities.'
+    ),
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://github.com/WrenchAI/WrenchCL',

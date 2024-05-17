@@ -18,7 +18,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-from Tools.WrenchLogger import logger
+from ..Tools.WrenchLogger import logger
 
 
 class _ConfigurationManager:

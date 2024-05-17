@@ -15,7 +15,7 @@
 
 from botocore.exceptions import ClientError, BotoCoreError
 
-from Tools.WrenchLogger import logger
+from ..Tools.WrenchLogger import logger
 
 def Retryable(retry_on_exceptions=(ClientError, BotoCoreError), max_retries=3, delay=2):
     """

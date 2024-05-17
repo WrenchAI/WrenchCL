@@ -1,7 +1,7 @@
 <h1 align="center">Wrench Code Library</h1>
 
 <p align="center">
-    <img src="resources/img/logo.svg" alt="Logo" style="display: inline-block; vertical-align: middle; margin-bottom: -50px; width: 90%; max-width: 800px;">
+    <img src="https://raw.githubusercontent.com/WrenchAI/WrenchCL/release/resources/img/logo.svg" alt="Logo" style="display: inline-block; vertical-align: middle; margin-bottom: -50px; width: 90%; max-width: 800px;">
     <a href="https://pypi.org/project/WrenchCL/" style="text-decoration: none;">
         <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/WrenchCL?logo=pypi&logoColor=green&color=green">
     </a>
@@ -21,12 +21,12 @@ WrenchCL is a comprehensive library designed to facilitate seamless interactions
 
 ## Package Structure
 
-- **Classes**: Contains internal classes for configuration and SSH tunnel management.
+- **_Internal**: Contains internal classes for configuration and SSH tunnel management.
 - **Connect**: Provides gateways for AWS RDS and S3 services and the `AWSClientHub`.
 - **Decorators**: Utility decorators for retry logic, singleton pattern, and method timing.
-- **Models**: Classes for interacting with OpenAI models.
+- **Models**: _Internal for interacting with OpenAI models.
 - **Tools**: Miscellaneous utility tools such as coalescing values, file typing, image encoding, and a custom logger.
-- **Helpers**: Response focused tools to aid in returning values and generating logs based on status codes.
+- **DataFlow**: Response focused tools to aid in returning values and generating logs based on status codes.
 ## Installation
 
 To install the package, simply run the following command:
@@ -45,7 +45,7 @@ To interact with AWS RDS and S3 services, follow these steps:
 
 1. **Setup `AWSClientHub`**:
    ```python
-   from WrenchCL.Connections import AWSClientHub
+   from WrenchCL.Connections import AwsClientHub
 
    # Initialize the AWSClientHub using an env file or keyword arguments
    aws_client_hub = AWSClientHub(env_path="path/to/your/env/file")
@@ -115,7 +115,7 @@ To use OpenAI models, follow these steps:
 
 1. **Setup `OpenAIGateway`**:
    ```python
-   from WrenchCL.Models import OpenAIGateway
+   from WrenchCL.Models.OpenAI import OpenAIGateway
 
    # Initialize OpenAIGateway with your OpenAI API key
    openai_gateway = OpenAIGateway(api_key="your_openai_api_key")
@@ -147,7 +147,7 @@ To use OpenAI models, follow these steps:
 
 2. **Using `OpenAIFactory`**:
    ```python
-   from WrenchCL.Models import OpenAIFactory
+   from WrenchCL.Models.OpenAI import OpenAIFactory
 
    # Initialize OpenAIFactory with your OpenAI API key
    openai_factory = OpenAIFactory(api_key="your_openai_api_key")
@@ -360,16 +360,16 @@ WrenchCL includes several decorators for common patterns:
   print(result)  # Output: "Done"
   ```
 
-### Helpers
+### DataFlow
 
-WrenchCL includes various helper functions to assist with common tasks. These helpers are located in the `Helpers` module.
+WrenchCL includes various helper functions to assist with common tasks. These helpers are located in the `DataFlow` module.
 
 #### build_return_json
 
 Constructs a JSON response with a given status code and message.
 
 ```python
-from WrenchCL.Helpers import build_return_json
+from WrenchCL.DataFlow import build_return_json
 
 response = build_return_json(code=200, message="Success")
 print(response)  # Output: {'statusCode': 200, 'body': '{"message": "Success"}'}
@@ -384,7 +384,8 @@ Here’s a comprehensive example demonstrating how to use `handle_lambda_respons
 ```python
 import time
 from WrenchCL import wrench_logger
-from WrenchCL.Helpers import build_return_json, handle_lambda_response, GuardedResponseTrigger
+from WrenchCL.DataFlow import build_return_json, handle_lambda_response, GuardedResponseTrigger
+
 
 # Mock implementation of LambdaCore for the example
 class LambdaCore:
@@ -402,19 +403,27 @@ class LambdaCore:
             self.get_score({"key": "value"}, {"input_key": "input_value"})
         except Exception as e:
             # Handle other exceptions and wrap them into the GuardedResponseTrigger
-            handle_lambda_response(500, str(e), {"event": self.event, "context": self.context, "start_time": time.time(), "lambda_client": "lambda_client_instance"})
-    
+            handle_lambda_response(500, str(e),
+                                   {"event": self.event, "context": self.context, "start_time": time.time(),
+                                    "lambda_client": "lambda_client_instance"})
+
     def get_score(self, target_dict, input_dict):
         # Mock scoring process which might throw an error
         try:
             score = self.compute_score(target_dict, input_dict)
             if score is None:
-                handle_lambda_response(732, "Prediction Error: Invalid prediction provided by model.", {"event": self.event, "context": self.context, "start_time": time.time(), "lambda_client": "lambda_client_instance"})
-            handle_lambda_response(200, f"Score computed successfully: {score}", {"event": self.event, "context": self.context, "start_time": time.time(), "lambda_client": "lambda_client_instance"})
+                handle_lambda_response(732, "Prediction Error: Invalid prediction provided by model.",
+                                       {"event": self.event, "context": self.context, "start_time": time.time(),
+                                        "lambda_client": "lambda_client_instance"})
+            handle_lambda_response(200, f"Score computed successfully: {score}",
+                                   {"event": self.event, "context": self.context, "start_time": time.time(),
+                                    "lambda_client": "lambda_client_instance"})
         except GuardedResponseTrigger as e:
             raise e  # Propagate the GuardedResponseTrigger upwards
         except Exception as e:
-            handle_lambda_response(757, str(e), {"event": self.event, "context": self.context, "start_time": time.time(), "lambda_client": "lambda_client_instance"})
+            handle_lambda_response(757, str(e),
+                                   {"event": self.event, "context": self.context, "start_time": time.time(),
+                                    "lambda_client": "lambda_client_instance"})
 
     def compute_score(self, target_dict, input_dict):
         # This is a placeholder for the actual scoring logic
@@ -429,7 +438,7 @@ def lambda_handler(event, context):
         wrench_logger.run_id = 'R-LAMBDAS-WARM'
         wrench_logger.context("Lambda Warmed")
         return build_return_json(200, 'Warmed Lambda')
-    
+
     start_time = time.time()
     try:
         wrench_logger.info("Invoking Lambda Core")
@@ -467,18 +476,11 @@ By using `GuardedResponseTrigger` and `handle_lambda_response`, you can manage e
 Triggers minimal data flow metrics for monitoring purposes.
 
 ```python
-from WrenchCL.Helpers import trigger_minimum_dataflow_metrics
+from WrenchCL.DataFlow import trigger_minimum_dataflow_metrics
 
-trigger_minimum_dataflow_metrics(
-    event="event_data",
-    context="context_data",
-    start_time=1625256000,
-    lambda_client="lambda_client_instance",
-    job_name="Model Inference Service",
-    job_type="Lambda",
-    status_code="200",
-    message="Success"
-)
+trigger_minimum_dataflow_metrics(event="event_data", context="context_data", start_time=1625256000,
+    lambda_client="lambda_client_instance", job_name="Model Inference Service", job_type="Lambda", status_code="200",
+    message="Success")
 ```
 
 #### trigger_dataflow_metrics
@@ -486,19 +488,11 @@ trigger_minimum_dataflow_metrics(
 Triggers detailed data flow metrics for monitoring purposes.
 
 ```python
-from WrenchCL.Helpers import trigger_dataflow_metrics
+from WrenchCL.DataFlow import trigger_dataflow_metrics
 
-trigger_dataflow_metrics(
-    event="event_data",
-    context="context_data",
-    start_time=1625256000,
-    lambda_client="lambda_client_instance",
-    job_name="Model Inference Service",
-    job_type="Lambda",
-    status_code="200",
-    message="Success",
-    additional_data={"key": "value"}
-)
+trigger_dataflow_metrics(event="event_data", context="context_data", start_time=1625256000,
+    lambda_client="lambda_client_instance", job_name="Model Inference Service", job_type="Lambda", status_code="200",
+    message="Success", additional_data={"key": "value"})
 ```
 
 With these detailed instructions and examples, you should be well-equipped to utilize the WrenchCL library for your projects. If you have any further questions or need additional support, please refer to the documentation or contact the maintainers.

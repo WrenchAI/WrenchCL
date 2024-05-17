@@ -41,7 +41,7 @@
 #
 
 from typing import Any, Dict, Type, Literal
-from Tools.WrenchLogger import logger
+from .WrenchLogger import logger
 
 
 def validate_input_dict(

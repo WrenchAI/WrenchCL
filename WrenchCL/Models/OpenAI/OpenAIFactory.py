@@ -13,8 +13,20 @@
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
 
-from Decorators.TimedMethod import TimedMethod
-from Models.OpenAIGateway import OpenAIGateway
+#
+#  MIT License
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+#
+#
+#
+#  All works within the Software are owned by their respective creators and are distributed by Wrench.AI.
+#
+#  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
+#
+
+from ...Decorators.TimedMethod import TimedMethod
+from .OpenAIGateway import OpenAIGateway
 
 
 class OpenAIFactory(OpenAIGateway):
