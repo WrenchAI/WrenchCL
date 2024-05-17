@@ -30,9 +30,9 @@ import base64
 import os
 from openai import OpenAI
 
-from Decorators.TimedMethod import TimedMethod
-from _ConversationManager import ConversationManager
-from Tools.WrenchLogger import logger
+from ...Decorators.TimedMethod import TimedMethod
+from ._ConversationManager import ConversationManager
+from ...Tools.WrenchLogger import logger
 
 
 class OpenAIGateway:
