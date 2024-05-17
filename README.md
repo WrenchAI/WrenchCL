@@ -27,7 +27,7 @@
   color: #fff;
   background: linear-gradient(90deg, #e63680, #49414c);
   border: none;
-  border-radius: 25px;
+  border-radius: 15px;
   text-decoration: none;
   margin: 0;
 }
