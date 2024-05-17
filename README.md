@@ -34,6 +34,18 @@ To install the package, simply run the following command:
 ```bash
 pip install WrenchCL
 ```
+Upon recieving the below error: 
+
+```bash
+ImportError: failed to find libmagic.  Check your installation
+```
+
+Install the package with the optional libmagic dependency, users can using the following command:
+
+```bash
+pip install WrenchCL[libmagic]
+```
+
 
 # User Guides
 

@@ -2,12 +2,14 @@ import os
 import platform
 from setuptools import setup, find_packages
 
+
 # Function to find a folder that ends with .egg-info
 def find_egg_info_folder(path='.'):
     for folder_name in os.listdir(path):
         if folder_name.endswith('.egg-info'):
             return folder_name
     return None
+
 
 # Read the long description from README.md
 with open("README.md", "r", encoding="utf-8") as f:
@@ -28,32 +30,13 @@ else:
             with open(requires_path, "r", encoding="utf-8") as f:
                 required = f.read().splitlines()
 
-# Add a note for Windows users to install python-magic-bin if python-magic isn't found
-if platform.system() == "Windows":
-    print(
-        "Note: If you encounter issues with python-magic on Windows, please install python-magic-bin manually:\n"
-        "pip install python-magic-bin~=0.4.14"
-    )
+# Define the optional dependencies
+extras = {'libmagic': ['python-magic-bin~=0.4.14']}
 
-setup(
-    name='WrenchCL',
-    version='0.0.1.dev0',
-    author='willem@wrench.ai',
-    description=(
-        'WrenchCL is a comprehensive library designed to facilitate seamless interactions with '
-        'AWS services, OpenAI models, and various utility tools. This package aims to streamline '
-        'the development process by providing robust components for database interactions, '
-        'cloud storage, and AI-powered functionalities.'
-    ),
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url='https://github.com/WrenchAI/WrenchCL',
-    packages=find_packages(),
-    install_requires=required,
-    python_requires='>=3.11',
-    classifiers=[
-        'Programming Language :: Python :: 3',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
-    ],
-)
+setup(name='WrenchCL', version='0.0.1.dev0', author='willem@wrench.ai',
+    description='WrenchCL is a comprehensive library designed to facilitate seamless interactions with AWS services, OpenAI models, and various utility tools. This package aims to streamline the development process by providing robust components for database interactions, cloud storage, and AI-powered functionalities.',
+    long_description=long_description, long_description_content_type="text/markdown",
+    url='https://github.com/WrenchAI/WrenchCL', packages=find_packages(), install_requires=required,
+    extras_require=extras, python_requires='>=3.11',
+    classifiers=['Programming Language :: Python :: 3', 'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent', ], )

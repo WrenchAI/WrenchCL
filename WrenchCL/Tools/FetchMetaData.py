@@ -15,7 +15,17 @@
 
 import os
 import requests
-import magic
+
+try:
+    import magic
+except ImportError as e:
+    raise ImportError(
+        "Failed to import 'magic'. Please install the appropriate library. "
+        "On Windows, you can install it with:\n"
+        "pip install WrenchCL[libmagic]\n"
+        "On other platforms, ensure 'libmagic' is installed."
+    ) from e
+
 from datetime import datetime
 
 def get_metadata(file_source, is_url=True):
