@@ -19,8 +19,9 @@ try:
 except ImportError as e:
     raise ImportError(
         "Failed to import 'magic'. Please install the appropriate library. "
-        "On Windows, you can install it with:\n"
-        "pip install WrenchCL[libmagic]\n"
+        "On Windows, you can install it with:\n\n"
+        "pip uninstall python-magic -y\n"
+        "pip install WrenchCL[libmagic]\n\n"
         "On other platforms, ensure 'libmagic' is installed."
     ) from e
 
