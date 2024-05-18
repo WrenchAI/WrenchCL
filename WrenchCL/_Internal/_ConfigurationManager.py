@@ -110,11 +110,17 @@ class _ConfigurationManager:
         """
         # Check different potential locations for the .env file
         possible_paths = [Path(__file__).resolve().parent,  # Current directory
-            Path(os.getcwd()),  # Working directory
-            Path(os.getcwd()).joinpath('Resources', 'Secrets'), Path(os.getcwd()).joinpath('resources', 'secrets')]
+                          Path(os.getcwd()),  # Working directory
+                          Path(os.getcwd()).joinpath('Resources', 'Secrets'),
+                          Path(os.getcwd()).joinpath('resources', 'secrets'),
+                          Path(os.getcwd()).parent.joinpath('Resources', 'Secrets'),
+                          Path(os.getcwd()).parent.joinpath('resources', 'secrets'),
+                          Path(os.getcwd()).parent.parent.joinpath('Resources', 'Secrets'),
+                          Path(os.getcwd()).parent.parent.joinpath('resources', 'secrets')]
 
         for base_path in possible_paths:
             env_path = base_path.joinpath('.env')
+            logger.debug('Checking Path', str(env_path))
             if env_path.exists():
                 return str(env_path)
         raise FileNotFoundError("No .env file found in expected locations.")
