@@ -66,7 +66,10 @@ class _ConfigurationManager:
         self.qa_host_check = 'ce5sivkxtgbs'
         self.db_batch_size = 10000
 
-        self._initialize_env()
+        try:
+            self._initialize_env()
+        except Exception as e:
+            logger.HDL_WARN(f"No env file found to load trying existing variables {e}")
         self._init_from_env()
         self._init_from_kwargs(kwargs)
 
