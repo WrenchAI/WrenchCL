@@ -83,24 +83,24 @@ class OpenAIGateway:
         if operation == "embeddings":
             return self.get_embeddings(text, **kwargs)
         elif operation == "text":
-            return self.handle_text(text, **kwargs)
+            return self.text_response(text, **kwargs)
         elif operation == 'thread' or operation == 'conversation':
-            return self.initiate_conversation(text, **kwargs)
+            return self.start_conversation(text, **kwargs)
         elif operation == "image" and text:
-            return self.generate_image(text, **kwargs)
+            return self.text_to_image(text, **kwargs)
         elif operation == "audio" and audio_path:
-            return self.process_audio(audio_path, **kwargs)
+            return self.audio_to_text(audio_path, **kwargs)
         elif operation == "edit_image" and image_path:
-            return self.edit_image(image_path, text, **kwargs)
+            return self.modify_image(image_path, text, **kwargs)
         elif operation == "create_variation" and image_path:
-            return self.create_image_variation(image_path, **kwargs)
+            return self.generate_image_variations(image_path, **kwargs)
         elif operation == "vision" and text and image_path:
-            return self.vision_query(text, image_path, **kwargs)
+            return self.image_to_text(text, image_path, **kwargs)
         else:
             raise ValueError("Invalid or insufficient parameters for requested operation.")
 
     @TimedMethod
-    def handle_text(self, text, model="gpt-3.5-turbo", system_prompt=None, image_url=None, json_mode=False, **kwargs):
+    def text_response(self, text, model="gpt-3.5-turbo", system_prompt=None, image_url=None, json_mode=False, stream=False, **kwargs):
         """
         Processes text input using the specified model and returns the response.
 
@@ -114,6 +114,8 @@ class OpenAIGateway:
         :type image_url: str, optional
         :param json_mode: If True, expects the response to be in JSON format.
         :type json_mode: bool, optional
+        :param stream: If True, stream the response as it's generated.
+        :type stream: bool, optional
         :returns: The processed text or JSON response.
         :raises ValueError: If the JSON response cannot be decoded.
         :raises InterruptedError: If the response cannot be completed due to content filters or other issues.
@@ -131,35 +133,49 @@ class OpenAIGateway:
 
             messages.append({"role": "user", "content": user_content})
 
-            response = self.client.chat.completions.create(model=model, messages=messages,
-                                                           max_tokens=kwargs.get('max_tokens', 2500))
-            finish_reason = response.choices[0].finish_reason
-            if finish_reason == 'stop':
-                response_content = response.choices[0].message.content
-            elif finish_reason == 'length':
-                logger.warning(f"Not enough tokens available to complete message please increase max tokens | current setting = {kwargs.get('max_tokens', 2500)}")
-                response_content = response.choices[0].message.content
-            elif finish_reason == 'content_filter':
-                logger.error(f"ChatGPT does not allow processing of this content due to its content filters. Cannot return any output")
-                response_content = None
-                raise InterruptedError
+            if stream:
+                response = self.client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    stream=True,
+                    max_tokens=kwargs.get('max_tokens', 2500)
+                )
+                return response
             else:
-                logger.error(f"LLM did not finish output due to reason {finish_reason} no output returned")
-                response_content = None
-                raise InterruptedError
+                response = self.client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    max_tokens=kwargs.get('max_tokens', 2500)
+                )
 
-            if json_mode:
-                try:
-                    return json.loads(response_content)
-                except json.JSONDecodeError:
-                    logger.error("Failed to decode JSON response")
-                    raise ValueError("Invalid JSON response.")
+                finish_reason = response.choices[0].finish_reason
+                if finish_reason == 'stop':
+                    response_content = response.choices[0].message.content
+                elif finish_reason == 'length':
+                    logger.warning(f"Not enough tokens available to complete message. Please increase max tokens | current setting = {kwargs.get('max_tokens', 2500)}")
+                    response_content = response.choices[0].message.content
+                elif finish_reason == 'content_filter':
+                    logger.error("ChatGPT does not allow processing of this content due to its content filters. Cannot return any output.")
+                    response_content = None
+                    raise InterruptedError
+                else:
+                    logger.error(f"LLM did not finish output due to reason {finish_reason}. No output returned.")
+                    response_content = None
+                    raise InterruptedError
 
-            return response_content
+                if json_mode:
+                    try:
+                        return json.loads(response_content)
+                    except json.JSONDecodeError:
+                        logger.error("Failed to decode JSON response.")
+                        raise ValueError("Invalid JSON response.")
+
+                return response_content
 
         except Exception as e:
             logger.error(f"Error processing text: {str(e)}")
             raise
+
 
     @TimedMethod
     def get_embeddings(self, text, model="text-embedding-3-small"):
@@ -182,7 +198,7 @@ class OpenAIGateway:
             raise
 
     @TimedMethod
-    def generate_image(self, prompt, size="1024x1024", quality="standard", n=1):
+    def text_to_image(self, prompt, size="1024x1024", quality="standard", n=1):
         """
         Generates an image based on the provided prompt.
 
@@ -205,7 +221,7 @@ class OpenAIGateway:
             raise
 
     @TimedMethod
-    def process_audio(self, audio_path, model="whisper-1"):
+    def audio_to_text(self, audio_path, model="whisper-1"):
         """
         Processes an audio file and returns its transcription.
 
@@ -229,7 +245,7 @@ class OpenAIGateway:
             raise
 
     @TimedMethod
-    def create_image_variation(self, image_path, n=1, size="1024x1024"):
+    def generate_image_variations(self, image_path, n=1, size="1024x1024"):
         """
         Creates variations of an image based on the provided image path.
 
@@ -251,7 +267,7 @@ class OpenAIGateway:
             raise
 
     @TimedMethod
-    def edit_image(self, image_path, prompt, mask_path, n=1, size="1024x1024"):
+    def modify_image(self, image_path, prompt, mask_path, n=1, size="1024x1024"):
         """
         Edits an image based on the provided prompt and mask.
 
@@ -277,7 +293,7 @@ class OpenAIGateway:
             raise
 
     @TimedMethod
-    def vision_query(self, question, image_path, **kwargs):
+    def image_to_text(self, question, image_path, **kwargs):
         """
         Processes a vision query based on the provided question and image.
 
@@ -320,7 +336,7 @@ class OpenAIGateway:
             raise ValueError("Invalid image path or data.")
 
     @TimedMethod
-    def initiate_conversation(self, **kwargs):
+    def start_conversation(self, **kwargs):
         """
         Initiates a conversation using the provided initial text.
 

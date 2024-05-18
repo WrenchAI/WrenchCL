@@ -56,7 +56,7 @@ class OpenAIFactory(OpenAIGateway):
         :returns: The generated embeddings for the transcribed text.
         :rtype: list
         """
-        transcription = self.process_audio(audio_path, model="whisper-1")
+        transcription = self.audio_to_text(audio_path, model="whisper-1")
         embeddings = self.get_embeddings(transcription, model=embedding_model)
         return embeddings
 
@@ -74,7 +74,7 @@ class OpenAIFactory(OpenAIGateway):
         :returns: The generated embeddings for the vision query response.
         :rtype: list
         """
-        vision_response = self.vision_query(question, image_path)
+        vision_response = self.image_to_text(question, image_path)
         embeddings = self.get_embeddings(vision_response, model=embedding_model)
         return embeddings
 
@@ -90,5 +90,5 @@ class OpenAIFactory(OpenAIGateway):
         :returns: The validated or expanded response.
         :rtype: str
         """
-        validated_response = self.handle_text(validation_prompt + initial_response)
+        validated_response = self.text_response(validation_prompt + initial_response)
         return validated_response
