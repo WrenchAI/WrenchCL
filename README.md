@@ -43,7 +43,8 @@ ImportError: failed to find libmagic.  Check your installation
 Install the package with the optional libmagic dependency, users can using the following command:
 
 ```bash
-pip install WrenchCL[libmagic]
+1. pip uninstall python-magic -y
+2. pip install WrenchCL[libmagic]
 ```
 
 
@@ -79,7 +80,7 @@ To interact with AWS RDS and S3 services, follow these steps:
    ```
 
    **Methods in `RdsServiceGateway`**:
-   - `get_data(query: str, payload: Optional[dict] = None, fetchall: bool = True, accepted_type: Optional[Type] = None, none_is_ok: bool = False, accepted_length: Tuple[Optional[int], Optional[int]] = (None, None)) -> Optional[Any]`
+   - `get_data(query: str, payload: Optional[dict] = None, fetchall: bool = True, return_dict: bool = True, accepted_type: Optional[Type] = None, none_is_ok: bool = False, accepted_length: Tuple[Optional[int], Optional[int]] = (None, None)) -> Optional[Any]`
      - Fetches data from the database based on the input query and parameters.
    - `update_database(query: str, payload: Union[dict, 'pd.DataFrame'], column_order: Optional[List[str]] = None) -> None`
      - Updates the database by executing the given query with the provided payload.
@@ -133,28 +134,28 @@ To use OpenAI models, follow these steps:
    openai_gateway = OpenAIGateway(api_key="your_openai_api_key")
 
    # Example: Generating text
-   response = openai_gateway.handle_text("Your prompt here")
+   response = openai_gateway.text_response("Your prompt here")
    print(response)
    ```
 
    **Methods in `OpenAIGateway`**:
-   - `handle_text(text: str, model: str = "gpt-3.5-turbo", system_prompt: Optional[str] = None, image_url: Optional[str] = None, json_mode: bool = False, **kwargs) -> Union[str, dict]`
+   - `text_response(text: str, model: str = "gpt-3.5-turbo", system_prompt: Optional[str] = None, image_url: Optional[str] = None, json_mode: bool = False,  stream : bool = False, **kwargs) -> Union[str, dict]`
      - Processes text input using the specified model and returns the response.
    - `get_embeddings(text: str, model: str = "text-embedding-3-small") -> list`
      - Retrieves embeddings for the given text using the specified model.
-   - `generate_image(prompt: str, size: str = "1024x1024", quality: str = "standard", n: int = 1) -> str`
+   - `text_to_image(prompt: str, size: str = "1024x1024", quality: str = "standard", n: int = 1) -> str`
      - Generates an image based on the provided prompt.
-   - `process_audio(audio_path: str, model: str = "whisper-1") -> str`
+   - `audio_to_text(audio_path: str, model: str = "whisper-1") -> str`
      - Processes an audio file and returns its transcription.
-   - `create_image_variation(image_path: str, n: int = 1, size: str = "1024x1024") -> str`
+   - `generate_image_variations(image_path: str, n: int = 1, size: str = "1024x1024") -> str`
      - Creates variations of an image based on the provided image path.
-   - `edit_image(image_path: str, prompt: str, mask_path: str, n: int = 1, size: str = "1024x1024") -> str`
+   - `modify_image(image_path: str, prompt: str, mask_path: str, n: int = 1, size: str = "1024x1024") -> str`
      - Edits an image based on the provided prompt and mask.
-   - `vision_query(question: str, image_path: str, **kwargs) -> dict`
+   - `image_to_text(question: str, image_path: str, **kwargs) -> dict`
      - Processes a vision query based on the provided question and image.
    - `convert_image_to_url_or_base64(image_path: str) -> str`
      - Converts an image to a URL or base64 encoded string.
-   - `initiate_conversation(initial_text: str, **kwargs)`
+   - `start_conversation(initial_text: str, **kwargs)`
      - Initiates a conversation using the provided initial text.
 
 2. **Using `OpenAIFactory`**:
@@ -181,6 +182,22 @@ To use OpenAI models, follow these steps:
 ### Utility Tools
 
 WrenchCL includes several utility tools for various purposes:
+
+Got it! Here is the section about the custom JSON serializer in the specified format:
+
+### Custom JSON Serializer
+
+- **robust_serializer**: Serializes objects not natively serializable by JSON, including `datetime`, `date`, `Decimal`, and custom objects.
+
+    ```python
+    # Usage with json_dumps
+    from datetime import datetime
+    import json
+    from WrenchCL.Tools import robust_serializer
+
+    print(json.dumps({"timestamp": datetime.now()}, default=robust_serializer))
+    # Output: {"timestamp": "2024-05-17T12:34:56.789012"}
+    ```
 
 - **validate_input_dict**: Validates the input dictionary against expected types.
   ```python
