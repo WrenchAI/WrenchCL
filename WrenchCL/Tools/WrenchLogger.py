@@ -21,7 +21,8 @@ import string
 import sys
 import time
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+from decimal import Decimal
 from textwrap import fill
 from typing import Any, Optional
 
@@ -253,92 +254,136 @@ class _wrench_logger:
         self.logger.handle(record)
 
     def _log_with_color(self, level: int, text: str, color: Optional[str] = None,
-            stack_info: Optional[bool] = False) -> None:
+                        stack_info: Optional[bool] = False) -> None:
+        indent_prefix = '  -->    '  # Custom indent prefix for new lines
+        if level <= 15:
+            text_col = ColoramaFore.LIGHTWHITE_EX
+        else:
+            text_col = ColoramaFore.WHITE
+
         if colorama_imported and color and not self.running_on_lambda:
+            # Apply color to each line and indent new lines
+            lines = text.splitlines()
+            colored_lines = [f"{lines[0]}"]
+            colored_lines += [f"{text_col}{indent_prefix}{line}{ColoramaStyle.RESET_ALL}" for line in lines[1:]]
+            text = '\n'.join(colored_lines)
             self._handlerFormat(color)
+
+        elif self.running_on_lambda:
+
+            # Join lines with a separator for AWS Lambda
+            text = " ".join(text.split())
+            self._handlerFormat()  # Use default handler format
+        else:
+            self._handlerFormat()  # Use default handler format
 
         if self.force_stack_trace and level >= 30:
             stack_info = True
-        self._log(level, text, stack_info)
 
-        if colorama_imported or self.running_on_lambda:
-            self._handlerFormat()
+        self._log(level, text, stack_info)
 
     def info(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log information that might be helpful but isn't essential."""
-        text = ' '.join(args)
+        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        text = ' '.join(serialized_args)
         self._log_with_color(logging.INFO, text, ColoramaFore.LIGHTGREEN_EX if colorama_imported else None, stack_info)
 
     log_info = INFO = info  # Aliases for info
 
     def context(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log contextual information for better understanding of the flow."""
-        text = ' '.join(args)
+        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        text = ' '.join(serialized_args)
         self._log_with_color(21, text, ColoramaFore.LIGHTMAGENTA_EX if colorama_imported else None, stack_info)
 
     log_context = CONTEXT = context  # Aliases for context
 
     def warning(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log issues that aren't errors but might warrant investigation."""
-        text = ' '.join(args)
+        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        text = ' '.join(serialized_args)
         self._log_with_color(logging.WARNING, text, ColoramaFore.YELLOW if colorama_imported else None, stack_info)
 
     log_warning = WARNING = warning  # Aliases for warning
 
     def HDL_WARN(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log warnings that have been handled and do not require further action."""
-        text = ' '.join(args)
+        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        text = ' '.join(serialized_args)
         self._log_with_color(31, text, ColoramaFore.MAGENTA if colorama_imported else None, stack_info)
 
     log_handled_warning = log_hdl_warn = HDL_WARN  # Aliases for HDL_WARN
 
     def error(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log errors that could disrupt normal program flow."""
-        text = ' '.join(args)
+        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        text = ' '.join(serialized_args)
         self._log_with_color(logging.ERROR, text, ColoramaFore.RED if colorama_imported else None, stack_info)
 
     log_error = ERROR = error  # Aliases for error
 
-    def data(self, data: Any, wrap_length: Optional[int] = None, max_rows: Optional[int] = None,
-            stack_info: Optional[bool] = False) -> None:
+    def data(self, data: Any, content: Optional[bool] = True, wrap_length: Optional[int] = None, max_rows: Optional[int] = None,
+            stack_info: Optional[bool] = False, indent: Optional[int] = 4) -> None:
         """Log Data in a lower contrast, handling formatting for readability."""
-        formatted_data = self._format_data(data, wrap_length, max_rows)
+        formatted_data = self._format_data(data, content, wrap_length, max_rows, indent=indent)
         self._log_with_color(41, formatted_data, ColoramaFore.LIGHTWHITE_EX if colorama_imported else None, stack_info)
 
     log_data = print_data = DATA = data
 
     def HDL_ERR(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log errors that have been handled but still need to be reported."""
-        text = ' '.join(args)
+        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        text = ' '.join(serialized_args)
         self._log_with_color(42, text, ColoramaFore.LIGHTMAGENTA_EX if colorama_imported else None, stack_info)
 
     log_handled_error = log_hdl_err = HDL_ERR  # Aliases for HDL_ERR
 
     def RECV_ERR(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log errors from which the system can recover with or without manual intervention."""
-        text = ' '.join(args)
+        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        text = ' '.join(serialized_args)
         self._log_with_color(43, text, ColoramaFore.LIGHTRED_EX if colorama_imported else None, stack_info)
 
     log_recoverable_error = log_recv_err = RECV_ERR  # Aliases for RECV_ERR
 
     def critical(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log critical issues that require immediate attention."""
-        text = ' '.join(args)
+        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        text = ' '.join(serialized_args)
         self._log_with_color(logging.CRITICAL, text, ColoramaFore.RED if colorama_imported else None, stack_info)
 
     log_critical = CRITICAL = critical  # Aliases for critical
 
     def debug(self, *args: str, stack_info: Optional[bool] = False) -> None:
         """Log detailed information, typically of interest only when diagnosing problems."""
-        text = ' '.join(args)
+        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        text = ' '.join(serialized_args)
         self._log_with_color(logging.DEBUG, text, ColoramaFore.CYAN if colorama_imported else None, stack_info)
 
     log_debug = DEBUG = debug  # Aliases for debug
 
     # Formatting Methods
 
-    def _format_data(self, data, wrap_length=None, max_rows=None, color=True, stack_trace=False):
+    def _format_data(self, data, content=True, wrap_length=None, max_rows=None, color=True, stack_trace=False, indent = 4):
         """Format data for logging, applying wrapping and color formatting where applicable."""
+
+        def serialize(obj):
+            if isinstance(obj, dict):
+                return {key: serialize(value) for key, value in obj.items()}
+            elif isinstance(obj, list):
+                return [serialize(item) for item in obj]
+            elif isinstance(obj, tuple):
+                return tuple(serialize(item) for item in obj)
+            elif isinstance(obj, set):
+                return {serialize(item) for item in obj}
+            elif isinstance(obj, str):
+                return obj
+            else:
+                try:
+                    return json.loads(json.dumps(obj, default=self._custom_serializer, indent=2))
+                except TypeError:
+                    return str(obj)
+
         # Determine the prefix based on the data type
         try:
             import pandas as pd
@@ -347,21 +392,28 @@ class _wrench_logger:
 
         if isinstance(data, dict):
             prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
-            formatted_text = json.dumps(data, indent=4)
+            formatted_text = json.dumps(serialize(data), indent=indent, default=self._custom_serializer)
         elif pd and isinstance(data, pd.DataFrame):
             prefix_str = f"DataType: {type(data).__name__} | Shape: {data.shape[0]} rows | {data.shape[1]} columns"
             with pd.option_context('display.max_rows', max_rows, 'display.max_columns', None):
                 formatted_text = str(data)
         elif isinstance(data, (list, tuple, set)):
             prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
-            formatted_text = '\n'.join([str(item) for item in data])
+            formatted_text = json.dumps(serialize(data), indent=indent, default=self._custom_serializer)
         else:
             prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
-            formatted_text = str(data)
+            formatted_text = json.dumps(serialize(data), indent=indent, default=self._custom_serializer)
 
-        # Combine prefix and data, applying wrapping if specified
-        if wrap_length:
-            wrapped_text = '\n'.join([fill(line, wrap_length) for line in formatted_text.splitlines()])
+        if not content:
+            formatted_text = ""
+            wrapped_text = formatted_text
+        elif wrap_length and not self.running_on_lambda:
+            def wrap_with_indent(line, wrap_length):
+                leading_whitespace = len(line) - len(line.lstrip())
+                wrapped_lines = fill(line, width=wrap_length, subsequent_indent=' ' * leading_whitespace)
+                return wrapped_lines
+
+            wrapped_text = '\n'.join([wrap_with_indent(line, wrap_length) for line in formatted_text.splitlines()])
         else:
             wrapped_text = formatted_text
 
@@ -375,9 +427,23 @@ class _wrench_logger:
             final_text = f"\n\n{wrapped_text}\n"
         else:
             # In environments like AWS Lambda, where color might not be supported or desired
-            final_text = wrapped_text.replace("\n", "- - -")
+            final_text = wrapped_text
 
         return final_text
+
+    @staticmethod
+    def _custom_serializer(obj):
+        """JSON serializer for objects not serializable by default JSON code"""
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        elif isinstance(obj, Decimal):
+            return float(obj)
+        elif hasattr(obj, "__dict__"):
+            return obj.__dict__
+        elif isinstance(obj, str):
+            return obj
+        else:
+            return str(obj)  # Fallback for other types
 
     @staticmethod
     def _wrap_text(text: str, wrap_length: int) -> str:

@@ -23,14 +23,13 @@ import json
 # Github: https://github.com/Kydoimos97
 
 
-def build_return_json(code, message, return_dict=None):
+def build_return_json(code, response_body):
     """
     Constructs a JSON response body with the provided status code and message, optionally including a return dictionary.
 
     Args:
         code (int): The HTTP status code to be included in the response.
-        message (str): The message to be included in the response body.
-        return_dict (dict, optional): A dictionary containing additional data to be included in the response body. Defaults to None.
+        response_body (dict): A dictionary containing data to be included in the response body. Defaults to None.
 
     Returns:
         dict: A dictionary representing the JSON response containing the status code, message, and optionally the return dictionary.
@@ -38,12 +37,6 @@ def build_return_json(code, message, return_dict=None):
     Raises:
         None: No explicit exceptions are raised within this function.
     """
-    response_body = {
-        'message': message
-    }
-
-    if return_dict:
-        response_body['result'] = return_dict
 
     return {
         'statusCode': code,

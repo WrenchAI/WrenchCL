@@ -49,8 +49,8 @@ class RdsServiceGateway:
         self.connection = client_manager.get_db_client()
         self.config = client_manager.get_config()
 
-    def get_data(self, query: str, payload: Optional[dict] = None, fetchall: bool = True,
-                 accepted_type: Optional[Type] = None, none_is_ok: bool = False,
+    def get_data(self, query: str, payload: Optional[tuple] = None, fetchall: bool = True,
+                 return_dict: bool = True,  accepted_type: Optional[Type] = None, none_is_ok: bool = False,
                  accepted_length: Tuple[Optional[int], Optional[int]] = (None, None)) -> Optional[Any]:
         """
         Fetch data from the database based on the input query and parameters.
@@ -61,6 +61,8 @@ class RdsServiceGateway:
         :type payload: dict, optional
         :param fetchall: Whether to fetch all rows or just one.
         :type fetchall: bool, optional
+        :param return_dict: Whether to return a dictionary or raw dict cursor response
+        :type return_dict: bool, optional
         :param accepted_type: Expected type of the fetched data.
         :type accepted_type: Type, optional
         :param none_is_ok: If True, None can be a valid return type if no data is found.
@@ -70,18 +72,37 @@ class RdsServiceGateway:
         :returns: The fetched data or None if validations fail.
         :rtype: Optional[Any]
         """
-        with self.connection as conn:
-            with conn.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute(query, payload)
-                data = cursor.fetchall() if fetchall else cursor.fetchone()
-                cursor.close()
-        if accepted_type:
-            if self._validate_output(data, accepted_type, none_is_ok, accepted_length):
-                return data
+        logger.debug("Executing query: ", query)
+        logger.debug("With payload: ", payload)
+
+        try:
+            with self.connection as conn:
+                with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                    cursor.execute(query, payload)
+                    data = cursor.fetchall() if fetchall else cursor.fetchone()
+                    logger.debug("Fetched data: ", str(data)[:100])
+                    cursor.close()
+
+            if accepted_type:
+                logger.debug("Validating output with type: %s", accepted_type)
+                if self._validate_output(data, accepted_type, none_is_ok, accepted_length):
+                    logger.debug("Output validated successfully")
+                    if return_dict:
+                        return [dict(row) for row in data] if fetchall else dict(data)
+                    else:
+                        return data
+
+                else:
+                    logger.debug("Output validation failed")
+                    return None
             else:
-                return None
-        else:
-            return data
+                if return_dict:
+                    return [dict(row) for row in data] if fetchall else dict(data)
+                else:
+                    return data
+        except Exception as e:
+            logger.error("Error executing query: ", e)
+            return None
 
     def update_database(self, query: str, payload: Union[dict, 'pd.DataFrame'],
                         column_order: Optional[List[str]] = None) -> None:
@@ -99,15 +120,15 @@ class RdsServiceGateway:
         with self.connection as conn:
             if isinstance(payload, dict):
                 try:
-                    with conn.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                         cursor.execute(query, payload)
-                        conn.connection.commit()
+                        conn.commit()
                 except Exception as e:
                     logger.error(f"Error inserting data: {str(e)}")
-                    conn.connection.rollback()
+                    conn.rollback()
             elif PANDAS_AVAILABLE and isinstance(payload, pd.DataFrame) and column_order:
                 try:
-                    with conn.connection.cursor() as cursor:
+                    with conn.cursor() as cursor:
                         data_batch = []
                         batch_counter = 1
                         total_batches = math.ceil(len(payload) / self.config.db_batch_size)
@@ -121,10 +142,10 @@ class RdsServiceGateway:
                                 logger.debug(f"Processed batch {batch_counter}/{total_batches} successfully")
                                 batch_counter += 1
 
-                        conn.connection.commit()
+                        conn.commit()
                 except Exception as e:
                     logger.error(f"Error processing batch: {str(e)}")
-                    conn.connection.rollback()
+                    conn.rollback()
             else:
                 logger.error("Invalid payload type or missing column_order for DataFrame payload.")
 

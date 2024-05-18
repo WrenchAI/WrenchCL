@@ -24,6 +24,8 @@ from ..Tools.WrenchLogger import logger
 from ..Tools.Coalesce import coalesce
 from mypy_boto3_s3.client import S3Client
 from mypy_boto3_rds.client import RDSClient
+from mypy_boto3_secretsmanager.client import SecretsManagerClient
+from mypy_boto3_lambda.client import LambdaClient
 
 
 @SingletonClass
@@ -33,25 +35,27 @@ class AwsClientHub:
     maintain efficient use of resources and consistency across operations.
 
     Attributes:
-        aws_profile (str): AWS profile name used for creating sessions.
+        self.config (str): _ConfigurationManager instance
         aws_session_client (boto3.session.Session): The AWS session client for accessing various AWS services.
         db_client (object): Client for interacting with AWS RDS databases.
         s3_client (object): Client for interacting with AWS S3 storage.
         need_ssh_tunnel (bool): Indicates if an SSH tunnel is required for database connections, based on secret data.
     """
 
-    def __init__(self, env_path):
+    def __init__(self, env_path=None):
         """
         Initializes the AwsClientHub by setting up the AWS profile and fetching necessary secrets for other
         AWS service configurations.
 
         :param env_path: The path to the environment configuration file.
-        :type env_path: str
+        :type env_path: str, optional
         """
+        self.lambda_client = None
         self.config = None
         self.aws_session_client = None
         self.db_client = None
         self.s3_client = None
+        self.secret_client = None
         self.need_ssh_tunnel = False
         self.reload_config(env_path=env_path)
         self._get_secret()
@@ -124,6 +128,28 @@ class AwsClientHub:
             self._init_s3_client()
         return self.s3_client
 
+    def get_secret_client(self):
+        """
+        Retrieves and returns an AWS Secretmanager service client instance, initializing it if not already done.
+
+        :returns: The initialized AWS Secretmanager client instance.
+        :rtype: SecretsManagerClient
+        """
+        if self.secret_client is None:
+            self.secret_client = self._init_other_client(aws_service='secretsmanager')
+        return self.secret_client
+
+    def get_lambda_client(self):
+        """
+        Retrieves and returns an AWS Lambda service client instance, initializing it if not already done.
+
+        :returns: The initialized AWS Lambda client instance.
+        :rtype: LambdaClient
+        """
+        if self.lambda_client is None:
+            self.lambda_client = self._init_other_client(aws_service='lambda')
+        return self.lambda_client
+
     def get_service_client(self, aws_service):
         """
         Retrieves and returns an AWS service client instance, initializing it if not already done.
@@ -133,9 +159,7 @@ class AwsClientHub:
 
         :returns: The initialized AWS service client instance.
         """
-        if self.s3_client is None:
-            self._init_other_client(aws_service=aws_service)
-        return self.s3_client
+        return self._init_other_client(aws_service=aws_service)
 
     def _init_rds_client(self):
         """
@@ -207,7 +231,7 @@ class AwsClientHub:
         :raises Exception: If there is an issue initializing the AWS service client.
         """
         try:
-            self.other_client = self.aws_session_client.client(aws_service, region_name=self.config.region_name)
+            return self.aws_session_client.client(aws_service, region_name=self.config.region_name)
         except Exception as e:
             logger.error(f"An exception occurred when initializing connection to {aws_service}: {e}")
             raise e
