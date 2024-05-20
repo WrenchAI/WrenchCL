@@ -147,6 +147,7 @@ class _ConfigurationManager:
         self.ssh_password = kwargs.get('SSH_PASSWORD', self.ssh_password)
         self.pem_path = kwargs.get('PEM_PATH', self.pem_path)
         self.db_batch_size = int(kwargs.get('DB_BATCH_OVERRIDE', self.db_batch_size or 10000))
+        logger.error(str(kwargs.get('AWS_DEPLOYMENT', self.aws_deployment)).lower())
         self.aws_deployment = str(kwargs.get('AWS_DEPLOYMENT', self.aws_deployment)).lower() == 'true'
 
     def _init_from_env(self):
@@ -163,4 +164,4 @@ class _ConfigurationManager:
         self.ssh_password = os.getenv('SSH_PASSWORD', self.ssh_password)
         self.pem_path = os.getenv('PEM_PATH', self.pem_path)
         self.db_batch_size = int(os.getenv('DB_BATCH_OVERRIDE', self.db_batch_size or 10000))
-        self.aws_deployment = str(os.getenv('DB_BATCH_OVERRIDE', None)).lower() == 'true'
+        self.aws_deployment = str(os.getenv('AWS_DEPLOYMENT', None)).lower() == 'true'
