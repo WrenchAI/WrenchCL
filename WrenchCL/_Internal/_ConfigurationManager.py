@@ -35,11 +35,12 @@ class _ConfigurationManager:
         openai_api_key (str): API key for OpenAI.
         ssh_server (str): SSH server address.
         ssh_port (int): SSH server port.
-        ssh_user (str): SSH user name.
+        ssh_user (str): SSH username.
         ssh_password (str): SSH user password.
         pem_path (str): Path to the PEM file for SSH authentication.
         qa_host_check (str): Host check identifier for QA environment.
         db_batch_size (int): Batch size for database operations.
+        aws_deployment (bool): Override for ssh tunnel on QA (when actively deployed on aws shh tunnel is off)
     """
 
     def __init__(self, env_path=None, **kwargs):
@@ -65,6 +66,7 @@ class _ConfigurationManager:
         self.pem_path = None
         self.qa_host_check = 'ce5sivkxtgbs'
         self.db_batch_size = 10000
+        self.aws_deployment = None
 
         try:
             self._initialize_env()
@@ -145,6 +147,7 @@ class _ConfigurationManager:
         self.ssh_password = kwargs.get('SSH_PASSWORD', self.ssh_password)
         self.pem_path = kwargs.get('PEM_PATH', self.pem_path)
         self.db_batch_size = int(kwargs.get('DB_BATCH_OVERRIDE', self.db_batch_size or 10000))
+        self.aws_deployment = str(kwargs.get('AWS_DEPLOYMENT', self.aws_deployment)).lower() == 'true'
 
     def _init_from_env(self):
         """
@@ -160,3 +163,4 @@ class _ConfigurationManager:
         self.ssh_password = os.getenv('SSH_PASSWORD', self.ssh_password)
         self.pem_path = os.getenv('PEM_PATH', self.pem_path)
         self.db_batch_size = int(os.getenv('DB_BATCH_OVERRIDE', self.db_batch_size or 10000))
+        self.aws_deployment = str(os.getenv('DB_BATCH_OVERRIDE', None)).lower() == 'true'

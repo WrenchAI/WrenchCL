@@ -252,7 +252,7 @@ class AwsClientHub:
             if self.secret_string is None:
                 raise ValueError(f"Invalid secret string found {self.secret_string}")
 
-            if self.config.qa_host_check in self.secret_string['host']:
+            if self.config.qa_host_check in self.secret_string['host'] and not self.config.aws_deployment:
                 self.need_ssh_tunnel = True
 
         except Exception as e:
