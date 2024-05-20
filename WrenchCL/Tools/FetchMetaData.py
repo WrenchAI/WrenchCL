@@ -15,19 +15,9 @@
 
 import os
 import requests
-
-try:
-    import magic
-except ImportError as e:
-    raise ImportError(
-        "Failed to import 'magic'. Please install the appropriate library. "
-        "On Windows, you can install it with:\n\n"
-        "pip uninstall python-magic -y\n"
-        "pip install WrenchCL[libmagic]\n\n"
-        "On other platforms, ensure 'libmagic' is installed."
-    ) from e
-
 from datetime import datetime
+import mimetypes
+
 
 def get_metadata(file_source, is_url=True):
     """
@@ -60,8 +50,8 @@ def get_metadata(file_source, is_url=True):
         metadata['file_size'] = os.path.getsize(file_source)
         metadata['creation_time'] = datetime.fromtimestamp(os.path.getctime(file_source)).isoformat()
 
-        mime = magic.Magic(mime=True)
-        metadata['mime_type'] = mime.from_file(file_source)
+        mime_type, _ = mimetypes.guess_type(file_source)
+        metadata['mime_type'] = mime_type
 
     return metadata
 

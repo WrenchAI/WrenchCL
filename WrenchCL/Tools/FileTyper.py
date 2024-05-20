@@ -14,16 +14,6 @@
 #
 import mimetypes
 import requests
-try:
-    import magic
-except ImportError as e:
-    raise ImportError(
-        "Failed to import 'magic'. Please install the appropriate library. "
-        "On Windows, you can install it with:\n\n"
-        "pip uninstall python-magic -y\n"
-        "pip install WrenchCL[libmagic]\n\n"
-        "On other platforms, ensure 'libmagic' is installed."
-    ) from e
 
 
 def get_file_type(file_source, is_url=True):
@@ -42,8 +32,7 @@ def get_file_type(file_source, is_url=True):
         response.raise_for_status()
         mime_type = response.headers.get('Content-Type')
     else:
-        mime = magic.Magic(mime=True)
-        mime_type = mime.from_file(file_source)
+        mime_type, _ = mimetypes.guess_type(file_source)
 
     file_extension = mimetypes.guess_extension(mime_type)
 
