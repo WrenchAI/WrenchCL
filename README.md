@@ -275,7 +275,7 @@ WrenchCL includes several utility tools for various purposes:
 
 - **WrenchLogger**: A custom logger for advanced logging.
   ```python
-  from WrenchCL.Tools import logger
+  from WrenchCL import logger
 
   logger.info("This is an info log message", "with additional info")
   logger.error("This is an error log message", "with error details")
