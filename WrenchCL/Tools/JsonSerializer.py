@@ -13,6 +13,7 @@
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
 import json
+import re
 from datetime import datetime, date
 from decimal import Decimal
 
@@ -84,3 +85,50 @@ def robust_serializer(obj):
         return obj.__dict__
     else:
         return str(obj)  # Fallback for other types
+
+
+class single_quote_decoder(json.JSONDecoder):
+    """
+    A custom JSON decoder that pre-processes JSON strings to handle single quotes and Markdown block markers.
+    Used when decoding JSON output from LLM's as they often use the wrong syntax
+    
+    This class extends the default `json.JSONDecoder` to allow for the decoding of JSON strings that:
+    - Use single quotes for keys and values instead of double quotes.
+    - May include Markdown block markers for JSON code blocks.
+
+    :param object_hook: Optional function that will be called with the result of any object literal decoded (a dict). 
+                        The return value of `object_hook` will be used instead of the `dict`. This can be used to 
+                        provide custom deserializations (e.g., to support JSON-RPC class hinting).
+    :param args: Additional positional arguments passed to the base `json.JSONDecoder`.
+    :param kwargs: Additional keyword arguments passed to the base `json.JSONDecoder`.
+
+    method decode: Decodes a JSON string after pre-processing it to handle single quotes and remove Markdown block markers.
+    :param s: The JSON string to be decoded.
+    :param args: Additional positional arguments passed to the base `decode` method.
+    :param kwargs: Additional keyword arguments passed to the base `decode` method.
+    :return: The Python object represented by the JSON string.
+
+    Usage example:
+        >>> import json
+        >>> json_str = "{'name': 'John', 'age': 30, 'city': 'New York'}"
+        >>> decoded_obj = json.loads(json_str, cls=single_quote_decoder)
+        >>> print(decoded_obj)
+        {'name': 'John', 'age': 30, 'city': 'New York'}
+    """
+
+    def __init__(self, object_hook=None, *args, **kwargs):
+        super().__init__(object_hook=object_hook, *args, **kwargs)
+        self.object_hook = object_hook
+
+    def decode(self, s, *args, **kwargs):
+        # Remove Markdown block markers if present
+        s = re.sub(r'```json\s*', '', s)
+        s = re.sub(r'```python\s*', '', s)
+        s = re.sub(r'\s*```', '', s)
+
+        # Pre-process string values for proper quote handling
+        s = re.sub(r"(?<!\\)'(\w+)'", r'"\1"', s)  # Replace single quotes
+        s = s.replace("\\'", "'")  # Fixes escaped quotes
+
+        # Decode the pre-processed JSON string
+        return super().decode(s, *args, **kwargs)
