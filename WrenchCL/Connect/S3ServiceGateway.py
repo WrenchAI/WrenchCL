@@ -93,7 +93,7 @@ class S3ServiceGateway:
         return obj
 
     @Retryable()
-    def upload_object(self, file_path, bucket_name, object_key):
+    def upload_file(self, file_path, bucket_name, object_key):
         """
         Uploads a file to S3.
 
@@ -108,6 +108,22 @@ class S3ServiceGateway:
         with open(file_path, 'rb') as f:
             self.s3_client.upload_fileobj(f, bucket_name, object_key)
         logger.debug(f"File uploaded: {file_path} as object: {object_key} in bucket: {bucket_name}")
+
+    @Retryable()
+    def upload_object(self, obj, bucket_name, object_key):
+        """
+        Uploads an object to S3.
+
+        :param obj: The bytes of the object to be uploaded
+        :type obj: str | bytes | IO | StreamingBody
+        :param bucket_name: The name of the S3 bucket.
+        :type bucket_name: str
+        :param object_key: The key of the object in the S3 bucket.
+        :type object_key: str
+        """
+        logger.debug(f"Uploading object to bucket: {bucket_name} as object: {object_key}")
+        self.s3_client.put_object(Body=obj, Bucket=bucket_name, Key=object_key)
+        logger.debug(f"Object uploaded as object: {object_key} in bucket: {bucket_name}")
 
     @Retryable()
     def delete_object(self, bucket_name, object_key):
