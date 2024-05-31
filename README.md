@@ -1,7 +1,8 @@
 <h1 align="center">Wrench Code Library</h1>
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/WrenchAI/WrenchCL/release/resources/img/logo.svg" alt="Logo" style="display: inline-block; vertical-align: middle; margin-bottom: -50px; width: 90%; max-width: 800px;">
+    <img src="https://raw.githubusercontent.com/WrenchAI/WrenchCL/release/resources/img/logo.svg" alt="Logo" style="display: inline-block; vertical-align: middle; width: 90%; max-width: 800px;">
+    <br><br>
     <a href="https://pypi.org/project/WrenchCL/" style="text-decoration: none;">
         <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/WrenchCL?logo=pypi&logoColor=green&color=green">
     </a>
@@ -12,6 +13,7 @@
         <img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/WrenchAI/WrenchCL/publish-to-pypi.yml?event=push&logo=Github&label=Test%20%26%20Publish%20%F0%9F%90%8D%20to%20PyPI%20%F0%9F%93%A6">
     </a>
 </p>
+
 
 ## Description
 
@@ -27,6 +29,7 @@ WrenchCL is a comprehensive library designed to facilitate seamless interactions
 - **Models**: _Internal for interacting with OpenAI models.
 - **Tools**: Miscellaneous utility tools such as coalescing values, file typing, image encoding, and a custom logger.
 - **DataFlow**: Response focused tools to aid in returning values and generating logs based on status codes.
+
 ## Installation
 
 To install the package, simply run the following command:
@@ -34,23 +37,30 @@ To install the package, simply run the following command:
 ```bash
 pip install WrenchCL
 ```
-Upon recieving the below error: 
+
+## Development
+
+To locally develop the plugin, clone the repository locally and make your changes.
+
+Open the console in your working directory; the building command is
 
 ```bash
-ImportError: failed to find libmagic.  Check your installation
+python setup.py sdist bdist_wheel
 ```
 
-Install the package with the optional libmagic dependency, users can using the following command:
+You can then install the package with 
 
 ```bash
-1. pip uninstall python-magic -y
-2. pip install WrenchCL[libmagic]
+pip install ./dist/WrenchCL-0.0.1.dev0-py3-none-any.whl --force-reinstall
 ```
 
+Use the `--no-dependencies flag` to reinstall quickly if there are no dependency changes
 
-# User Guides
+```bash
+pip install ./dist/WrenchCL-0.0.1.dev0-py3-none-any.whl --force-reinstall --no-dependencies
+```
 
-Sure! Here's an updated and more detailed README that provides extensive instructions on how to use `AWSClientHub`, `RdsServiceGateway`, `S3ServiceGateway`, `ConversationManager`, `OpenAIFactory`, and `OpenAIGateway`. It also includes practical examples for the `Maybe` monad and other utility tools.
+<h1 align="center">Package Documentation</h1>
 
 ### Connecting to AWS Services
 
@@ -58,17 +68,30 @@ To interact with AWS RDS and S3 services, follow these steps:
 
 1. **Setup `AWSClientHub`**:
    ```python
-   from WrenchCL.Connections import AwsClientHub
+   from WrenchCL.Connect import AwsClientHub
 
    # Initialize the AWSClientHub using an env file or keyword arguments
-   aws_client_hub = AWSClientHub(env_path="path/to/your/env/file")
+   aws_client_hub = AwsClientHub(env_path="path/to/your/env/file")
    # Alternatively, use keyword arguments or existing env variables
-   # aws_client_hub = AWSClientHub(aws_profile='your_profile', region_name='your_region', secret_arn='your_secret_arn', ...)
+   # aws_client_hub = AwsClientHub(aws_profile='your_profile', region_name='your_region', secret_arn='your_secret_arn', ...)
    ```
+
+   **Keyword Arguments for `AwsClientHub`**:
+   - `AWS_PROFILE` (str): AWS profile name for creating sessions.
+   - `REGION_NAME` (str): AWS region name.
+   - `SECRET_ARN` (str): ARN of the AWS Secrets Manager secret.
+   - `OPENAI_API_KEY` (str): API key for OpenAI.
+   - `SSH_SERVER` (str): SSH server address.
+   - `SSH_PORT` (int): SSH server port.
+   - `SSH_USER` (str): SSH username.
+   - `SSH_PASSWORD` (str): SSH user password.
+   - `PEM_PATH` (str): Path to the PEM file for SSH authentication.
+   - `DB_BATCH_OVERRIDE` (int): Batch size for database operations.
+   - `AWS_DEPLOYMENT` (bool): Indicates if the deployment is on AWS, affecting SSH tunnel configuration.
 
 2. **Using `RdsServiceGateway`**:
    ```python
-   from WrenchCL.Connections import RdsServiceGateway
+   from WrenchCL.Connect import RdsServiceGateway
 
    # Initialize RdsServiceGateway with the AWSClientHub instance
    rds_service = RdsServiceGateway(aws_client_hub)
@@ -147,7 +170,9 @@ To use OpenAI models, follow these steps:
      - Generates an image based on the provided prompt.
    - `audio_to_text(audio_path: str, model: str = "whisper-1") -> str`
      - Processes an audio file and returns its transcription.
-   - `generate_image_variations(image_path: str, n: int = 1, size: str = "1024x1024") -> str`
+   - `generate_image_variations(image_path: str, n: int = 
+
+1, size: str = "1024x1024") -> str`
      - Creates variations of an image based on the provided image path.
    - `modify_image(image_path: str, prompt: str, mask_path: str, n: int = 1, size: str = "1024x1024") -> str`
      - Edits an image based on the provided prompt and mask.
@@ -182,10 +207,6 @@ To use OpenAI models, follow these steps:
 ### Utility Tools
 
 WrenchCL includes several utility tools for various purposes:
-
-Got it! Here is the section about the custom JSON serializer in the specified format:
-
-### Custom JSON Serializer
 
 - **robust_serializer**: Serializes objects not natively serializable by JSON, including `datetime`, `date`, `Decimal`, and custom objects.
 
@@ -350,7 +371,9 @@ WrenchCL includes several decorators for common patterns:
 
 - **Retryable**: Retries a function call if specified exceptions occur.
   ```python
-  from WrenchCL.Decorators import Retryable
+  from
+
+ WrenchCL.Decorators import Retryable
 
   @Retryable(retry_on_exceptions=(ValueError,), max_retries=3, delay=2)
   def might_fail():
@@ -525,3 +548,6 @@ trigger_dataflow_metrics(event="event_data", context="context_data", start_time=
 ```
 
 With these detailed instructions and examples, you should be well-equipped to utilize the WrenchCL library for your projects. If you have any further questions or need additional support, please refer to the documentation or contact the maintainers.
+```
+
+This README includes comprehensive details on how to use the `AwsClientHub`, `RdsServiceGateway`, `S3ServiceGateway`, `OpenAIFactory`, and `OpenAIGateway` classes, as well as utility tools and decorators provided by the WrenchCL library. It also specifies the keyword arguments that can be passed to `AwsClientHub` and `_ConfigurationManager`.
