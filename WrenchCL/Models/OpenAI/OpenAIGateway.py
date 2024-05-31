@@ -28,8 +28,11 @@
 import json
 import base64
 import os
+
+import requests
 from openai import OpenAI
 
+from ...Tools import image_to_base64,get_file_type, validate_base64
 from ...Decorators.TimedMethod import TimedMethod
 from ._ConversationManager import ConversationManager
 from ...Tools.WrenchLogger import logger
@@ -100,7 +103,7 @@ class OpenAIGateway:
             raise ValueError("Invalid or insufficient parameters for requested operation.")
 
     @TimedMethod
-    def text_response(self, text, model="gpt-3.5-turbo", system_prompt=None, image_url=None, json_mode=False, stream=False, **kwargs):
+    def text_response(self, text, model="gpt-3.5-turbo", assistant_id = None, response_format = None, system_prompt=None, json_mode=False, stream=False, **kwargs):
         """
         Processes text input using the specified model and returns the response.
 
@@ -108,10 +111,12 @@ class OpenAIGateway:
         :type text: str
         :param model: The model to use for text processing.
         :type model: str, optional
+        :param response_format: (Optional) The assistant to use, will internally switch to threads (Streaming not supported)
+        :type response_format: str
+        :param response_format: (Optional) The format of the response. Possible values: { "type": "json_object" }
+        :type response_format: dict
         :param system_prompt: A system prompt to include in the request.
         :type system_prompt: str, optional
-        :param image_url: An image URL to include in the request.
-        :type image_url: str, optional
         :param json_mode: If True, expects the response to be in JSON format.
         :type json_mode: bool, optional
         :param stream: If True, stream the response as it's generated.
@@ -128,26 +133,42 @@ class OpenAIGateway:
                 messages.append({"role": "system", "content": [{"type": "text", "text": system_prompt}]})
 
             user_content = [{"type": "text", "text": text}]
-            if image_url:
-                user_content.append({"type": "image_url", "image_url": image_url})
 
             messages.append({"role": "user", "content": user_content})
 
+            if assistant_id is not None:
+                logger.info(f"Using threads as assistant_id has been passed: {assistant_id}")
+                logger.setLevel('WARNING')
+                thread = self.client.beta.threads.create(messages = messages)
+                run = self.client.beta.threads.runs.create_and_poll(thread_id = thread.id,
+                                                                    assistant_id = assistant_id,
+                                                                    response_format = response_format,
+                                                                    model=model,
+                                                                    max_completion_tokens = kwargs.get('max_tokens', 2500))
+                messages = self.client.beta.threads.messages.list(
+                  thread_id=thread.id
+                )
+                response = messages.data[0].content[0].text.value
+                logger.revertLoggingLevel()
+                return response
             if stream:
+                logger.setLevel('WARNING')
                 response = self.client.chat.completions.create(
                     model=model,
                     messages=messages,
                     stream=True,
                     max_tokens=kwargs.get('max_tokens', 2500)
                 )
+                logger.revertLoggingLevel()
                 return response
             else:
+                logger.setLevel('WARNING')
                 response = self.client.chat.completions.create(
                     model=model,
                     messages=messages,
                     max_tokens=kwargs.get('max_tokens', 2500)
                 )
-
+                logger.revertLoggingLevel()
                 finish_reason = response.choices[0].finish_reason
                 if finish_reason == 'stop':
                     response_content = response.choices[0].message.content
@@ -178,7 +199,7 @@ class OpenAIGateway:
 
 
     @TimedMethod
-    def get_embeddings(self, text, model="text-embedding-3-small"):
+    def get_embeddings(self, text, dimensions = 512, model="text-embedding-3-small"):
         """
         Retrieves embeddings for the given text using the specified model.
 
@@ -186,11 +207,13 @@ class OpenAIGateway:
         :type text: str
         :param model: The model to use for generating embeddings.
         :type model: str, optional
+        :param dimensions: The dimension of the return vector.
+        :type dimensions: int, optional
         :returns: The generated embeddings.
         :raises Exception: If an error occurs while retrieving embeddings.
         """
         try:
-            response = self.client.embeddings.create(input=text, model=model)
+            response = self.client.embeddings.create(input=text, model=model, dimensions=dimensions)
             embeddings = response.data[0].embedding
             return embeddings
         except Exception as e:
@@ -293,47 +316,61 @@ class OpenAIGateway:
             raise
 
     @TimedMethod
-    def image_to_text(self, question, image_path, **kwargs):
+    def image_to_text(self, prompt, image_source, model = 'gpt-4-turbo', max_tokens = 300, system_prompt = None, response_format = None, **kwargs):
         """
-        Processes a vision query based on the provided question and image.
+            Processes a vision query based on the provided question and image.
 
-        :param question: The question to ask.
-        :type question: str
-        :param image_path: The path to the image file.
-        :type image_path: str
-        :returns: The response to the vision query.
-        :raises Exception: If an error occurs while processing the vision query.
+            :param prompt: The question to ask.
+            :type prompt: str
+            :param image_source: The path to the image file, a URL, or a Base64-encoded string.
+            :type image_source: str
+            :param model: The name of the model to use for the vision query. Default is 'gpt-4-turbo'.
+            :type model: str
+            :param max_tokens: The maximum number of tokens to generate in the response. Default is 300.
+            :type max_tokens: int
+            :param system_prompt: (Optional) The system prompt to use for the request
+            :type system_prompt: str
+            :param response_format: (Optional) The format of the response. Possible values: { "type": "json_object" }
+            :type response_format: dict
+            :returns: The response to the vision query.
+            :rtype: str
+            :raises ValueError: If an invalid image path, URL, or Base64 string is provided.
+            :raises Exception: If an error occurs while processing the vision query.
         """
         try:
-            image_content = self.convert_image_to_url_or_base64(image_path)
-            messages = [{"role": "user", "content": [{"type": "text", "text": question},
-                                                     {"type": "image_url", "image_url": {"url": image_content}}]}]
-            response = self.client.chat.completions.create(model="gpt-4-turbo", messages=messages, max_tokens=300,
-                                                           **kwargs)
-            return response.choices[0]
+            if os.path.isfile(image_source):
+                base64_image = image_to_base64(image_source, is_url=False)
+                _, mime_type = get_file_type(image_source, is_url=False)
+                image_url = f"data:{mime_type};base64,{base64_image}"
+            elif validate_base64(image_source):
+                _, mime_type = get_file_type(image_source, is_url=False)
+                image_url = f"data:{mime_type};base64,{image_source}"
+            elif requests.get(image_source).status_code == 200:
+                base64_image = image_to_base64(image_source, is_url=True)
+                _, mime_type = get_file_type(image_source, is_url=True)
+                image_url = f"data:{mime_type};base64,{base64_image}"
+            else:
+                raise ValueError("Invalid image path, URL, or Base64 string")
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": [{"type": "text", "text": system_prompt}]})
+            messages.append({
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": image_url
+                        }
+                    }
+                ]
+            })
+            response = self.client.chat.completions.create(model=model, messages=messages, max_tokens=max_tokens, response_format=kwargs.get('response_format'))
+            return response.choices[0].message.content
         except Exception as e:
             logger.error(f"Error in vision query: {str(e)}")
             raise
-
-    @TimedMethod
-    def convert_image_to_url_or_base64(self, image_path):
-        """
-        Converts an image to a URL or base64 encoded string.
-
-        :param image_path: The path to the image file.
-        :type image_path: str
-        :returns: The image URL or base64 encoded string.
-        :raises ValueError: If the image path or data is invalid.
-        :raises Exception: If an error occurs while processing the image.
-        """
-        if image_path.startswith("http://") or image_path.startswith("https://"):
-            return image_path
-        try:
-            with open(image_path, "rb") as image_file:
-                return f"data:image/jpeg;base64,{base64.b64encode(image_file.read()).decode('utf-8')}"
-        except Exception as e:
-            logger.error("Failed to process image for vision query")
-            raise ValueError("Invalid image path or data.")
 
     @TimedMethod
     def start_conversation(self, **kwargs):
@@ -344,3 +381,10 @@ class OpenAIGateway:
         """
         conversation_manager = ConversationManager(self.client, kwargs.get("assistant_id"))
         conversation_manager.initiate_conversation()
+
+    @TimedMethod
+    def get_assistant_response(self):
+        thread_id = self.client.beta.threads.create()
+        print(thread_id)
+
+

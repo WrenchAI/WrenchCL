@@ -124,7 +124,10 @@ class _ConfigurationManager:
                           Path(os.getcwd()).parent.parent.joinpath('resources', 'secrets')]
 
         for base_path in possible_paths:
-            env_path = base_path.joinpath('.env')
+            if not str(base_path).endswith('.env'):
+                env_path = base_path.joinpath('.env')
+            else:
+                env_path = base_path
             logger.debug('Checking Path', str(env_path))
             if env_path.exists():
                 return str(env_path)
@@ -142,7 +145,7 @@ class _ConfigurationManager:
         self.secret_arn = kwargs.get('SECRET_ARN', self.secret_arn)
         self.openai_api_key = kwargs.get('OPENAI_API_KEY', self.openai_api_key)
         self.ssh_server = kwargs.get('SSH_SERVER', self.ssh_server)
-        self.ssh_port = int(kwargs.get('SSH_PORT', self.ssh_port or 0))
+        self.ssh_port = int(kwargs.get('SSH_PORT', self.ssh_port or 22))
         self.ssh_user = kwargs.get('SSH_USER', self.ssh_user)
         self.ssh_password = kwargs.get('SSH_PASSWORD', self.ssh_password)
         self.pem_path = kwargs.get('PEM_PATH', self.pem_path)
@@ -158,7 +161,7 @@ class _ConfigurationManager:
         self.secret_arn = os.getenv('SECRET_ARN', self.secret_arn)
         self.openai_api_key = os.getenv('OPENAI_API_KEY', self.openai_api_key)
         self.ssh_server = os.getenv('SSH_SERVER', self.ssh_server)
-        self.ssh_port = int(os.getenv('SSH_PORT', self.ssh_port or 0))
+        self.ssh_port = int(os.getenv('SSH_PORT', self.ssh_port or 22))
         self.ssh_user = os.getenv('SSH_USER', self.ssh_user)
         self.ssh_password = os.getenv('SSH_PASSWORD', self.ssh_password)
         self.pem_path = os.getenv('PEM_PATH', self.pem_path)

@@ -12,22 +12,32 @@
 #
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
+import base64
 import mimetypes
+from io import BytesIO
 import requests
+from PIL import Image
+
+from .Image2B64 import validate_base64
 
 
 def get_file_type(file_source, is_url=True):
     """
-    Determine the file type of a file from a URL or file path.
+    Determine the file type of file from a URL, file path, or Base64 string.
 
-    :param file_source: URL or file path of the file
+    :param file_source: URL, file path, or Base64 string of the file
     :type file_source: str
     :param is_url: Flag indicating if the file_source is a URL, defaults to True
     :type is_url: bool, optional
     :return: File type based on extension or MIME type
     :rtype: str
     """
-    if is_url:
+    if validate_base64(file_source):
+        # Decode the Base64 string momentarily to determine the file type
+        base64_data = base64.b64decode(file_source)
+        image = Image.open(BytesIO(base64_data))
+        mime_type = Image.MIME[image.format]
+    elif is_url:
         response = requests.head(file_source)
         response.raise_for_status()
         mime_type = response.headers.get('Content-Type')
@@ -35,7 +45,6 @@ def get_file_type(file_source, is_url=True):
         mime_type, _ = mimetypes.guess_type(file_source)
 
     file_extension = mimetypes.guess_extension(mime_type)
-
     return file_extension, mime_type
 
 # Example usage:

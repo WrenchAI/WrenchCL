@@ -1,0 +1,29 @@
+WrenchCL.Models.OpenAI package
+==============================
+
+Submodules
+----------
+
+WrenchCL.Models.OpenAI.OpenAIFactory module
+-------------------------------------------
+
+.. automodule:: WrenchCL.Models.OpenAI.OpenAIFactory
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+WrenchCL.Models.OpenAI.OpenAIGateway module
+-------------------------------------------
+
+.. automodule:: WrenchCL.Models.OpenAI.OpenAIGateway
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: WrenchCL.Models.OpenAI
+   :members:
+   :undoc-members:
+   :show-inheritance:

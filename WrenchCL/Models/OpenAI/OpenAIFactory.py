@@ -45,38 +45,42 @@ class OpenAIFactory(OpenAIGateway):
         super().__init__(api_key)
 
     @TimedMethod
-    def audio_to_text_to_embeddings(self, audio_path, embedding_model="text-embedding-3-small"):
+    def audio_to_text_to_embeddings(self, audio_source, dimensions = None, embedding_model="text-embedding-3-small"):
         """
         Transcribes audio to text and then generates embeddings for the text.
 
-        :param audio_path: The path to the audio file.
-        :type audio_path: str
+        :param audio_source: The path to the audio file.
+        :type audio_source: str
+        :param dimensions: The dimension of the return vector.
+        :type dimensions: int, optional
         :param embedding_model: The model to use for generating embeddings.
         :type embedding_model: str, optional
         :returns: The generated embeddings for the transcribed text.
         :rtype: list
         """
-        transcription = self.audio_to_text(audio_path, model="whisper-1")
-        embeddings = self.get_embeddings(transcription, model=embedding_model)
+        transcription = self.audio_to_text(audio_source, model="whisper-1")
+        embeddings = self.get_embeddings(transcription, model=embedding_model, dimensions = dimensions)
         return embeddings
 
     @TimedMethod
-    def image_to_text_to_embeddings(self, image_path, question, embedding_model="text-embedding-3-small"):
+    def image_to_text_to_embeddings(self, image_source, prompt, dimensions = None, embedding_model="text-embedding-3-small", **kwargs):
         """
         Performs a vision query to understand an image and then generates embeddings for the response.
 
-        :param image_path: The path to the image file.
-        :type image_path: str
-        :param question: The question to ask about the image.
-        :type question: str
+        :param image_source: The path to the image file.
+        :type image_source: str
+        :param prompt: The question to ask about the image.
+        :type prompt: str
+        :param dimensions: The dimension of the return vector.
+        :type dimensions: int, optional
         :param embedding_model: The model to use for generating embeddings.
         :type embedding_model: str, optional
-        :returns: The generated embeddings for the vision query response.
-        :rtype: list
+        :returns: The generated embeddings for the vision query response. and the text content response
+        :rtype: tuple(list, str)
         """
-        vision_response = self.image_to_text(question, image_path)
-        embeddings = self.get_embeddings(vision_response, model=embedding_model)
-        return embeddings
+        vision_response = self.image_to_text(prompt, image_source, **kwargs)
+        embeddings = self.get_embeddings(vision_response, dimensions = dimensions, model=embedding_model)
+        return embeddings, vision_response
 
     @TimedMethod
     def validate_response_with_gpt(self, initial_response, validation_prompt):
@@ -90,5 +94,5 @@ class OpenAIFactory(OpenAIGateway):
         :returns: The validated or expanded response.
         :rtype: str
         """
-        validated_response = self.text_response(validation_prompt + initial_response)
+        validated_response = self.text_response(validation_prompt + " :  " + initial_response)
         return validated_response

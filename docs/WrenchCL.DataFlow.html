@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WrenchCL.DataFlow package &mdash; WrenchCL  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="WrenchCL.Decorators package" href="WrenchCL.Decorators.html" />
+    <link rel="prev" title="WrenchCL.Connect package" href="WrenchCL.Connect.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            WrenchCL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="WrenchCL.html">WrenchCL package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="WrenchCL.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Connect.html">WrenchCL.Connect package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">WrenchCL.DataFlow package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.DataFlow.build_return_json">WrenchCL.DataFlow.build_return_json module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.DataFlow.handle_lambda_response">WrenchCL.DataFlow.handle_lambda_response module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.DataFlow.trigger_dataflow_metrics">WrenchCL.DataFlow.trigger_dataflow_metrics module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.DataFlow">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Decorators.html">WrenchCL.Decorators package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Models.html">WrenchCL.Models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Tools.html">WrenchCL.Tools package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="WrenchCL.html#module-WrenchCL">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">setup module</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">WrenchCL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="WrenchCL.html">WrenchCL package</a></li>
+      <li class="breadcrumb-item active">WrenchCL.DataFlow package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/WrenchCL.DataFlow.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wrenchcl-dataflow-package">
+<h1>WrenchCL.DataFlow package<a class="headerlink" href="#wrenchcl-dataflow-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-WrenchCL.DataFlow.build_return_json">
+<span id="wrenchcl-dataflow-build-return-json-module"></span><h2>WrenchCL.DataFlow.build_return_json module<a class="headerlink" href="#module-WrenchCL.DataFlow.build_return_json" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.build_return_json.build_return_json">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.DataFlow.build_return_json.</span></span><span class="sig-name descname"><span class="pre">build_return_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_body</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/build_return_json.html#build_return_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.build_return_json.build_return_json" title="Link to this definition"></a></dt>
+<dd><p>Constructs a JSON response body with the provided status code and message, optionally including a return dictionary.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>code (int): The HTTP status code to be included in the response.
+response_body (dict): A dictionary containing data to be included in the response body. Defaults to None.</p>
+</dd>
+<dt>Returns:</dt><dd><p>dict: A dictionary representing the JSON response containing the status code, message, and optionally the return dictionary.</p>
+</dd>
+<dt>Raises:</dt><dd><p>None: No explicit exceptions are raised within this function.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-WrenchCL.DataFlow.handle_lambda_response">
+<span id="wrenchcl-dataflow-handle-lambda-response-module"></span><h2>WrenchCL.DataFlow.handle_lambda_response module<a class="headerlink" href="#module-WrenchCL.DataFlow.handle_lambda_response" title="Link to this heading"></a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.handle_lambda_response.GuardedResponseTrigger">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.DataFlow.handle_lambda_response.</span></span><span class="sig-name descname"><span class="pre">GuardedResponseTrigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/handle_lambda_response.html#GuardedResponseTrigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.handle_lambda_response.GuardedResponseTrigger" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Custom exception to signal early exit from the Lambda function.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.handle_lambda_response.GuardedResponseTrigger.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/handle_lambda_response.html#GuardedResponseTrigger.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.handle_lambda_response.GuardedResponseTrigger.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.handle_lambda_response.GuardedResponseTrigger.get_response">
+<span class="sig-name descname"><span class="pre">get_response</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/handle_lambda_response.html#GuardedResponseTrigger.get_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.handle_lambda_response.GuardedResponseTrigger.get_response" title="Link to this definition"></a></dt>
+<dd><p>Retrieves the response associated with this exception.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>dict: The response dictionary associated with this exception.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.handle_lambda_response.handle_lambda_response">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.DataFlow.handle_lambda_response.</span></span><span class="sig-name descname"><span class="pre">handle_lambda_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/handle_lambda_response.html#handle_lambda_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.handle_lambda_response.handle_lambda_response" title="Link to this definition"></a></dt>
+<dd><p>Handles the Lambda function response generation and logging based on the provided status code and message.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>code (int): The HTTP status code to be included in the response.
+message (str): The message to be included in the response body.
+params (dict): A dictionary containing parameters required for further processing.
+response_body (dict, optional): The json response body
+client_id (str, optional): The client ID. Defaults to None.
+entity_id (str, optional): The entity ID. Defaults to None.</p>
+</dd>
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>GuardedResponseTrigger: Custom exception to signal early exit from the Lambda function. If raised and not handled</dt><dd><p>at the Lambda handler level, this exception will cause an immediate return with the
+generated response. If caught within nested calls, ensure to re-raise it as follows:
+<cite>except GuardedResponseTrigger as e: raise e</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-WrenchCL.DataFlow.trigger_dataflow_metrics">
+<span id="wrenchcl-dataflow-trigger-dataflow-metrics-module"></span><h2>WrenchCL.DataFlow.trigger_dataflow_metrics module<a class="headerlink" href="#module-WrenchCL.DataFlow.trigger_dataflow_metrics" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.trigger_dataflow_metrics.trigger_dataflow_metrics">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.DataFlow.trigger_dataflow_metrics.</span></span><span class="sig-name descname"><span class="pre">trigger_dataflow_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_client</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/trigger_dataflow_metrics.html#trigger_dataflow_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.trigger_dataflow_metrics.trigger_dataflow_metrics" title="Link to this definition"></a></dt>
+<dd><p>Triggers comprehensive dataflow metrics for a given job.</p>
+<p>This function captures comprehensive dataflow metrics related to a job execution,
+including details about resource usage, input/output counts, exception messages,
+and other relevant information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>event: Dict[str, Any]</dt><dd><p>The event input received by the Lambda function.</p>
+</dd>
+<dt>context: Any</dt><dd><p>The context object provided by AWS Lambda.</p>
+</dd>
+<dt>lambda_client: Any</dt><dd><p>The AWS Lambda client object.</p>
+</dd>
+<dt>kwargs: Any</dt><dd><p>Additional keyword arguments can be passed to provide more detailed metrics:
+‘job_type’: str</p>
+<blockquote>
+<div><p>The type of job being executed (e.g., glue, batch, lambda, fargate).</p>
+</div></blockquote>
+<dl class="simple">
+<dt>‘job_name’: str</dt><dd><p>The name of the job being executed.</p>
+</dd>
+<dt>‘status_code’: int</dt><dd><p>The status code indicating the result of the job execution.</p>
+</dd>
+<dt>‘client_id’: str, optional</dt><dd><p>The client ID associated with the job.</p>
+</dd>
+<dt>‘action’: str, optional</dt><dd><p>The action performed by the job.</p>
+</dd>
+<dt>‘exception_msg’: str, optional</dt><dd><p>The exception message encountered during the job execution.</p>
+</dd>
+<dt>‘trigger’: str</dt><dd><p>The type of job being executed (e.g., glue, batch, lambda, fargate).</p>
+</dd>
+<dt>‘job_name’: str</dt><dd><p>The name of the job being executed.</p>
+</dd>
+<dt>‘state_machine_name’: str</dt><dd><p>The name of the state machine associated with the job.</p>
+</dd>
+<dt>‘state_name’: str</dt><dd><p>The name of the state under which the job is run.</p>
+</dd>
+<dt>‘workflow_id’: str</dt><dd><p>The ID of the workflow associated with the job.</p>
+</dd>
+<dt>‘job_type’: str</dt><dd><p>The type of job being executed (e.g., glue, batch, lambda, fargate).</p>
+</dd>
+<dt>‘job_run_state’: str</dt><dd><p>The state of the job execution (e.g., ‘Success’, ‘Failure’).</p>
+</dd>
+<dt>‘client_id’: str</dt><dd><p>The client ID associated with the job.</p>
+</dd>
+<dt>‘client_job_processing_datetime’: str</dt><dd><p>The processing datetime associated with the job.</p>
+</dd>
+<dt>‘job_run_started_on’: str</dt><dd><p>The start time of the job run.</p>
+</dd>
+<dt>‘duration’: None</dt><dd><p>The duration of the job execution.</p>
+</dd>
+<dt>‘bootstrap_duration’: float</dt><dd><p>The duration of the bootstrap process.</p>
+</dd>
+<dt>‘lifecycle_duration’: None</dt><dd><p>The duration of the job lifecycle.</p>
+</dd>
+<dt>‘max_memory_used’: None</dt><dd><p>The maximum memory used during the job execution.</p>
+</dd>
+<dt>‘rows_input’: Any</dt><dd><p>The number of input rows for the job.</p>
+</dd>
+<dt>‘rows_input_detail’: Any</dt><dd><p>Additional details about the input rows.</p>
+</dd>
+<dt>‘rows_output’: Any</dt><dd><p>The number of output rows for the job.</p>
+</dd>
+<dt>‘rows_output_detail’: Any</dt><dd><p>Additional details about the output rows.</p>
+</dd>
+<dt>‘uuids_input_detail’: Any</dt><dd><p>Details about the UUIDs of input rows.</p>
+</dd>
+<dt>‘uuids_output’: Any</dt><dd><p>Details about the UUIDs of output rows.</p>
+</dd>
+<dt>‘exception_msg’: str</dt><dd><p>The exception message encountered during the job execution.</p>
+</dd>
+<dt>‘s3_output_path’: str</dt><dd><p>The S3 output path for the job.</p>
+</dd>
+<dt>‘rds_target_table’: str</dt><dd><p>The target RDS table for the job.</p>
+</dd>
+<dt>‘rds_input_table’: str</dt><dd><p>The input RDS table for the job.</p>
+</dd>
+<dt>‘job_id’: str</dt><dd><p>The ID of the job.</p>
+</dd>
+<dt>‘memory_limit_in_mb’: int</dt><dd><p>The memory limit in megabytes.</p>
+</dd>
+<dt>‘time_remaining_in_ms’: int</dt><dd><p>The time remaining in milliseconds.</p>
+</dd>
+<dt>‘source_id’: str</dt><dd><p>The ID of the source service.</p>
+</dd>
+<dt>‘log_stream_name’: str</dt><dd><p>The name of the log stream.</p>
+</dd>
+<dt>‘log_group_name’: str</dt><dd><p>The name of the log group.</p>
+</dd>
+<dt>‘state_entered_time’: str</dt><dd><p>The time when the state was entered.</p>
+</dd>
+<dt>‘status_code’: int</dt><dd><p>The status code indicating the result of the job execution.</p>
+</dd>
+<dt>‘message’: str</dt><dd><p>Additional message related to the job execution.</p>
+</dd>
+<dt>‘action’: str</dt><dd><p>The action performed by the job.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.trigger_dataflow_metrics.trigger_minimum_dataflow_metrics">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.DataFlow.trigger_dataflow_metrics.</span></span><span class="sig-name descname"><span class="pre">trigger_minimum_dataflow_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_client</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/trigger_dataflow_metrics.html#trigger_minimum_dataflow_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.trigger_dataflow_metrics.trigger_minimum_dataflow_metrics" title="Link to this definition"></a></dt>
+<dd><p>Triggers the minimum dataflow metrics for a given job.</p>
+<p>This function triggers the minimum set of dataflow metrics, capturing essential
+information about the job execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>event: Dict[str, Any]</dt><dd><p>The event input received by the Lambda function.</p>
+</dd>
+<dt>context: Any</dt><dd><p>The context object provided by AWS Lambda.</p>
+</dd>
+<dt>lambda_client: Any</dt><dd><p>The AWS Lambda client object.</p>
+</dd>
+<dt>kwargs: Any</dt><dd><dl class="simple">
+<dt>‘job_type’: str</dt><dd><p>The type of job being executed (e.g., glue, batch, lambda, fargate).</p>
+</dd>
+<dt>‘job_name’: str</dt><dd><p>The name of the job being executed.</p>
+</dd>
+<dt>‘status_code’: int</dt><dd><p>The status code indicating the result of the job execution.</p>
+</dd>
+<dt>‘client_id’: str, optional</dt><dd><p>The client ID associated with the job.</p>
+</dd>
+<dt>‘action’: str, optional</dt><dd><p>The action performed by the job.</p>
+</dd>
+<dt>‘exception_msg’: str, optional</dt><dd><p>The exception message encountered during the job execution.</p>
+</dd>
+</dl>
+<p>Additional keyword arguments can be passed to provide more detailed metrics.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-WrenchCL.DataFlow">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-WrenchCL.DataFlow" title="Link to this heading"></a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.GuardedResponseTrigger">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.DataFlow.</span></span><span class="sig-name descname"><span class="pre">GuardedResponseTrigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/handle_lambda_response.html#GuardedResponseTrigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.GuardedResponseTrigger" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Custom exception to signal early exit from the Lambda function.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.GuardedResponseTrigger.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/handle_lambda_response.html#GuardedResponseTrigger.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.GuardedResponseTrigger.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.GuardedResponseTrigger.get_response">
+<span class="sig-name descname"><span class="pre">get_response</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/handle_lambda_response.html#GuardedResponseTrigger.get_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.GuardedResponseTrigger.get_response" title="Link to this definition"></a></dt>
+<dd><p>Retrieves the response associated with this exception.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>dict: The response dictionary associated with this exception.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.build_return_json">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.DataFlow.</span></span><span class="sig-name descname"><span class="pre">build_return_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_body</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/build_return_json.html#build_return_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.build_return_json" title="Link to this definition"></a></dt>
+<dd><p>Constructs a JSON response body with the provided status code and message, optionally including a return dictionary.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>code (int): The HTTP status code to be included in the response.
+response_body (dict): A dictionary containing data to be included in the response body. Defaults to None.</p>
+</dd>
+<dt>Returns:</dt><dd><p>dict: A dictionary representing the JSON response containing the status code, message, and optionally the return dictionary.</p>
+</dd>
+<dt>Raises:</dt><dd><p>None: No explicit exceptions are raised within this function.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.handle_lambda_response">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.DataFlow.</span></span><span class="sig-name descname"><span class="pre">handle_lambda_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/handle_lambda_response.html#handle_lambda_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.handle_lambda_response" title="Link to this definition"></a></dt>
+<dd><p>Handles the Lambda function response generation and logging based on the provided status code and message.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>code (int): The HTTP status code to be included in the response.
+message (str): The message to be included in the response body.
+params (dict): A dictionary containing parameters required for further processing.
+response_body (dict, optional): The json response body
+client_id (str, optional): The client ID. Defaults to None.
+entity_id (str, optional): The entity ID. Defaults to None.</p>
+</dd>
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>GuardedResponseTrigger: Custom exception to signal early exit from the Lambda function. If raised and not handled</dt><dd><p>at the Lambda handler level, this exception will cause an immediate return with the
+generated response. If caught within nested calls, ensure to re-raise it as follows:
+<cite>except GuardedResponseTrigger as e: raise e</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.trigger_dataflow_metrics">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.DataFlow.</span></span><span class="sig-name descname"><span class="pre">trigger_dataflow_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_client</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/trigger_dataflow_metrics.html#trigger_dataflow_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.trigger_dataflow_metrics" title="Link to this definition"></a></dt>
+<dd><p>Triggers comprehensive dataflow metrics for a given job.</p>
+<p>This function captures comprehensive dataflow metrics related to a job execution,
+including details about resource usage, input/output counts, exception messages,
+and other relevant information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>event: Dict[str, Any]</dt><dd><p>The event input received by the Lambda function.</p>
+</dd>
+<dt>context: Any</dt><dd><p>The context object provided by AWS Lambda.</p>
+</dd>
+<dt>lambda_client: Any</dt><dd><p>The AWS Lambda client object.</p>
+</dd>
+<dt>kwargs: Any</dt><dd><p>Additional keyword arguments can be passed to provide more detailed metrics:
+‘job_type’: str</p>
+<blockquote>
+<div><p>The type of job being executed (e.g., glue, batch, lambda, fargate).</p>
+</div></blockquote>
+<dl class="simple">
+<dt>‘job_name’: str</dt><dd><p>The name of the job being executed.</p>
+</dd>
+<dt>‘status_code’: int</dt><dd><p>The status code indicating the result of the job execution.</p>
+</dd>
+<dt>‘client_id’: str, optional</dt><dd><p>The client ID associated with the job.</p>
+</dd>
+<dt>‘action’: str, optional</dt><dd><p>The action performed by the job.</p>
+</dd>
+<dt>‘exception_msg’: str, optional</dt><dd><p>The exception message encountered during the job execution.</p>
+</dd>
+<dt>‘trigger’: str</dt><dd><p>The type of job being executed (e.g., glue, batch, lambda, fargate).</p>
+</dd>
+<dt>‘job_name’: str</dt><dd><p>The name of the job being executed.</p>
+</dd>
+<dt>‘state_machine_name’: str</dt><dd><p>The name of the state machine associated with the job.</p>
+</dd>
+<dt>‘state_name’: str</dt><dd><p>The name of the state under which the job is run.</p>
+</dd>
+<dt>‘workflow_id’: str</dt><dd><p>The ID of the workflow associated with the job.</p>
+</dd>
+<dt>‘job_type’: str</dt><dd><p>The type of job being executed (e.g., glue, batch, lambda, fargate).</p>
+</dd>
+<dt>‘job_run_state’: str</dt><dd><p>The state of the job execution (e.g., ‘Success’, ‘Failure’).</p>
+</dd>
+<dt>‘client_id’: str</dt><dd><p>The client ID associated with the job.</p>
+</dd>
+<dt>‘client_job_processing_datetime’: str</dt><dd><p>The processing datetime associated with the job.</p>
+</dd>
+<dt>‘job_run_started_on’: str</dt><dd><p>The start time of the job run.</p>
+</dd>
+<dt>‘duration’: None</dt><dd><p>The duration of the job execution.</p>
+</dd>
+<dt>‘bootstrap_duration’: float</dt><dd><p>The duration of the bootstrap process.</p>
+</dd>
+<dt>‘lifecycle_duration’: None</dt><dd><p>The duration of the job lifecycle.</p>
+</dd>
+<dt>‘max_memory_used’: None</dt><dd><p>The maximum memory used during the job execution.</p>
+</dd>
+<dt>‘rows_input’: Any</dt><dd><p>The number of input rows for the job.</p>
+</dd>
+<dt>‘rows_input_detail’: Any</dt><dd><p>Additional details about the input rows.</p>
+</dd>
+<dt>‘rows_output’: Any</dt><dd><p>The number of output rows for the job.</p>
+</dd>
+<dt>‘rows_output_detail’: Any</dt><dd><p>Additional details about the output rows.</p>
+</dd>
+<dt>‘uuids_input_detail’: Any</dt><dd><p>Details about the UUIDs of input rows.</p>
+</dd>
+<dt>‘uuids_output’: Any</dt><dd><p>Details about the UUIDs of output rows.</p>
+</dd>
+<dt>‘exception_msg’: str</dt><dd><p>The exception message encountered during the job execution.</p>
+</dd>
+<dt>‘s3_output_path’: str</dt><dd><p>The S3 output path for the job.</p>
+</dd>
+<dt>‘rds_target_table’: str</dt><dd><p>The target RDS table for the job.</p>
+</dd>
+<dt>‘rds_input_table’: str</dt><dd><p>The input RDS table for the job.</p>
+</dd>
+<dt>‘job_id’: str</dt><dd><p>The ID of the job.</p>
+</dd>
+<dt>‘memory_limit_in_mb’: int</dt><dd><p>The memory limit in megabytes.</p>
+</dd>
+<dt>‘time_remaining_in_ms’: int</dt><dd><p>The time remaining in milliseconds.</p>
+</dd>
+<dt>‘source_id’: str</dt><dd><p>The ID of the source service.</p>
+</dd>
+<dt>‘log_stream_name’: str</dt><dd><p>The name of the log stream.</p>
+</dd>
+<dt>‘log_group_name’: str</dt><dd><p>The name of the log group.</p>
+</dd>
+<dt>‘state_entered_time’: str</dt><dd><p>The time when the state was entered.</p>
+</dd>
+<dt>‘status_code’: int</dt><dd><p>The status code indicating the result of the job execution.</p>
+</dd>
+<dt>‘message’: str</dt><dd><p>Additional message related to the job execution.</p>
+</dd>
+<dt>‘action’: str</dt><dd><p>The action performed by the job.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.DataFlow.trigger_minimum_dataflow_metrics">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.DataFlow.</span></span><span class="sig-name descname"><span class="pre">trigger_minimum_dataflow_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_client</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/DataFlow/trigger_dataflow_metrics.html#trigger_minimum_dataflow_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.DataFlow.trigger_minimum_dataflow_metrics" title="Link to this definition"></a></dt>
+<dd><p>Triggers the minimum dataflow metrics for a given job.</p>
+<p>This function triggers the minimum set of dataflow metrics, capturing essential
+information about the job execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>event: Dict[str, Any]</dt><dd><p>The event input received by the Lambda function.</p>
+</dd>
+<dt>context: Any</dt><dd><p>The context object provided by AWS Lambda.</p>
+</dd>
+<dt>lambda_client: Any</dt><dd><p>The AWS Lambda client object.</p>
+</dd>
+<dt>kwargs: Any</dt><dd><dl class="simple">
+<dt>‘job_type’: str</dt><dd><p>The type of job being executed (e.g., glue, batch, lambda, fargate).</p>
+</dd>
+<dt>‘job_name’: str</dt><dd><p>The name of the job being executed.</p>
+</dd>
+<dt>‘status_code’: int</dt><dd><p>The status code indicating the result of the job execution.</p>
+</dd>
+<dt>‘client_id’: str, optional</dt><dd><p>The client ID associated with the job.</p>
+</dd>
+<dt>‘action’: str, optional</dt><dd><p>The action performed by the job.</p>
+</dd>
+<dt>‘exception_msg’: str, optional</dt><dd><p>The exception message encountered during the job execution.</p>
+</dd>
+</dl>
+<p>Additional keyword arguments can be passed to provide more detailed metrics.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="WrenchCL.Connect.html" class="btn btn-neutral float-left" title="WrenchCL.Connect package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="WrenchCL.Decorators.html" class="btn btn-neutral float-right" title="WrenchCL.Decorators package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Willem van der Schans.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

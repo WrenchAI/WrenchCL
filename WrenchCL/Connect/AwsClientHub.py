@@ -35,20 +35,32 @@ class AwsClientHub:
     maintain efficient use of resources and consistency across operations.
 
     Attributes:
-        self.config (str): _ConfigurationManager instance
+        config (_ConfigurationManager): Instance of the configuration manager.
         aws_session_client (boto3.session.Session): The AWS session client for accessing various AWS services.
         db_client (object): Client for interacting with AWS RDS databases.
         s3_client (object): Client for interacting with AWS S3 storage.
         need_ssh_tunnel (bool): Indicates if an SSH tunnel is required for database connections, based on secret data.
     """
 
-    def __init__(self, env_path=None):
+    def __init__(self, env_path=None, **kwargs):
         """
         Initializes the AwsClientHub by setting up the AWS profile and fetching necessary secrets for other
         AWS service configurations.
 
         :param env_path: The path to the environment configuration file.
         :type env_path: str, optional
+        :param kwargs: Additional keyword arguments to pass to the configuration manager.
+            - AWS_PROFILE (str): AWS profile name for creating sessions.
+            - REGION_NAME (str): AWS region name.
+            - SECRET_ARN (str): ARN of the AWS Secrets Manager secret.
+            - OPENAI_API_KEY (str): API key for OpenAI.
+            - SSH_SERVER (str): SSH server address.
+            - SSH_PORT (int): SSH server port.
+            - SSH_USER (str): SSH username.
+            - SSH_PASSWORD (str): SSH user password.
+            - PEM_PATH (str): Path to the PEM file for SSH authentication.
+            - DB_BATCH_OVERRIDE (int): Batch size for database operations.
+            - AWS_DEPLOYMENT (bool): Indicates if the deployment is on AWS, affecting SSH tunnel configuration.
         """
         self.lambda_client = None
         self.config = None
@@ -57,18 +69,20 @@ class AwsClientHub:
         self.s3_client = None
         self.secret_client = None
         self.need_ssh_tunnel = False
-        self.reload_config(env_path=env_path)
+        self._kwargs = kwargs  # Store kwargs as an instance variable
+        self.reload_config(env_path=env_path, **kwargs)
         self._get_secret()
         self._initialized = True
 
-    def reload_config(self, env_path=None):
+    def reload_config(self, env_path=None, **kwargs):
         """
         Reloads the configuration from the specified environment path.
 
         :param env_path: The path to the environment configuration file.
         :type env_path: str, optional
+        :param kwargs: Additional keyword arguments to pass to the configuration manager.
         """
-        self.config = _ConfigurationManager(env_path=env_path)
+        self.config = _ConfigurationManager(env_path=env_path, **kwargs)
 
     def get_config(self):
         """
@@ -81,7 +95,7 @@ class AwsClientHub:
             config = client_manager.get_config()
         """
         if self.config is None:
-            self.reload_config()
+            self.reload_config(**self._kwargs)  # Use stored kwargs when reloading the config
         return self.config
 
     def get_db_uri(self) -> str:

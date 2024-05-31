@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WrenchCL.Tools package &mdash; WrenchCL  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="setup module" href="setup.html" />
+    <link rel="prev" title="WrenchCL.Models.OpenAI package" href="WrenchCL.Models.OpenAI.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            WrenchCL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="WrenchCL.html">WrenchCL package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="WrenchCL.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Connect.html">WrenchCL.Connect package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="WrenchCL.DataFlow.html">WrenchCL.DataFlow package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Decorators.html">WrenchCL.Decorators package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Models.html">WrenchCL.Models package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">WrenchCL.Tools package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.Coalesce">WrenchCL.Tools.Coalesce module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.FetchMetaData">WrenchCL.Tools.FetchMetaData module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.FileTyper">WrenchCL.Tools.FileTyper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.Image2B64">WrenchCL.Tools.Image2B64 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.JsonSerializer">WrenchCL.Tools.JsonSerializer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.MaybeMonad">WrenchCL.Tools.MaybeMonad module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wrenchcl-tools-typechecker-module">WrenchCL.Tools.TypeChecker module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.WrenchLogger">WrenchCL.Tools.WrenchLogger module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="WrenchCL.html#module-WrenchCL">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">setup module</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">WrenchCL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="WrenchCL.html">WrenchCL package</a></li>
+      <li class="breadcrumb-item active">WrenchCL.Tools package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/WrenchCL.Tools.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wrenchcl-tools-package">
+<h1>WrenchCL.Tools package<a class="headerlink" href="#wrenchcl-tools-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-WrenchCL.Tools.Coalesce">
+<span id="wrenchcl-tools-coalesce-module"></span><h2>WrenchCL.Tools.Coalesce module<a class="headerlink" href="#module-WrenchCL.Tools.Coalesce" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Coalesce.coalesce">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Coalesce.</span></span><span class="sig-name descname"><span class="pre">coalesce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Coalesce.html#coalesce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Coalesce.coalesce" title="Link to this definition"></a></dt>
+<dd><p>Returns the first non-None value in the given list of arguments. If all arguments are None, returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<em>any</em>) – A variable number of arguments among which the first non-None value is to be found.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The first argument that is not None, or None if all arguments are None.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>any</p>
+</dd>
+</dl>
+<p><strong>Example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">coalesce</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;first non-none&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="go">&#39;first non-none&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coalesce</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="go">None</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt><strong>Note</strong>:</dt><dd><p>This function is analogous to the SQL COALESCE function and is useful for defaulting values when multiple potential inputs may contain None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-WrenchCL.Tools.FetchMetaData">
+<span id="wrenchcl-tools-fetchmetadata-module"></span><h2>WrenchCL.Tools.FetchMetaData module<a class="headerlink" href="#module-WrenchCL.Tools.FetchMetaData" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Tools.FetchMetaData.get_metadata">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.FetchMetaData.</span></span><span class="sig-name descname"><span class="pre">get_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FetchMetaData.html#get_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.FetchMetaData.get_metadata" title="Link to this definition"></a></dt>
+<dd><p>Get metadata of a file from a URL or file path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_source</strong> (<em>str</em>) – URL or file path of the file</p></li>
+<li><p><strong>is_url</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag indicating if the file_source is a URL, defaults to True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing metadata</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-WrenchCL.Tools.FileTyper">
+<span id="wrenchcl-tools-filetyper-module"></span><h2>WrenchCL.Tools.FileTyper module<a class="headerlink" href="#module-WrenchCL.Tools.FileTyper" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Tools.FileTyper.get_file_type">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.FileTyper.</span></span><span class="sig-name descname"><span class="pre">get_file_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FileTyper.html#get_file_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.FileTyper.get_file_type" title="Link to this definition"></a></dt>
+<dd><p>Determine the file type of a file from a URL or file path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_source</strong> (<em>str</em>) – URL or file path of the file</p></li>
+<li><p><strong>is_url</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag indicating if the file_source is a URL, defaults to True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>File type based on extension or MIME type</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-WrenchCL.Tools.Image2B64">
+<span id="wrenchcl-tools-image2b64-module"></span><h2>WrenchCL.Tools.Image2B64 module<a class="headerlink" href="#module-WrenchCL.Tools.Image2B64" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Image2B64.image_to_base64">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Image2B64.</span></span><span class="sig-name descname"><span class="pre">image_to_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#image_to_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Image2B64.image_to_base64" title="Link to this definition"></a></dt>
+<dd><p>Convert an image from a URL or file path to a Base64 string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_source</strong> (<em>str</em>) – URL or file path of the image</p></li>
+<li><p><strong>is_url</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag indicating if the image_source is a URL, defaults to True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Base64 encoded string of the image</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-WrenchCL.Tools.JsonSerializer">
+<span id="wrenchcl-tools-jsonserializer-module"></span><h2>WrenchCL.Tools.JsonSerializer module<a class="headerlink" href="#module-WrenchCL.Tools.JsonSerializer" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Tools.JsonSerializer.robust_serializer">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.JsonSerializer.</span></span><span class="sig-name descname"><span class="pre">robust_serializer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#robust_serializer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.JsonSerializer.robust_serializer" title="Link to this definition"></a></dt>
+<dd><p>JSON serializer for objects not serializable by default JSON code.</p>
+<p>This function handles various types that are not natively serializable by the
+<cite>json</cite> module, including <cite>datetime</cite>, <cite>date</cite>, <cite>Decimal</cite>, and custom objects.</p>
+<p>The serialization logic is as follows:</p>
+<ul class="simple">
+<li><p><cite>datetime</cite> and <cite>date</cite> objects are converted to their ISO 8601 string representation.</p></li>
+<li><p><cite>Decimal</cite> objects are converted to floats.</p></li>
+<li><p>Custom objects with a <cite>__dict__</cite> attribute are converted to their dictionary representation.</p></li>
+<li><p>All other objects are converted to their string representation as a fallback.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<em>Any</em>) – The object to serialize.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A JSON serializable representation of the object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str, dict, float</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If the object cannot be serialized.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">robust_serializer</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">17</span><span class="p">))</span>
+<span class="go">&#39;2024-05-17T00:00:00&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">robust_serializer</span><span class="p">(</span><span class="n">Decimal</span><span class="p">(</span><span class="s1">&#39;123.45&#39;</span><span class="p">))</span>
+<span class="go">123.45</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">CustomObject</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">CustomObject</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">robust_serializer</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+<span class="go">{&#39;value&#39;: 10}</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">robust_serializer</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>
+<span class="go">&#39;{1, 2, 3}&#39;</span>
+</pre></div>
+</div>
+<p>Using robust_serializer with json.dumps:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Alice&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+<span class="gp">... </span>    <span class="s2">&quot;balance&quot;</span><span class="p">:</span> <span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;123.45&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="s2">&quot;birth_date&quot;</span><span class="p">:</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">(),</span>
+<span class="gp">... </span>    <span class="s2">&quot;custom&quot;</span><span class="p">:</span> <span class="n">CustomObject</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">robust_serializer</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="go">{</span>
+<span class="go">    &quot;name&quot;: &quot;Alice&quot;,</span>
+<span class="go">    &quot;timestamp&quot;: &quot;2024-05-17T12:34:56.789012&quot;,</span>
+<span class="go">    &quot;balance&quot;: 123.45,</span>
+<span class="go">    &quot;birth_date&quot;: &quot;2024-05-17&quot;,</span>
+<span class="go">    &quot;custom&quot;: {</span>
+<span class="go">        &quot;value&quot;: 10</span>
+<span class="go">    }</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-WrenchCL.Tools.MaybeMonad">
+<span id="wrenchcl-tools-maybemonad-module"></span><h2>WrenchCL.Tools.MaybeMonad module<a class="headerlink" href="#module-WrenchCL.Tools.MaybeMonad" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.MaybeMonad.</span></span><span class="sig-name descname"><span class="pre">Maybe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A utility class that provides a way to chain method calls and operations on an object that may be None.
+Supports context manager usage and built-in function delegation.</p>
+<dl class="simple">
+<dt>Attributes:</dt><dd><p>value: The value to be wrapped by Maybe
+_chain: A flag indicating whether chaining is enabled.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes the Maybe instance with the given value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> – The value to wrap.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.chain_break">
+<span class="sig-name descname"><span class="pre">chain_break</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.chain_break" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.done">
+<span class="sig-name descname"><span class="pre">done</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.done" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.end_maybe">
+<span class="sig-name descname"><span class="pre">end_maybe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe.end_maybe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.end_maybe" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.exit">
+<span class="sig-name descname"><span class="pre">exit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.exit" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.extract">
+<span class="sig-name descname"><span class="pre">extract</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.extract" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.get_value">
+<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.get_value" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.out">
+<span class="sig-name descname"><span class="pre">out</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.out" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.resolve">
+<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.resolve" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.result">
+<span class="sig-name descname"><span class="pre">result</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.result" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.value">
+<span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.value" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="wrenchcl-tools-typechecker-module">
+<h2>WrenchCL.Tools.TypeChecker module<a class="headerlink" href="#wrenchcl-tools-typechecker-module" title="Link to this heading"></a></h2>
+</section>
+<section id="module-WrenchCL.Tools.WrenchLogger">
+<span id="wrenchcl-tools-wrenchlogger-module"></span><h2>WrenchCL.Tools.WrenchLogger module<a class="headerlink" href="#module-WrenchCL.Tools.WrenchLogger" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Tools.WrenchLogger.LoggerSingleton">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.WrenchLogger.</span></span><span class="sig-name descname"><span class="pre">LoggerSingleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/WrenchLogger.html#LoggerSingleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.LoggerSingleton" title="Link to this definition"></a></dt>
+<dd><p>Decorator for a class to implement the Singleton pattern. This decorator ensures that only one instance of the
+decorated class can exist at any time. If an instance of the class already exists, it returns that instance;
+otherwise, it creates and returns a new instance.</p>
+<p>The Singleton pattern is particularly useful when exactly one object is needed to coordinate actions across the
+system, such as in the case of managing database connections.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cls</strong> (<em>type</em>) – The class to be decorated as a Singleton.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A wrapper function that manages the instantiation of the singleton class, ensuring that only one
+instance exists.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>function</p>
+</dd>
+</dl>
+<p><strong>Example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@SingletonClass</span>
+<span class="gp">... </span><span class="k">class</span> <span class="nc">DatabaseManager</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection_string</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">connection_string</span> <span class="o">=</span> <span class="n">connection_string</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db_manager1</span> <span class="o">=</span> <span class="n">DatabaseManager</span><span class="p">(</span><span class="s1">&#39;db_connection_string&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db_manager2</span> <span class="o">=</span> <span class="n">DatabaseManager</span><span class="p">(</span><span class="s1">&#39;db_connection_string&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">db_manager1</span> <span class="ow">is</span> <span class="n">db_manager2</span>  <span class="c1"># Both variables point to the same instance</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-WrenchCL.Tools">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-WrenchCL.Tools" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Maybe">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">Maybe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Maybe" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A utility class that provides a way to chain method calls and operations on an object that may be None.
+Supports context manager usage and built-in function delegation.</p>
+<dl class="simple">
+<dt>Attributes:</dt><dd><p>value: The value to be wrapped by Maybe
+_chain: A flag indicating whether chaining is enabled.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Maybe.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes the Maybe instance with the given value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> – The value to wrap.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.chain_break">
+<span class="sig-name descname"><span class="pre">chain_break</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.chain_break" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.done">
+<span class="sig-name descname"><span class="pre">done</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.done" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.end_maybe">
+<span class="sig-name descname"><span class="pre">end_maybe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe.end_maybe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Maybe.end_maybe" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.exit">
+<span class="sig-name descname"><span class="pre">exit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.exit" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.extract">
+<span class="sig-name descname"><span class="pre">extract</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.extract" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.get_value">
+<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.get_value" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.out">
+<span class="sig-name descname"><span class="pre">out</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.out" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.resolve">
+<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.resolve" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.result">
+<span class="sig-name descname"><span class="pre">result</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.result" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.value">
+<span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.value" title="Link to this definition"></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Tools.coalesce">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">coalesce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Coalesce.html#coalesce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.coalesce" title="Link to this definition"></a></dt>
+<dd><p>Returns the first non-None value in the given list of arguments. If all arguments are None, returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<em>any</em>) – A variable number of arguments among which the first non-None value is to be found.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The first argument that is not None, or None if all arguments are None.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>any</p>
+</dd>
+</dl>
+<p><strong>Example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">coalesce</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;first non-none&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="go">&#39;first non-none&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coalesce</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="go">None</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt><strong>Note</strong>:</dt><dd><p>This function is analogous to the SQL COALESCE function and is useful for defaulting values when multiple potential inputs may contain None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Tools.get_file_type">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">get_file_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FileTyper.html#get_file_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.get_file_type" title="Link to this definition"></a></dt>
+<dd><p>Determine the file type of a file from a URL or file path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_source</strong> (<em>str</em>) – URL or file path of the file</p></li>
+<li><p><strong>is_url</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag indicating if the file_source is a URL, defaults to True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>File type based on extension or MIME type</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Tools.get_metadata">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">get_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FetchMetaData.html#get_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.get_metadata" title="Link to this definition"></a></dt>
+<dd><p>Get metadata of a file from a URL or file path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_source</strong> (<em>str</em>) – URL or file path of the file</p></li>
+<li><p><strong>is_url</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag indicating if the file_source is a URL, defaults to True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing metadata</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Tools.image_to_base64">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">image_to_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#image_to_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.image_to_base64" title="Link to this definition"></a></dt>
+<dd><p>Convert an image from a URL or file path to a Base64 string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_source</strong> (<em>str</em>) – URL or file path of the image</p></li>
+<li><p><strong>is_url</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag indicating if the image_source is a URL, defaults to True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Base64 encoded string of the image</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Tools.robust_serializer">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">robust_serializer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#robust_serializer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.robust_serializer" title="Link to this definition"></a></dt>
+<dd><p>JSON serializer for objects not serializable by default JSON code.</p>
+<p>This function handles various types that are not natively serializable by the
+<cite>json</cite> module, including <cite>datetime</cite>, <cite>date</cite>, <cite>Decimal</cite>, and custom objects.</p>
+<p>The serialization logic is as follows:</p>
+<ul class="simple">
+<li><p><cite>datetime</cite> and <cite>date</cite> objects are converted to their ISO 8601 string representation.</p></li>
+<li><p><cite>Decimal</cite> objects are converted to floats.</p></li>
+<li><p>Custom objects with a <cite>__dict__</cite> attribute are converted to their dictionary representation.</p></li>
+<li><p>All other objects are converted to their string representation as a fallback.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<em>Any</em>) – The object to serialize.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A JSON serializable representation of the object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str, dict, float</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If the object cannot be serialized.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">robust_serializer</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">17</span><span class="p">))</span>
+<span class="go">&#39;2024-05-17T00:00:00&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">robust_serializer</span><span class="p">(</span><span class="n">Decimal</span><span class="p">(</span><span class="s1">&#39;123.45&#39;</span><span class="p">))</span>
+<span class="go">123.45</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">CustomObject</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">CustomObject</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">robust_serializer</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+<span class="go">{&#39;value&#39;: 10}</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">robust_serializer</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>
+<span class="go">&#39;{1, 2, 3}&#39;</span>
+</pre></div>
+</div>
+<p>Using robust_serializer with json.dumps:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Alice&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+<span class="gp">... </span>    <span class="s2">&quot;balance&quot;</span><span class="p">:</span> <span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;123.45&quot;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="s2">&quot;birth_date&quot;</span><span class="p">:</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">(),</span>
+<span class="gp">... </span>    <span class="s2">&quot;custom&quot;</span><span class="p">:</span> <span class="n">CustomObject</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">robust_serializer</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="go">{</span>
+<span class="go">    &quot;name&quot;: &quot;Alice&quot;,</span>
+<span class="go">    &quot;timestamp&quot;: &quot;2024-05-17T12:34:56.789012&quot;,</span>
+<span class="go">    &quot;balance&quot;: 123.45,</span>
+<span class="go">    &quot;birth_date&quot;: &quot;2024-05-17&quot;,</span>
+<span class="go">    &quot;custom&quot;: {</span>
+<span class="go">        &quot;value&quot;: 10</span>
+<span class="go">    }</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Tools.validate_input_dict">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">validate_input_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'raise'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/DictValidator.html#validate_input_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.validate_input_dict" title="Link to this definition"></a></dt>
+<dd><p>Validates that each entry in a dictionary matches the expected type.</p>
+<p>This function iterates through a dictionary of parameters (params) and checks
+each value against a corresponding expected type defined in expected_types. If
+the type does not match, the function will either raise a TypeError or attempt
+to coerce the value to the correct type based on the ‘errors’ argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>params: A dictionary of parameters to validate, where the key is a string</dt><dd><p>representing the name of the parameter, and the value is the value
+of the parameter.</p>
+</dd>
+<dt>expected_types: A dictionary mapping parameter names to the expected types.</dt><dd><p>The keys should correspond to keys in ‘params’.</p>
+</dd>
+<dt>errors: A string that determines the error handling strategy. If set to</dt><dd><p>‘raise’, the function will raise a TypeError when a mismatch is found.
+If set to ‘coerce’, the function will attempt to coerce the value
+to the expected type.</p>
+</dd>
+</dl>
+</dd>
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>TypeError: If any parameter does not match the expected type and ‘errors’</dt><dd><p>is set to ‘raise’.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="WrenchCL.Models.OpenAI.html" class="btn btn-neutral float-left" title="WrenchCL.Models.OpenAI package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="setup.html" class="btn btn-neutral float-right" title="setup module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Willem van der Schans.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

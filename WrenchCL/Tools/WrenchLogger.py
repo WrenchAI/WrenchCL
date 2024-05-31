@@ -256,18 +256,20 @@ class _wrench_logger:
     def _log_with_color(self, level: int, text: str, color: Optional[str] = None,
                         stack_info: Optional[bool] = False) -> None:
         indent_prefix = '  -->    '  # Custom indent prefix for new lines
-        if level <= 15:
+        if level <= 25:
             text_col = ColoramaFore.LIGHTWHITE_EX
+            text_style = ColoramaStyle.NORMAL
         else:
-            text_col = ColoramaFore.WHITE
+            text_col = ColoramaFore.RESET
+            text_style = ColoramaStyle.BRIGHT
 
         if colorama_imported and color and not self.running_on_lambda:
             # Apply color to each line and indent new lines
             lines = text.splitlines()
             colored_lines = [f"{lines[0]}"]
-            colored_lines += [f"{text_col}{indent_prefix}{line}{ColoramaStyle.RESET_ALL}" for line in lines[1:]]
+            colored_lines += [f"{text_col}{text_style}{indent_prefix}{line}{ColoramaStyle.RESET_ALL}" for line in lines[1:]]
             text = '\n'.join(colored_lines)
-            self._handlerFormat(color)
+            self._handlerFormat(color, start_empty=True)
 
         elif self.running_on_lambda:
 
@@ -400,6 +402,9 @@ class _wrench_logger:
         elif isinstance(data, (list, tuple, set)):
             prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
             formatted_text = json.dumps(serialize(data), indent=indent, default=self._custom_serializer)
+        elif isinstance(data, str):
+            prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
+            formatted_text = data
         else:
             prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
             formatted_text = json.dumps(serialize(data), indent=indent, default=self._custom_serializer)
@@ -421,6 +426,8 @@ class _wrench_logger:
         if colorama_imported and color and not self.running_on_lambda:
             if not stack_trace:
                 final_text = f"\n{ColoramaFore.LIGHTBLUE_EX}{prefix_str}\n{ColoramaFore.LIGHTBLACK_EX}{wrapped_text}{ColoramaFore.RESET}\n"
+            if isinstance(data, str):
+                final_text = f"\n{wrapped_text}\n"
             else:
                 final_text = f"\n{ColoramaFore.LIGHTBLACK_EX}{wrapped_text}{ColoramaFore.RESET}\n"
         elif not self.running_on_lambda:
@@ -459,7 +466,7 @@ class _wrench_logger:
             size (int, optional): The width of the header. Default is 80.
             newline (bool, optional): Whether to prepend a newline before the header. Default is True.
         """
-        header = text
+        header = text if not colorama_imported else f"{ColoramaFore.CYAN}{ColoramaStyle.BRIGHT}{text}{ColoramaStyle.RESET_ALL}"
         if self.file_handler:
             self.file_handler.setFormatter(logging.Formatter(f'%(message)s'))
         self.console_handler.setFormatter(logging.Formatter(f'%(message)s'))
@@ -470,7 +477,7 @@ class _wrench_logger:
             self.file_handler.setFormatter(self.base_format)
         self._handlerFormat()
 
-    def _handlerFormat(self, color: Optional[str] = None) -> None:
+    def _handlerFormat(self, color: Optional[str] = None, start_empty = False) -> None:
         """
         Configures the console handler's formatter with optional color.
 
@@ -484,7 +491,7 @@ class _wrench_logger:
                 format_str = f"{color}%(levelname)-8s:  [{self.run_id}] %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | {white_col}%(message)s {reset_var}"
             elif 'hex_color_palette' not in locals() and color == ColoramaFore.LIGHTWHITE_EX:
                 reset_var = ColoramaStyle.RESET_ALL
-                format_str = f"{color}-----%(levelname)s----- %(message)s{reset_var}"
+                format_str = f"{color}-----%(levelname)s----- %(message)s{reset_var}" if not start_empty else ''
             else:
                 reset_var = ColoramaStyle.RESET_ALL
                 white_col = ColoramaFore.RESET
@@ -692,7 +699,7 @@ class _wrench_logger:
                 self.warning("Invalid format specified for log_time(). Defaulting to seconds.")
                 time_str = f"{elapsed_time:.2f} seconds"
 
-            self.info(f"{message}: {time_str}", stack_info)
+            self.info(f"{message}: {time_str}", stack_info = stack_info)
         else:
             self.warning("Timer was not started with start_time() before calling log_time().")
 

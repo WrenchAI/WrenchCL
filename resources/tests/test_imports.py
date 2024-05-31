@@ -44,7 +44,6 @@ def test_tools_import():
             image_to_base64,
             Maybe,
             logger,
-            validate_input_dict,
             get_metadata
         )
     except ImportError as e:
