@@ -12,16 +12,15 @@
 #
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
-import collections
 import math
-from typing import Optional, Type, Any, Union, List, Tuple
+from typing import Optional, Any, Union, List, Dict
 
 import psycopg2
 import psycopg2.extras
+import psycopg2.extensions
 
 from .AwsClientHub import AwsClientHub
 from ..Decorators.SingletonClass import SingletonClass
-from ..Tools.Coalesce import coalesce
 from ..Tools.WrenchLogger import logger
 
 try:
@@ -29,6 +28,7 @@ try:
     PANDAS_AVAILABLE = True
 except ImportError:
     PANDAS_AVAILABLE = False
+
 
 @SingletonClass
 class RdsServiceGateway:
@@ -40,6 +40,7 @@ class RdsServiceGateway:
         connection (psycopg2.extensions.connection): The database connection object.
         config (ConfigurationManager): The configuration manager for managing configuration settings.
     """
+    psycopg2.extras.register_uuid()
 
     def __init__(self):
         """
@@ -49,84 +50,89 @@ class RdsServiceGateway:
         self.connection = client_manager.get_db_client()
         self.config = client_manager.get_config()
 
-    def get_data(self, query: str, payload: Optional[tuple] = None, fetchall: bool = True,
-                 return_dict: bool = True,  accepted_type: Optional[Type] = None, none_is_ok: bool = False,
-                 accepted_length: Tuple[Optional[int], Optional[int]] = (None, None)) -> Optional[Any]:
+    def get_data(self, query: str, payload: Optional[tuple] = None, fetchall: bool = True, return_dict: bool = True) -> Optional[Any]:
         """
         Fetch data from the database based on the input query and parameters.
 
         :param query: SQL query to execute.
         :type query: str
         :param payload: Parameters to substitute into the query.
-        :type payload: dict, optional
+        :type payload: tuple, optional
         :param fetchall: Whether to fetch all rows or just one.
         :type fetchall: bool, optional
-        :param return_dict: Whether to return a dictionary or raw dict cursor response
+        :param return_dict: Whether to return a dictionary or raw dict cursor response.
         :type return_dict: bool, optional
-        :param accepted_type: Expected type of the fetched data.
-        :type accepted_type: Type, optional
-        :param none_is_ok: If True, None can be a valid return type if no data is found.
-        :type none_is_ok: bool, optional
-        :param accepted_length: A tuple of the minimum and maximum allowed lengths of the data.
-        :type accepted_length: Tuple[Optional[int], Optional[int]], optional
-        :returns: The fetched data or None if validations fail.
+        :returns: The fetched data or None if an error occurs.
+                 - If `fetchall` is True and `return_dict` is True, returns a list of dictionaries.
+                 - If `fetchall` is True and `return_dict` is False, returns a list of raw rows.
+                 - If `fetchall` is False and `return_dict` is True, returns a single dictionary.
+                 - If `fetchall` is False and `return_dict` is False, returns a single raw row.
         :rtype: Optional[Any]
+
+        **Example**::
+
+            >>> rds_client = RdsServiceGateway()
+            >>> client_id = '123'
+            >>> image_hash = '123'
+            >>> rds_client.get_data(
+            >>>     '''
+            >>>     SELECT * FROM
+            >>>     vecstore.doc_store WHERE
+            >>>     client_id = %s AND sha1_hash = %s
+            >>>     ''', (client_id, image_hash),
+            >>>     fetchall=False, return_dict=False)
         """
-        logger.debug("Executing query: ", query)
-        logger.debug("With payload: ", payload)
+        logger.debug("Executing query: %s", query)
+        logger.debug("With payload: %s", payload)
 
         try:
             with self.connection as conn:
                 with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                     cursor.execute(query, payload)
                     data = cursor.fetchall() if fetchall else cursor.fetchone()
-                    logger.debug("Fetched data: ", str(data)[:100])
+                    logger.debug("Fetched data: %s", str(data)[:100] if fetchall else str(data))
                     cursor.close()
 
-            if accepted_type:
-                logger.debug("Validating output with type: %s", accepted_type)
-                if self._validate_output(data, accepted_type, none_is_ok, accepted_length):
-                    logger.debug("Output validated successfully")
-                    if return_dict:
-                        return [dict(row) for row in data] if fetchall else dict(data)
-                    else:
-                        return data
-
-                else:
-                    logger.debug("Output validation failed")
-                    return None
+            if return_dict and data is not None:
+                return [dict(row) for row in data] if fetchall else dict(data)
+            elif data is None:
+                raise ValueError("None returned")
             else:
-                if return_dict:
-                    return [dict(row) for row in data] if fetchall else dict(data)
-                else:
-                    return data
+                return data
         except Exception as e:
-            logger.error("Error executing query: ", e)
+            logger.error(f"Error executing query: {e}", stack_info=True)
             return None
 
-    def update_database(self, query: str, payload: Union[dict, 'pd.DataFrame'],
-                        column_order: Optional[List[str]] = None) -> None:
+    def update_database(self, query: str, payload: Union[tuple, 'pd.DataFrame'], returning: bool = False, column_order: Optional[List[str]] = None) -> Optional[List[tuple]]:
         """
         Updates the database by executing the given query with the provided payload.
 
         :param query: SQL query to execute.
         :type query: str
-        :param payload: Data to use in the query. Can be a dictionary for single operations or a DataFrame for batch operations.
-        :type payload: Union[dict, pd.DataFrame]
+        :param payload: Data to use in the query. Can be a tuple for single operations or a DataFrame for batch operations.
+        :type payload: Union[tuple, pd.DataFrame]
+        :param returning: Flag to be able to return a postgres returning update statement
+        :type returning: bool
         :param column_order: The order of columns to be used if the payload is a DataFrame.
         :type column_order: List[str], optional
-        :returns: None
+        :returns: A list of tuples if returning is true else None
+        :rtype: Optional[List[tuple]]
         """
         with self.connection as conn:
-            if isinstance(payload, dict):
+            if isinstance(payload, tuple):
                 try:
-                    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                    with conn.cursor() as cursor:
                         cursor.execute(query, payload)
+                        return_value = cursor.fetchall() if returning else None
                         conn.commit()
+                        return return_value
                 except Exception as e:
                     logger.error(f"Error inserting data: {str(e)}")
                     conn.rollback()
             elif PANDAS_AVAILABLE and isinstance(payload, pd.DataFrame) and column_order:
+                if returning:
+                    logger.error("Returning values not compatible with batch processing, please use dictionary input")
+                    raise ValueError("Returning values not compatible with batch processing, please use dictionary input")
                 try:
                     with conn.cursor() as cursor:
                         data_batch = []
@@ -136,8 +142,7 @@ class RdsServiceGateway:
                             data_batch.append(tuple(row[col] for col in column_order))
 
                             if len(data_batch) == self.config.db_batch_size or index == len(payload) - 1:
-                                psycopg2.extras.execute_values(cursor, query, data_batch,
-                                                               page_size=self.config.db_batch_size)
+                                psycopg2.extras.execute_values(cursor, query, data_batch, page_size=self.config.db_batch_size)
                                 data_batch = []
                                 logger.debug(f"Processed batch {batch_counter}/{total_batches} successfully")
                                 batch_counter += 1
@@ -149,37 +154,56 @@ class RdsServiceGateway:
             else:
                 logger.error("Invalid payload type or missing column_order for DataFrame payload.")
 
-    @staticmethod
-    def _validate_output(data: Any, accepted_type: Type, none_is_ok: bool = False,
-                         accepted_length: Tuple[Optional[int], Optional[int]] = (None, None)) -> bool:
+    def format_sql_query(self, query: str, payload: tuple) -> None:
         """
-        Validates the output data against the specified type and length constraints.
+        Formats and prints the SQL query with the given payload.
 
-        :param data: The data to validate.
-        :type data: Any
-        :param accepted_type: The type the data is expected to conform to.
-        :type accepted_type: Type
-        :param none_is_ok: Allows None as a valid value of data.
-        :type none_is_ok: bool, optional
-        :param accepted_length: A tuple specifying the minimum and maximum length of the data.
-        :type accepted_length: Tuple[Optional[int], Optional[int]], optional
-        :returns: True if the data is valid, False otherwise.
-        :rtype: bool
+        :param query: The SQL query to format.
+        :type query: str
+        :param payload: The parameters to substitute into the query.
+        :type payload: tuple
+
+        **Example**::
+
+            >>> rds_client = RdsServiceGateway()
+            >>> query = "SELECT * FROM users WHERE id = %s AND name = %s"
+            >>> payload = (1, 'John')
+            >>> rds_client.format_sql_query(query, payload)
         """
-        if none_is_ok and data is None:
-            return True
+        formatted_query = query % tuple(map(lambda x: f"'{x}'" if isinstance(x, str) else x, payload))
+        print(formatted_query)
 
-        if not isinstance(data, accepted_type):
-            logger.error(f"Data type check failed: {type(data).__name__} is not {accepted_type.__name__}")
-            return False
+    def get_cursor(self) -> psycopg2.extensions.cursor:
+        """
+        Returns a new database cursor.
 
-        if isinstance(data, collections.abc.Sized):
-            min_length = coalesce(accepted_length[0], 0)
-            max_length = coalesce(accepted_length[1], math.inf)
-            data_length = len(data)
-            if not (min_length <= data_length <= max_length):
-                logger.error(
-                    f"Length check failed: {data_length} is not within the allowed range ({min_length}, {max_length})")
-                return False
+        :returns: A new cursor object.
+        :rtype: psycopg2.extensions.cursor
 
-        return True
+        **Example**::
+
+            >>> rds_client = RdsServiceGateway()
+            >>> cursor = rds_client.get_cursor()
+            >>> cursor.execute("SELECT * FROM users")
+            >>> data = cursor.fetchall()
+            >>> print(data)
+        """
+        return self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    def get_connection(self) -> psycopg2.extensions.connection:
+        """
+        Returns the current database connection.
+
+        :returns: The database connection object.
+        :rtype: psycopg2.extensions.connection
+
+        **Example**::
+
+            >>> rds_client = RdsServiceGateway()
+            >>> conn = rds_client.get_connection()
+            >>> with conn.cursor() as cursor:
+            >>>     cursor.execute("SELECT * FROM users")
+            >>>     data = cursor.fetchall()
+            >>>     print(data)
+        """
+        return self.connection
