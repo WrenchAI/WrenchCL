@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WrenchCL.Tools.JsonSerializer &#8212; WrenchCL  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for WrenchCL.Tools.JsonSerializer</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  Copyright (c) $YEAR$. Copyright (c) $YEAR$ Wrench.AI., Willem van der Schans, Jeong Kim</span>
+<span class="c1">#</span>
+<span class="c1">#  MIT License</span>
+<span class="c1">#</span>
+<span class="c1">#  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1">#  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1">#  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="c1">#</span>
+<span class="c1">#  All works within the Software are owned by their respective creators and are distributed by Wrench.AI.</span>
+<span class="c1">#</span>
+<span class="c1">#  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).</span>
+<span class="c1">#</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">date</span>
+<span class="kn">from</span> <span class="nn">decimal</span> <span class="kn">import</span> <span class="n">Decimal</span>
+
+
+<div class="viewcode-block" id="robust_serializer">
+<a class="viewcode-back" href="../../../WrenchCL.Tools.html#WrenchCL.Tools.JsonSerializer.robust_serializer">[docs]</a>
+<span class="k">def</span> <span class="nf">robust_serializer</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    JSON serializer for objects not serializable by default JSON code.</span>
+
+<span class="sd">    This function handles various types that are not natively serializable by the</span>
+<span class="sd">    `json` module, including `datetime`, `date`, `Decimal`, and custom objects.</span>
+
+<span class="sd">    The serialization logic is as follows:</span>
+
+<span class="sd">    - `datetime` and `date` objects are converted to their ISO 8601 string representation.</span>
+<span class="sd">    - `Decimal` objects are converted to floats.</span>
+<span class="sd">    - Custom objects with a `__dict__` attribute are converted to their dictionary representation.</span>
+<span class="sd">    - All other objects are converted to their string representation as a fallback.</span>
+
+<span class="sd">    :param obj: The object to serialize.</span>
+<span class="sd">    :type obj: Any</span>
+<span class="sd">    :return: A JSON serializable representation of the object.</span>
+<span class="sd">    :rtype: str, dict, float</span>
+<span class="sd">    :raises TypeError: If the object cannot be serialized.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; robust_serializer(datetime(2024, 5, 17))</span>
+<span class="sd">    &#39;2024-05-17T00:00:00&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; robust_serializer(Decimal(&#39;123.45&#39;))</span>
+<span class="sd">    123.45</span>
+
+<span class="sd">    &gt;&gt;&gt; class CustomObject:</span>
+<span class="sd">    ...     def __init__(self, value):</span>
+<span class="sd">    ...         self.value = value</span>
+<span class="sd">    ...</span>
+<span class="sd">    &gt;&gt;&gt; obj = CustomObject(10)</span>
+<span class="sd">    &gt;&gt;&gt; robust_serializer(obj)</span>
+<span class="sd">    {&#39;value&#39;: 10}</span>
+
+<span class="sd">    &gt;&gt;&gt; robust_serializer(set([1, 2, 3]))</span>
+<span class="sd">    &#39;{1, 2, 3}&#39;</span>
+
+<span class="sd">    Using robust_serializer with json.dumps:</span>
+
+<span class="sd">    &gt;&gt;&gt; data = {</span>
+<span class="sd">    ...     &quot;name&quot;: &quot;Alice&quot;,</span>
+<span class="sd">    ...     &quot;timestamp&quot;: datetime.now(),</span>
+<span class="sd">    ...     &quot;balance&quot;: Decimal(&quot;123.45&quot;),</span>
+<span class="sd">    ...     &quot;birth_date&quot;: date.today(),</span>
+<span class="sd">    ...     &quot;custom&quot;: CustomObject(10)</span>
+<span class="sd">    ... }</span>
+<span class="sd">    &gt;&gt;&gt; json.dumps(data, default=robust_serializer, indent=4)</span>
+<span class="sd">    {</span>
+<span class="sd">        &quot;name&quot;: &quot;Alice&quot;,</span>
+<span class="sd">        &quot;timestamp&quot;: &quot;2024-05-17T12:34:56.789012&quot;,</span>
+<span class="sd">        &quot;balance&quot;: 123.45,</span>
+<span class="sd">        &quot;birth_date&quot;: &quot;2024-05-17&quot;,</span>
+<span class="sd">        &quot;custom&quot;: {</span>
+<span class="sd">            &quot;value&quot;: 10</span>
+<span class="sd">        }</span>
+<span class="sd">    }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">datetime</span><span class="p">,</span> <span class="n">date</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__dict__&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__dict__</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>  <span class="c1"># Fallback for other types</span></div>
+
+
+
+<div class="viewcode-block" id="single_quote_decoder">
+<a class="viewcode-back" href="../../../WrenchCL.Tools.html#WrenchCL.Tools.JsonSerializer.single_quote_decoder">[docs]</a>
+<span class="k">class</span> <span class="nc">single_quote_decoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A custom JSON decoder that pre-processes JSON strings to handle single quotes and Markdown block markers.</span>
+<span class="sd">    Used when decoding JSON output from LLM&#39;s as they often use the wrong syntax</span>
+<span class="sd">    </span>
+<span class="sd">    This class extends the default `json.JSONDecoder` to allow for the decoding of JSON strings that:</span>
+<span class="sd">    - Use single quotes for keys and values instead of double quotes.</span>
+<span class="sd">    - May include Markdown block markers for JSON code blocks.</span>
+
+<span class="sd">    :param object_hook: Optional function that will be called with the result of any object literal decoded (a dict). </span>
+<span class="sd">                        The return value of `object_hook` will be used instead of the `dict`. This can be used to </span>
+<span class="sd">                        provide custom deserializations (e.g., to support JSON-RPC class hinting).</span>
+<span class="sd">    :param args: Additional positional arguments passed to the base `json.JSONDecoder`.</span>
+<span class="sd">    :param kwargs: Additional keyword arguments passed to the base `json.JSONDecoder`.</span>
+
+<span class="sd">    method decode: Decodes a JSON string after pre-processing it to handle single quotes and remove Markdown block markers.</span>
+<span class="sd">    :param s: The JSON string to be decoded.</span>
+<span class="sd">    :param args: Additional positional arguments passed to the base `decode` method.</span>
+<span class="sd">    :param kwargs: Additional keyword arguments passed to the base `decode` method.</span>
+<span class="sd">    :return: The Python object represented by the JSON string.</span>
+
+<span class="sd">    Usage example:</span>
+<span class="sd">        &gt;&gt;&gt; import json</span>
+<span class="sd">        &gt;&gt;&gt; json_str = &quot;{&#39;name&#39;: &#39;John&#39;, &#39;age&#39;: 30, &#39;city&#39;: &#39;New York&#39;}&quot;</span>
+<span class="sd">        &gt;&gt;&gt; decoded_obj = json.loads(json_str, cls=single_quote_decoder)</span>
+<span class="sd">        &gt;&gt;&gt; print(decoded_obj)</span>
+<span class="sd">        {&#39;name&#39;: &#39;John&#39;, &#39;age&#39;: 30, &#39;city&#39;: &#39;New York&#39;}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="single_quote_decoder.__init__">
+<a class="viewcode-back" href="../../../WrenchCL.Tools.html#WrenchCL.Tools.JsonSerializer.single_quote_decoder.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">object_hook</span><span class="o">=</span><span class="n">object_hook</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_hook</span> <span class="o">=</span> <span class="n">object_hook</span></div>
+
+
+<div class="viewcode-block" id="single_quote_decoder.decode">
+<a class="viewcode-back" href="../../../WrenchCL.Tools.html#WrenchCL.Tools.JsonSerializer.single_quote_decoder.decode">[docs]</a>
+    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># Remove Markdown block markers if present</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;```json\s*&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;```python\s*&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s*```&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+
+        <span class="c1"># Pre-process string values for proper quote handling</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(?&lt;!</span><span class="se">\\</span><span class="s2">)&#39;(\w+)&#39;&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;&quot;\1&quot;&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>  <span class="c1"># Replace single quotes</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>  <span class="c1"># Fixes escaped quotes</span>
+
+        <span class="c1"># Decode the pre-processed JSON string</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">WrenchCL</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../WrenchCL.html">WrenchCL package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">setup module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Willem van der Schans.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WrenchCL.Models.OpenAI.OpenAIGateway &#8212; WrenchCL  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for WrenchCL.Models.OpenAI.OpenAIGateway</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  Copyright (c) $YEAR$. Copyright (c) $YEAR$ Wrench.AI., Willem van der Schans, Jeong Kim</span>
+<span class="c1">#</span>
+<span class="c1">#  MIT License</span>
+<span class="c1">#</span>
+<span class="c1">#  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1">#  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1">#  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="c1">#</span>
+<span class="c1">#  All works within the Software are owned by their respective creators and are distributed by Wrench.AI.</span>
+<span class="c1">#</span>
+<span class="c1">#  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).</span>
+<span class="c1">#</span>
+
+<span class="c1">#</span>
+<span class="c1">#  MIT License</span>
+<span class="c1">#</span>
+<span class="c1">#  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#  All works within the Software are owned by their respective creators and are distributed by Wrench.AI.</span>
+<span class="c1">#</span>
+<span class="c1">#  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).</span>
+<span class="c1">#</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">openai</span> <span class="kn">import</span> <span class="n">OpenAI</span>
+
+<span class="kn">from</span> <span class="nn">...Tools</span> <span class="kn">import</span> <span class="n">image_to_base64</span><span class="p">,</span><span class="n">get_file_type</span><span class="p">,</span> <span class="n">validate_base64</span>
+<span class="kn">from</span> <span class="nn">...Decorators.TimedMethod</span> <span class="kn">import</span> <span class="n">TimedMethod</span>
+<span class="kn">from</span> <span class="nn">._ConversationManager</span> <span class="kn">import</span> <span class="n">ConversationManager</span>
+<span class="kn">from</span> <span class="nn">...Tools.WrenchLogger</span> <span class="kn">import</span> <span class="n">logger</span>
+
+
+<div class="viewcode-block" id="OpenAIGateway">
+<a class="viewcode-back" href="../../../../WrenchCL.Models.OpenAI.html#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway">[docs]</a>
+<span class="k">class</span> <span class="nc">OpenAIGateway</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A gateway class to interact with OpenAI&#39;s API, providing methods to handle text, image, and audio processing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="OpenAIGateway.__init__">
+<a class="viewcode-back" href="../../../../WrenchCL.Models.OpenAI.html#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the OpenAIGateway with the provided API key or retrieves it from environment variables.</span>
+
+<span class="sd">        :param api_key: The OpenAI API key.</span>
+<span class="sd">        :type api_key: str, optional</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">api_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">api_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;OPENAI_API_KEY&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OpenAIGateway.process_input">
+<a class="viewcode-back" href="../../../../WrenchCL.Models.OpenAI.html#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.process_input">[docs]</a>
+    <span class="k">def</span> <span class="nf">process_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">image_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">audio_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">operation</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">system_prompt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">json_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Processes input based on the specified operation.</span>
+
+<span class="sd">        :param text: The text input.</span>
+<span class="sd">        :type text: str, optional</span>
+<span class="sd">        :param image_path: The path to the image file.</span>
+<span class="sd">        :type image_path: str, optional</span>
+<span class="sd">        :param audio_path: The path to the audio file.</span>
+<span class="sd">        :type audio_path: str, optional</span>
+<span class="sd">        :param operation: The type of operation to perform (e.g., &quot;text&quot;, &quot;image&quot;, &quot;audio&quot;).</span>
+<span class="sd">        :type operation: str, optional</span>
+<span class="sd">        :param system_prompt: A system prompt to include in the request.</span>
+<span class="sd">        :type system_prompt: str, optional</span>
+<span class="sd">        :param json_mode: If True, expects the response to be in JSON format.</span>
+<span class="sd">        :type json_mode: bool, optional</span>
+<span class="sd">        :returns: The result of the specified operation.</span>
+<span class="sd">        :raises ValueError: If no input is provided or the parameters are invalid for the requested operation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">image_path</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">audio_path</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;At least one of text, image_path, or audio_path must be provided.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">system_prompt</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;system_prompt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">system_prompt</span>
+
+        <span class="k">if</span> <span class="n">json_mode</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;response_format&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;json_object&#39;</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">operation</span> <span class="o">==</span> <span class="s2">&quot;embeddings&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_embeddings</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_response</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;thread&#39;</span> <span class="ow">or</span> <span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;conversation&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_conversation</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s2">&quot;image&quot;</span> <span class="ow">and</span> <span class="n">text</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_to_image</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s2">&quot;audio&quot;</span> <span class="ow">and</span> <span class="n">audio_path</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_to_text</span><span class="p">(</span><span class="n">audio_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s2">&quot;edit_image&quot;</span> <span class="ow">and</span> <span class="n">image_path</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">modify_image</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s2">&quot;create_variation&quot;</span> <span class="ow">and</span> <span class="n">image_path</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_image_variations</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s2">&quot;vision&quot;</span> <span class="ow">and</span> <span class="n">text</span> <span class="ow">and</span> <span class="n">image_path</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_to_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid or insufficient parameters for requested operation.&quot;</span><span class="p">)</span></div>
+
+
+    <span class="nd">@TimedMethod</span>
+    <span class="k">def</span> <span class="nf">text_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-3.5-turbo&quot;</span><span class="p">,</span> <span class="n">assistant_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">response_format</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">system_prompt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">json_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Processes text input using the specified model and returns the response.</span>
+
+<span class="sd">        :param text: The text input.</span>
+<span class="sd">        :type text: str</span>
+<span class="sd">        :param model: The model to use for text processing.</span>
+<span class="sd">        :type model: str, optional</span>
+<span class="sd">        :param response_format: (Optional) The assistant to use, will internally switch to threads (Streaming not supported)</span>
+<span class="sd">        :type response_format: str</span>
+<span class="sd">        :param response_format: (Optional) The format of the response. Possible values: { &quot;type&quot;: &quot;json_object&quot; }</span>
+<span class="sd">        :type response_format: dict</span>
+<span class="sd">        :param system_prompt: A system prompt to include in the request.</span>
+<span class="sd">        :type system_prompt: str, optional</span>
+<span class="sd">        :param json_mode: If True, expects the response to be in JSON format.</span>
+<span class="sd">        :type json_mode: bool, optional</span>
+<span class="sd">        :param stream: If True, stream the response as it&#39;s generated.</span>
+<span class="sd">        :type stream: bool, optional</span>
+<span class="sd">        :returns: The processed text or JSON response.</span>
+<span class="sd">        :raises ValueError: If the JSON response cannot be decoded.</span>
+<span class="sd">        :raises InterruptedError: If the response cannot be completed due to content filters or other issues.</span>
+<span class="sd">        :raises Exception: If an error occurs during text processing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">messages</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">if</span> <span class="n">system_prompt</span><span class="p">:</span>
+                <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">system_prompt</span><span class="p">}]})</span>
+
+            <span class="n">user_content</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">text</span><span class="p">}]</span>
+
+            <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">user_content</span><span class="p">})</span>
+
+            <span class="k">if</span> <span class="n">assistant_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using threads as assistant_id has been passed: </span><span class="si">{</span><span class="n">assistant_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s1">&#39;WARNING&#39;</span><span class="p">)</span>
+                <span class="n">thread</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">threads</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">messages</span> <span class="o">=</span> <span class="n">messages</span><span class="p">)</span>
+                <span class="n">run</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">threads</span><span class="o">.</span><span class="n">runs</span><span class="o">.</span><span class="n">create_and_poll</span><span class="p">(</span><span class="n">thread_id</span> <span class="o">=</span> <span class="n">thread</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                                                    <span class="n">assistant_id</span> <span class="o">=</span> <span class="n">assistant_id</span><span class="p">,</span>
+                                                                    <span class="n">response_format</span> <span class="o">=</span> <span class="n">response_format</span><span class="p">,</span>
+                                                                    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+                                                                    <span class="n">max_completion_tokens</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_tokens&#39;</span><span class="p">,</span> <span class="mi">2500</span><span class="p">))</span>
+                <span class="n">messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">threads</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">list</span><span class="p">(</span>
+                  <span class="n">thread_id</span><span class="o">=</span><span class="n">thread</span><span class="o">.</span><span class="n">id</span>
+                <span class="p">)</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">messages</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">value</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">revertLoggingLevel</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">response</span>
+            <span class="k">if</span> <span class="n">stream</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s1">&#39;WARNING&#39;</span><span class="p">)</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+                    <span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span>
+                    <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">max_tokens</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_tokens&#39;</span><span class="p">,</span> <span class="mi">2500</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">revertLoggingLevel</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">response</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s1">&#39;WARNING&#39;</span><span class="p">)</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+                    <span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span>
+                    <span class="n">max_tokens</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_tokens&#39;</span><span class="p">,</span> <span class="mi">2500</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">revertLoggingLevel</span><span class="p">()</span>
+                <span class="n">finish_reason</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">finish_reason</span>
+                <span class="k">if</span> <span class="n">finish_reason</span> <span class="o">==</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span>
+                    <span class="n">response_content</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span>
+                <span class="k">elif</span> <span class="n">finish_reason</span> <span class="o">==</span> <span class="s1">&#39;length&#39;</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Not enough tokens available to complete message. Please increase max tokens | current setting = </span><span class="si">{</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_tokens&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">2500</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">response_content</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span>
+                <span class="k">elif</span> <span class="n">finish_reason</span> <span class="o">==</span> <span class="s1">&#39;content_filter&#39;</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;ChatGPT does not allow processing of this content due to its content filters. Cannot return any output.&quot;</span><span class="p">)</span>
+                    <span class="n">response_content</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">raise</span> <span class="ne">InterruptedError</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LLM did not finish output due to reason </span><span class="si">{</span><span class="n">finish_reason</span><span class="si">}</span><span class="s2">. No output returned.&quot;</span><span class="p">)</span>
+                    <span class="n">response_content</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">raise</span> <span class="ne">InterruptedError</span>
+
+                <span class="k">if</span> <span class="n">json_mode</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response_content</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to decode JSON response.&quot;</span><span class="p">)</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid JSON response.&quot;</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">response_content</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error processing text: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+
+    <span class="nd">@TimedMethod</span>
+    <span class="k">def</span> <span class="nf">get_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">dimensions</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;text-embedding-3-small&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves embeddings for the given text using the specified model.</span>
+
+<span class="sd">        :param text: The text input.</span>
+<span class="sd">        :type text: str</span>
+<span class="sd">        :param model: The model to use for generating embeddings.</span>
+<span class="sd">        :type model: str, optional</span>
+<span class="sd">        :param dimensions: The dimension of the return vector.</span>
+<span class="sd">        :type dimensions: int, optional</span>
+<span class="sd">        :returns: The generated embeddings.</span>
+<span class="sd">        :raises Exception: If an error occurs while retrieving embeddings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">embeddings</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="n">dimensions</span><span class="p">)</span>
+            <span class="n">embeddings</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">embedding</span>
+            <span class="k">return</span> <span class="n">embeddings</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error getting embeddings: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+    <span class="nd">@TimedMethod</span>
+    <span class="k">def</span> <span class="nf">text_to_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="s2">&quot;1024x1024&quot;</span><span class="p">,</span> <span class="n">quality</span><span class="o">=</span><span class="s2">&quot;standard&quot;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates an image based on the provided prompt.</span>
+
+<span class="sd">        :param prompt: The image prompt.</span>
+<span class="sd">        :type prompt: str</span>
+<span class="sd">        :param size: The size of the generated image.</span>
+<span class="sd">        :type size: str, optional</span>
+<span class="sd">        :param quality: The quality of the generated image.</span>
+<span class="sd">        :type quality: str, optional</span>
+<span class="sd">        :param n: The number of images to generate.</span>
+<span class="sd">        :type n: int, optional</span>
+<span class="sd">        :returns: The URL of the generated image.</span>
+<span class="sd">        :raises Exception: If an error occurs while generating the image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;dall-e-3&quot;</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">quality</span><span class="o">=</span><span class="n">quality</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">url</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error generating image: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+    <span class="nd">@TimedMethod</span>
+    <span class="k">def</span> <span class="nf">audio_to_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_path</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;whisper-1&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Processes an audio file and returns its transcription.</span>
+
+<span class="sd">        :param audio_path: The path to the audio file.</span>
+<span class="sd">        :type audio_path: str</span>
+<span class="sd">        :param model: The model to use for audio processing.</span>
+<span class="sd">        :type model: str, optional</span>
+<span class="sd">        :returns: The transcription of the audio file.</span>
+<span class="sd">        :raises Exception: If an error occurs while processing the audio.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">audio_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">audio_file</span><span class="p">:</span>
+                <span class="n">transcription</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">audio</span><span class="o">.</span><span class="n">transcriptions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">audio_file</span><span class="p">,</span> <span class="n">response_format</span><span class="o">=</span><span class="s2">&quot;verbose_json&quot;</span><span class="p">,</span> <span class="n">timestamp_granularities</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;segment&quot;</span><span class="p">])</span>
+            <span class="n">transcript_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\n</span><span class="s2">&quot;&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">segment</span> <span class="ow">in</span> <span class="n">transcription</span><span class="o">.</span><span class="n">segments</span><span class="p">:</span>
+                <span class="n">segment_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">segment</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">1000</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">ms-</span><span class="si">{</span><span class="n">segment</span><span class="p">[</span><span class="s1">&#39;end&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">1000</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">ms] </span><span class="si">{</span><span class="n">segment</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">transcript_text</span> <span class="o">=</span> <span class="n">transcript_text</span> <span class="o">+</span> <span class="n">segment_text</span>
+            <span class="k">return</span> <span class="n">transcript_text</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error processing audio: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+    <span class="nd">@TimedMethod</span>
+    <span class="k">def</span> <span class="nf">generate_image_variations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="s2">&quot;1024x1024&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates variations of an image based on the provided image path.</span>
+
+<span class="sd">        :param image_path: The path to the original image.</span>
+<span class="sd">        :type image_path: str</span>
+<span class="sd">        :param n: The number of image variations to create.</span>
+<span class="sd">        :type n: int, optional</span>
+<span class="sd">        :param size: The size of the generated image variations.</span>
+<span class="sd">        :type size: str, optional</span>
+<span class="sd">        :returns: The URL of the generated image variation.</span>
+<span class="sd">        :raises Exception: If an error occurs while creating image variations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">image</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">create_variation</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;dall-e-2&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">url</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error creating image variation: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+    <span class="nd">@TimedMethod</span>
+    <span class="k">def</span> <span class="nf">modify_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">mask_path</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="s2">&quot;1024x1024&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Edits an image based on the provided prompt and mask.</span>
+
+<span class="sd">        :param image_path: The path to the original image.</span>
+<span class="sd">        :type image_path: str</span>
+<span class="sd">        :param prompt: The prompt describing the edits.</span>
+<span class="sd">        :type prompt: str</span>
+<span class="sd">        :param mask_path: The path to the mask image.</span>
+<span class="sd">        :type mask_path: str</span>
+<span class="sd">        :param n: The number of edited images to create.</span>
+<span class="sd">        :type n: int, optional</span>
+<span class="sd">        :param size: The size of the edited images.</span>
+<span class="sd">        :type size: str, optional</span>
+<span class="sd">        :returns: The URL of the edited image.</span>
+<span class="sd">        :raises Exception: If an error occurs while editing the image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">image</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">mask_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mask</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">edit</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;dall-e-2&quot;</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">url</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error editing image: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+    <span class="nd">@TimedMethod</span>
+    <span class="k">def</span> <span class="nf">image_to_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">image_source</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;gpt-4-turbo&#39;</span><span class="p">,</span> <span class="n">max_tokens</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span> <span class="n">system_prompt</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">response_format</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Processes a vision query based on the provided question and image.</span>
+
+<span class="sd">            :param prompt: The question to ask.</span>
+<span class="sd">            :type prompt: str</span>
+<span class="sd">            :param image_source: The path to the image file, a URL, or a Base64-encoded string.</span>
+<span class="sd">            :type image_source: str</span>
+<span class="sd">            :param model: The name of the model to use for the vision query. Default is &#39;gpt-4-turbo&#39;.</span>
+<span class="sd">            :type model: str</span>
+<span class="sd">            :param max_tokens: The maximum number of tokens to generate in the response. Default is 300.</span>
+<span class="sd">            :type max_tokens: int</span>
+<span class="sd">            :param system_prompt: (Optional) The system prompt to use for the request</span>
+<span class="sd">            :type system_prompt: str</span>
+<span class="sd">            :param response_format: (Optional) The format of the response. Possible values: { &quot;type&quot;: &quot;json_object&quot; }</span>
+<span class="sd">            :type response_format: dict</span>
+<span class="sd">            :returns: The response to the vision query.</span>
+<span class="sd">            :rtype: str</span>
+<span class="sd">            :raises ValueError: If an invalid image path, URL, or Base64 string is provided.</span>
+<span class="sd">            :raises Exception: If an error occurs while processing the vision query.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">image_source</span><span class="p">):</span>
+                <span class="n">base64_image</span> <span class="o">=</span> <span class="n">image_to_base64</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">mime_type</span> <span class="o">=</span> <span class="n">get_file_type</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">image_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">mime_type</span><span class="si">}</span><span class="s2">;base64,</span><span class="si">{</span><span class="n">base64_image</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">elif</span> <span class="n">validate_base64</span><span class="p">(</span><span class="n">image_source</span><span class="p">):</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">mime_type</span> <span class="o">=</span> <span class="n">get_file_type</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">image_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">mime_type</span><span class="si">}</span><span class="s2">;base64,</span><span class="si">{</span><span class="n">image_source</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">elif</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">image_source</span><span class="p">)</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="n">base64_image</span> <span class="o">=</span> <span class="n">image_to_base64</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">mime_type</span> <span class="o">=</span> <span class="n">get_file_type</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">image_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">mime_type</span><span class="si">}</span><span class="s2">;base64,</span><span class="si">{</span><span class="n">base64_image</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid image path, URL, or Base64 string&quot;</span><span class="p">)</span>
+            <span class="n">messages</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">system_prompt</span><span class="p">:</span>
+                <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">system_prompt</span><span class="p">}]})</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;image_url&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;image_url&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="n">image_url</span>
+                        <span class="p">}</span>
+                    <span class="p">}</span>
+                <span class="p">]</span>
+            <span class="p">})</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="n">max_tokens</span><span class="p">,</span> <span class="n">response_format</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;response_format&#39;</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error in vision query: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+    <span class="nd">@TimedMethod</span>
+    <span class="k">def</span> <span class="nf">start_conversation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initiates a conversation using the provided initial text.</span>
+
+<span class="sd">        :raises Exception: If an error occurs while initiating the conversation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">conversation_manager</span> <span class="o">=</span> <span class="n">ConversationManager</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;assistant_id&quot;</span><span class="p">))</span>
+        <span class="n">conversation_manager</span><span class="o">.</span><span class="n">initiate_conversation</span><span class="p">()</span>
+
+    <span class="nd">@TimedMethod</span>
+    <span class="k">def</span> <span class="nf">get_assistant_response</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">thread_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">threads</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">thread_id</span><span class="p">)</span></div>
+
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">WrenchCL</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../WrenchCL.html">WrenchCL package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../setup.html">setup module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Willem van der Schans.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
