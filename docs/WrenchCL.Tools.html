@@ -1,47 +1,113 @@
 <!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<html lang="en" data-content_root="./">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WrenchCL.Tools package &mdash; WrenchCL  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
-    <title>WrenchCL.Tools package &#8212; WrenchCL  documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
-    <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="setup module" href="setup.html" />
-    <link rel="prev" title="WrenchCL.Models.OpenAI package" href="WrenchCL.Models.OpenAI.html" />
-   
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
+    <link rel="prev" title="WrenchCL.Models.OpenAI package" href="WrenchCL.Models.OpenAI.html" /> 
+</head>
 
-  
-  
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
 
-  </head><body>
-  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
           
+          
+          <a href="index.html" class="icon icon-home">
+            WrenchCL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="WrenchCL.html">WrenchCL package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="WrenchCL.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Connect.html">WrenchCL.Connect package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="WrenchCL.DataFlow.html">WrenchCL.DataFlow package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Decorators.html">WrenchCL.Decorators package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Models.html">WrenchCL.Models package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">WrenchCL.Tools package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.Coalesce">WrenchCL.Tools.Coalesce module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.FetchMetaData">WrenchCL.Tools.FetchMetaData module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.FileTyper">WrenchCL.Tools.FileTyper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.Image2B64">WrenchCL.Tools.Image2B64 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.JsonSerializer">WrenchCL.Tools.JsonSerializer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.MaybeMonad">WrenchCL.Tools.MaybeMonad module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.TypeChecker">WrenchCL.Tools.TypeChecker module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.WrenchLogger">WrenchCL.Tools.WrenchLogger module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="WrenchCL.html#module-WrenchCL">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">setup module</a></li>
+</ul>
 
-          <div class="body" role="main">
-            
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">WrenchCL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="WrenchCL.html">WrenchCL package</a></li>
+      <li class="breadcrumb-item active">WrenchCL.Tools package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/WrenchCL.Tools.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
   <section id="wrenchcl-tools-package">
-<h1>WrenchCL.Tools package<a class="headerlink" href="#wrenchcl-tools-package" title="Link to this heading">¶</a></h1>
+<h1>WrenchCL.Tools package<a class="headerlink" href="#wrenchcl-tools-package" title="Link to this heading"></a></h1>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
 </section>
 <section id="module-WrenchCL.Tools.Coalesce">
-<span id="wrenchcl-tools-coalesce-module"></span><h2>WrenchCL.Tools.Coalesce module<a class="headerlink" href="#module-WrenchCL.Tools.Coalesce" title="Link to this heading">¶</a></h2>
+<span id="wrenchcl-tools-coalesce-module"></span><h2>WrenchCL.Tools.Coalesce module<a class="headerlink" href="#module-WrenchCL.Tools.Coalesce" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Coalesce.coalesce">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Coalesce.</span></span><span class="sig-name descname"><span class="pre">coalesce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Coalesce.html#coalesce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Coalesce.coalesce" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Coalesce.</span></span><span class="sig-name descname"><span class="pre">coalesce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Coalesce.html#coalesce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Coalesce.coalesce" title="Link to this definition"></a></dt>
 <dd><p>Returns the first non-None value in the given list of arguments. If all arguments are None, returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -69,10 +135,10 @@
 
 </section>
 <section id="module-WrenchCL.Tools.FetchMetaData">
-<span id="wrenchcl-tools-fetchmetadata-module"></span><h2>WrenchCL.Tools.FetchMetaData module<a class="headerlink" href="#module-WrenchCL.Tools.FetchMetaData" title="Link to this heading">¶</a></h2>
+<span id="wrenchcl-tools-fetchmetadata-module"></span><h2>WrenchCL.Tools.FetchMetaData module<a class="headerlink" href="#module-WrenchCL.Tools.FetchMetaData" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.FetchMetaData.get_metadata">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.FetchMetaData.</span></span><span class="sig-name descname"><span class="pre">get_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FetchMetaData.html#get_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.FetchMetaData.get_metadata" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.FetchMetaData.</span></span><span class="sig-name descname"><span class="pre">get_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FetchMetaData.html#get_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.FetchMetaData.get_metadata" title="Link to this definition"></a></dt>
 <dd><p>Get metadata of a file from a URL or file path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -92,10 +158,10 @@
 
 </section>
 <section id="module-WrenchCL.Tools.FileTyper">
-<span id="wrenchcl-tools-filetyper-module"></span><h2>WrenchCL.Tools.FileTyper module<a class="headerlink" href="#module-WrenchCL.Tools.FileTyper" title="Link to this heading">¶</a></h2>
+<span id="wrenchcl-tools-filetyper-module"></span><h2>WrenchCL.Tools.FileTyper module<a class="headerlink" href="#module-WrenchCL.Tools.FileTyper" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.FileTyper.get_file_type">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.FileTyper.</span></span><span class="sig-name descname"><span class="pre">get_file_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FileTyper.html#get_file_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.FileTyper.get_file_type" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.FileTyper.</span></span><span class="sig-name descname"><span class="pre">get_file_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FileTyper.html#get_file_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.FileTyper.get_file_type" title="Link to this definition"></a></dt>
 <dd><p>Determine the file type of file from a URL, file path, or Base64 string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -115,10 +181,10 @@
 
 </section>
 <section id="module-WrenchCL.Tools.Image2B64">
-<span id="wrenchcl-tools-image2b64-module"></span><h2>WrenchCL.Tools.Image2B64 module<a class="headerlink" href="#module-WrenchCL.Tools.Image2B64" title="Link to this heading">¶</a></h2>
+<span id="wrenchcl-tools-image2b64-module"></span><h2>WrenchCL.Tools.Image2B64 module<a class="headerlink" href="#module-WrenchCL.Tools.Image2B64" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Image2B64.get_hash">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Image2B64.</span></span><span class="sig-name descname"><span class="pre">get_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#get_hash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Image2B64.get_hash" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Image2B64.</span></span><span class="sig-name descname"><span class="pre">get_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#get_hash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Image2B64.get_hash" title="Link to this definition"></a></dt>
 <dd><p>Generate SHA-1 hash for the given data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -135,7 +201,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Image2B64.image_to_base64">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Image2B64.</span></span><span class="sig-name descname"><span class="pre">image_to_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#image_to_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Image2B64.image_to_base64" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Image2B64.</span></span><span class="sig-name descname"><span class="pre">image_to_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#image_to_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Image2B64.image_to_base64" title="Link to this definition"></a></dt>
 <dd><p>Convert an image from a URL or file path to a Base64 string, optionally returning its SHA-1 hash.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -156,7 +222,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Image2B64.validate_base64">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Image2B64.</span></span><span class="sig-name descname"><span class="pre">validate_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">b64_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#validate_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Image2B64.validate_base64" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Image2B64.</span></span><span class="sig-name descname"><span class="pre">validate_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">b64_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#validate_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Image2B64.validate_base64" title="Link to this definition"></a></dt>
 <dd><p>Validate a Base64 encoded string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -173,10 +239,10 @@
 
 </section>
 <section id="module-WrenchCL.Tools.JsonSerializer">
-<span id="wrenchcl-tools-jsonserializer-module"></span><h2>WrenchCL.Tools.JsonSerializer module<a class="headerlink" href="#module-WrenchCL.Tools.JsonSerializer" title="Link to this heading">¶</a></h2>
+<span id="wrenchcl-tools-jsonserializer-module"></span><h2>WrenchCL.Tools.JsonSerializer module<a class="headerlink" href="#module-WrenchCL.Tools.JsonSerializer" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.JsonSerializer.robust_serializer">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.JsonSerializer.</span></span><span class="sig-name descname"><span class="pre">robust_serializer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#robust_serializer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.JsonSerializer.robust_serializer" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.JsonSerializer.</span></span><span class="sig-name descname"><span class="pre">robust_serializer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#robust_serializer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.JsonSerializer.robust_serializer" title="Link to this definition"></a></dt>
 <dd><p>JSON serializer for objects not serializable by default JSON code.</p>
 <p>This function handles various types that are not natively serializable by the
 <cite>json</cite> module, including <cite>datetime</cite>, <cite>date</cite>, <cite>Decimal</cite>, and custom objects.</p>
@@ -247,7 +313,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="WrenchCL.Tools.JsonSerializer.single_quote_decoder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.JsonSerializer.</span></span><span class="sig-name descname"><span class="pre">single_quote_decoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.JsonSerializer.</span></span><span class="sig-name descname"><span class="pre">single_quote_decoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">JSONDecoder</span></code></p>
 <p>A custom JSON decoder that pre-processes JSON strings to handle single quotes and Markdown block markers.
 Used when decoding JSON output from LLM’s as they often use the wrong syntax</p>
@@ -282,7 +348,7 @@ provide custom deserializations (e.g., to support JSON-RPC class hinting).</p></
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.JsonSerializer.single_quote_decoder.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder.__init__" title="Link to this definition"></a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">object_hook</span></code>, if specified, will be called with the result
 of every JSON object decoded and its return value will be used in
 place of the given <code class="docutils literal notranslate"><span class="pre">dict</span></code>.  This can be used to provide custom
@@ -313,7 +379,7 @@ including <code class="docutils literal notranslate"><span class="pre">'\t'</spa
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.JsonSerializer.single_quote_decoder.decode">
-<span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder.decode" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder.decode" title="Link to this definition"></a></dt>
 <dd><p>Return the Python representation of <code class="docutils literal notranslate"><span class="pre">s</span></code> (a <code class="docutils literal notranslate"><span class="pre">str</span></code> instance
 containing a JSON document).</p>
 </dd></dl>
@@ -322,10 +388,10 @@ containing a JSON document).</p>
 
 </section>
 <section id="module-WrenchCL.Tools.MaybeMonad">
-<span id="wrenchcl-tools-maybemonad-module"></span><h2>WrenchCL.Tools.MaybeMonad module<a class="headerlink" href="#module-WrenchCL.Tools.MaybeMonad" title="Link to this heading">¶</a></h2>
+<span id="wrenchcl-tools-maybemonad-module"></span><h2>WrenchCL.Tools.MaybeMonad module<a class="headerlink" href="#module-WrenchCL.Tools.MaybeMonad" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.MaybeMonad.</span></span><span class="sig-name descname"><span class="pre">Maybe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.MaybeMonad.</span></span><span class="sig-name descname"><span class="pre">Maybe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A utility class that provides a way to chain method calls and operations on an object that may be None.
 Supports context manager usage and built-in function delegation.</p>
@@ -336,7 +402,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.__init__" title="Link to this definition"></a></dt>
 <dd><p>Initializes the Maybe instance with the given value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -347,7 +413,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.chain_break">
-<span class="sig-name descname"><span class="pre">chain_break</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.chain_break" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">chain_break</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.chain_break" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -358,7 +424,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.done">
-<span class="sig-name descname"><span class="pre">done</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.done" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">done</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.done" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -369,7 +435,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.end_maybe">
-<span class="sig-name descname"><span class="pre">end_maybe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe.end_maybe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.end_maybe" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">end_maybe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe.end_maybe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.end_maybe" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -380,7 +446,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.exit">
-<span class="sig-name descname"><span class="pre">exit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.exit" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">exit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.exit" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -391,7 +457,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.extract">
-<span class="sig-name descname"><span class="pre">extract</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.extract" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">extract</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.extract" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -402,7 +468,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.get_value">
-<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.get_value" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.get_value" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -413,7 +479,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.out">
-<span class="sig-name descname"><span class="pre">out</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.out" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">out</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.out" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -424,7 +490,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.resolve">
-<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.resolve" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.resolve" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -435,7 +501,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.result">
-<span class="sig-name descname"><span class="pre">result</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.result" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">result</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.result" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -446,7 +512,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.MaybeMonad.Maybe.value">
-<span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.value" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.MaybeMonad.Maybe.value" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -459,10 +525,10 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 </section>
 <section id="module-WrenchCL.Tools.TypeChecker">
-<span id="wrenchcl-tools-typechecker-module"></span><h2>WrenchCL.Tools.TypeChecker module<a class="headerlink" href="#module-WrenchCL.Tools.TypeChecker" title="Link to this heading">¶</a></h2>
+<span id="wrenchcl-tools-typechecker-module"></span><h2>WrenchCL.Tools.TypeChecker module<a class="headerlink" href="#module-WrenchCL.Tools.TypeChecker" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.TypeChecker.typechecker">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.TypeChecker.</span></span><span class="sig-name descname"><span class="pre">typechecker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">none_is_ok</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'raise'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/TypeChecker.html#typechecker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.TypeChecker.typechecker" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.TypeChecker.</span></span><span class="sig-name descname"><span class="pre">typechecker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">none_is_ok</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'raise'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/TypeChecker.html#typechecker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.TypeChecker.typechecker" title="Link to this definition"></a></dt>
 <dd><p>Validates that each entry in a dictionary or a list of dictionaries matches the expected type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -507,10 +573,10 @@ ValueError: If any required parameter is missing.</p>
 
 </section>
 <section id="module-WrenchCL.Tools.WrenchLogger">
-<span id="wrenchcl-tools-wrenchlogger-module"></span><h2>WrenchCL.Tools.WrenchLogger module<a class="headerlink" href="#module-WrenchCL.Tools.WrenchLogger" title="Link to this heading">¶</a></h2>
+<span id="wrenchcl-tools-wrenchlogger-module"></span><h2>WrenchCL.Tools.WrenchLogger module<a class="headerlink" href="#module-WrenchCL.Tools.WrenchLogger" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.WrenchLogger.LoggerSingleton">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.WrenchLogger.</span></span><span class="sig-name descname"><span class="pre">LoggerSingleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/WrenchLogger.html#LoggerSingleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.LoggerSingleton" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.WrenchLogger.</span></span><span class="sig-name descname"><span class="pre">LoggerSingleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/WrenchLogger.html#LoggerSingleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.LoggerSingleton" title="Link to this definition"></a></dt>
 <dd><p>Decorator for a class to implement the Singleton pattern. This decorator ensures that only one instance of the
 decorated class can exist at any time. If an instance of the class already exists, it returns that instance;
 otherwise, it creates and returns a new instance.</p>
@@ -543,10 +609,10 @@ instance exists.</p>
 
 </section>
 <section id="module-WrenchCL.Tools">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-WrenchCL.Tools" title="Link to this heading">¶</a></h2>
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-WrenchCL.Tools" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Maybe">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">Maybe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Maybe" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">Maybe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Maybe" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A utility class that provides a way to chain method calls and operations on an object that may be None.
 Supports context manager usage and built-in function delegation.</p>
@@ -557,7 +623,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Maybe.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Maybe.__init__" title="Link to this definition"></a></dt>
 <dd><p>Initializes the Maybe instance with the given value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -568,7 +634,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.chain_break">
-<span class="sig-name descname"><span class="pre">chain_break</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.chain_break" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">chain_break</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.chain_break" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -579,7 +645,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.done">
-<span class="sig-name descname"><span class="pre">done</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.done" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">done</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.done" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -590,7 +656,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.end_maybe">
-<span class="sig-name descname"><span class="pre">end_maybe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe.end_maybe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Maybe.end_maybe" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">end_maybe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe.end_maybe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Maybe.end_maybe" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -601,7 +667,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.exit">
-<span class="sig-name descname"><span class="pre">exit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.exit" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">exit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.exit" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -612,7 +678,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.extract">
-<span class="sig-name descname"><span class="pre">extract</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.extract" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">extract</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.extract" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -623,7 +689,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.get_value">
-<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.get_value" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.get_value" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -634,7 +700,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.out">
-<span class="sig-name descname"><span class="pre">out</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.out" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">out</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.out" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -645,7 +711,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.resolve">
-<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.resolve" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.resolve" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -656,7 +722,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.result">
-<span class="sig-name descname"><span class="pre">result</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.result" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">result</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.result" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -667,7 +733,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Maybe.value">
-<span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.value" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Maybe.value" title="Link to this definition"></a></dt>
 <dd><p>Disables chaining and returns the raw value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -680,7 +746,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.coalesce">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">coalesce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Coalesce.html#coalesce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.coalesce" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">coalesce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Coalesce.html#coalesce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.coalesce" title="Link to this definition"></a></dt>
 <dd><p>Returns the first non-None value in the given list of arguments. If all arguments are None, returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -708,7 +774,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.get_file_type">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">get_file_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FileTyper.html#get_file_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.get_file_type" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">get_file_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FileTyper.html#get_file_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.get_file_type" title="Link to this definition"></a></dt>
 <dd><p>Determine the file type of file from a URL, file path, or Base64 string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -728,7 +794,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.get_metadata">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">get_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FetchMetaData.html#get_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.get_metadata" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">get_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FetchMetaData.html#get_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.get_metadata" title="Link to this definition"></a></dt>
 <dd><p>Get metadata of a file from a URL or file path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -748,7 +814,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.image_to_base64">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">image_to_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#image_to_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.image_to_base64" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">image_to_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#image_to_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.image_to_base64" title="Link to this definition"></a></dt>
 <dd><p>Convert an image from a URL or file path to a Base64 string, optionally returning its SHA-1 hash.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -769,7 +835,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.robust_serializer">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">robust_serializer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#robust_serializer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.robust_serializer" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">robust_serializer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#robust_serializer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.robust_serializer" title="Link to this definition"></a></dt>
 <dd><p>JSON serializer for objects not serializable by default JSON code.</p>
 <p>This function handles various types that are not natively serializable by the
 <cite>json</cite> module, including <cite>datetime</cite>, <cite>date</cite>, <cite>Decimal</cite>, and custom objects.</p>
@@ -840,7 +906,7 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="WrenchCL.Tools.single_quote_decoder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">single_quote_decoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.single_quote_decoder" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">single_quote_decoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.single_quote_decoder" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">JSONDecoder</span></code></p>
 <p>A custom JSON decoder that pre-processes JSON strings to handle single quotes and Markdown block markers.
 Used when decoding JSON output from LLM’s as they often use the wrong syntax</p>
@@ -875,7 +941,7 @@ provide custom deserializations (e.g., to support JSON-RPC class hinting).</p></
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.single_quote_decoder.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.single_quote_decoder.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.single_quote_decoder.__init__" title="Link to this definition"></a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">object_hook</span></code>, if specified, will be called with the result
 of every JSON object decoded and its return value will be used in
 place of the given <code class="docutils literal notranslate"><span class="pre">dict</span></code>.  This can be used to provide custom
@@ -906,7 +972,7 @@ including <code class="docutils literal notranslate"><span class="pre">'\t'</spa
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.single_quote_decoder.decode">
-<span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.single_quote_decoder.decode" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.single_quote_decoder.decode" title="Link to this definition"></a></dt>
 <dd><p>Return the Python representation of <code class="docutils literal notranslate"><span class="pre">s</span></code> (a <code class="docutils literal notranslate"><span class="pre">str</span></code> instance
 containing a JSON document).</p>
 </dd></dl>
@@ -915,7 +981,7 @@ containing a JSON document).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.typechecker">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">typechecker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">none_is_ok</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'raise'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/TypeChecker.html#typechecker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.typechecker" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">typechecker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">none_is_ok</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'raise'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/TypeChecker.html#typechecker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.typechecker" title="Link to this definition"></a></dt>
 <dd><p>Validates that each entry in a dictionary or a list of dictionaries matches the expected type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -960,7 +1026,7 @@ ValueError: If any required parameter is missing.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.validate_base64">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">validate_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">b64_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#validate_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.validate_base64" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">validate_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">b64_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#validate_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.validate_base64" title="Link to this definition"></a></dt>
 <dd><p>Validate a Base64 encoded string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -979,98 +1045,34 @@ ValueError: If any required parameter is missing.</p>
 </section>
 
 
+           </div>
           </div>
-          
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="WrenchCL.Models.OpenAI.html" class="btn btn-neutral float-left" title="WrenchCL.Models.OpenAI package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="setup.html" class="btn btn-neutral float-right" title="setup module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Willem van der Schans.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">WrenchCL</a></h1>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
 
-
-
-
-
-
-
-
-<h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="WrenchCL.html">WrenchCL package</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="WrenchCL.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Connect.html">WrenchCL.Connect package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="WrenchCL.DataFlow.html">WrenchCL.DataFlow package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Decorators.html">WrenchCL.Decorators package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Models.html">WrenchCL.Models package</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">WrenchCL.Tools package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.Coalesce">WrenchCL.Tools.Coalesce module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.FetchMetaData">WrenchCL.Tools.FetchMetaData module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.FileTyper">WrenchCL.Tools.FileTyper module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.Image2B64">WrenchCL.Tools.Image2B64 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.JsonSerializer">WrenchCL.Tools.JsonSerializer module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.MaybeMonad">WrenchCL.Tools.MaybeMonad module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.TypeChecker">WrenchCL.Tools.TypeChecker module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.WrenchLogger">WrenchCL.Tools.WrenchLogger module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools">Module contents</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.html#module-WrenchCL">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="setup.html">setup module</a></li>
-</ul>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-  <li><a href="WrenchCL.html">WrenchCL package</a><ul>
-      <li>Previous: <a href="WrenchCL.Models.OpenAI.html" title="previous chapter">WrenchCL.Models.OpenAI package</a></li>
-      <li>Next: <a href="setup.html" title="next chapter">setup module</a></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
-
-
-
-
-
-
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &#169;2024, Willem van der Schans.
-      
-      |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
-      
-      |
-      <a href="_sources/WrenchCL.Tools.rst.txt"
-          rel="nofollow">Page source</a>
-    </div>
-
-    
-
-    
-  </body>
+</body>
 </html>
