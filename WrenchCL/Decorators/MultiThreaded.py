@@ -15,10 +15,10 @@
 
 import threading
 from functools import wraps
-import logging
 from queue import Queue
 
 from ..Tools.WrenchLogger import logger
+
 
 def MultiThreaded(num_threads=2, logging_level="WARNING"):
     """
@@ -70,4 +70,5 @@ def MultiThreaded(num_threads=2, logging_level="WARNING"):
             return [results.get() for _ in range(num_threads)]
 
         return wrapper_multithreaded
+
     return decorator_multithreaded
