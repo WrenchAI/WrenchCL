@@ -11,3 +11,5 @@ python-dotenv~=1.0.1
 Requests~=2.31.0
 sshtunnel~=0.4.0
 tenacity~=8.2.3
+pillow~=10.3.0
+hashlib
