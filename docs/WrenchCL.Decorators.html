@@ -52,7 +52,7 @@
 <li class="toctree-l3"><a class="reference internal" href="WrenchCL.DataFlow.html">WrenchCL.DataFlow package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">WrenchCL.Decorators package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Decorators.MultiThreaded">WrenchCL.Decorators.MultiThreaded module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wrenchcl-decorators-multithreaded-module">WrenchCL.Decorators.MultiThreaded module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Decorators.Retryable">WrenchCL.Decorators.Retryable module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Decorators.SingletonClass">WrenchCL.Decorators.SingletonClass module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Decorators.TimedMethod">WrenchCL.Decorators.TimedMethod module</a></li>
@@ -99,94 +99,31 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
 </section>
-<section id="module-WrenchCL.Decorators.MultiThreaded">
-<span id="wrenchcl-decorators-multithreaded-module"></span><h2>WrenchCL.Decorators.MultiThreaded module<a class="headerlink" href="#module-WrenchCL.Decorators.MultiThreaded" title="Link to this heading"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="WrenchCL.Decorators.MultiThreaded.MultiThreaded">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.MultiThreaded.</span></span><span class="sig-name descname"><span class="pre">MultiThreaded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logging_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WARNING'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/MultiThreaded.html#MultiThreaded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.MultiThreaded.MultiThreaded" title="Link to this definition"></a></dt>
-<dd><p>A decorator that runs a function in multiple threads and collects the results.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>num_threads</strong> (<em>int</em>) – The number of threads to spawn. Default is 2.</p></li>
-<li><p><strong>logging_level</strong> (<em>str</em>) – The logging level to use. Can be “DEBUG”, “INFO”, “WARNING”, “ERROR”, or “CRITICAL”. Default is “WARNING”.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A list of results from each thread.</p>
-</dd>
-</dl>
-<dl>
-<dt>Usage example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">your_module</span> <span class="kn">import</span> <span class="n">MultiThreaded</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@MultiThreaded</span><span class="p">(</span><span class="n">num_threads</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">logging_level</span><span class="o">=</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">example_function</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="c1"># Function logic here</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="k">return</span> <span class="n">data</span> <span class="o">*</span> <span class="mi">2</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">results</span> <span class="o">=</span> <span class="n">example_function</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<p>This will run <cite>example_function</cite> in 4 separate threads and collect the results.</p>
-</dd></dl>
-
+<section id="wrenchcl-decorators-multithreaded-module">
+<h2>WrenchCL.Decorators.MultiThreaded module<a class="headerlink" href="#wrenchcl-decorators-multithreaded-module" title="Link to this heading"></a></h2>
 </section>
 <section id="module-WrenchCL.Decorators.Retryable">
 <span id="wrenchcl-decorators-retryable-module"></span><h2>WrenchCL.Decorators.Retryable module<a class="headerlink" href="#module-WrenchCL.Decorators.Retryable" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Decorators.Retryable.Retryable">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.Retryable.</span></span><span class="sig-name descname"><span class="pre">Retryable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_on_exceptions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logging_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WARNING'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/Retryable.html#Retryable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.Retryable.Retryable" title="Link to this definition"></a></dt>
-<dd><p>A decorator that retries a function call a specified number of times if it raises an exception or if the request status code is not 200.</p>
-<p>This decorator catches <cite>JSONDecodeError</cite>, specific <cite>requests</cite> exceptions, <cite>botocore</cite> exceptions, and general <cite>Exception</cite> during the function execution,
-retries the function up to <cite>max_retries</cite> times, and logs each attempt. If the maximum number of retries is reached,
-it raises the last caught exception.</p>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.Retryable.</span></span><span class="sig-name descname"><span class="pre">Retryable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">retry_on_exceptions=(&lt;class</span> <span class="pre">'botocore.exceptions.ClientError'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'botocore.exceptions.BotoCoreError'&gt;)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_retries=3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay=2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/Retryable.html#Retryable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.Retryable.Retryable" title="Link to this definition"></a></dt>
+<dd><p>Decorator to retry function calls based on specified exceptions. If the function raises any of the specified
+exceptions, it will be retried up to <cite>max_retries</cite> times with a delay between retries.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>max_retries</strong> (<em>int</em>) – The maximum number of retries before giving up. Default is 5.</p></li>
-<li><p><strong>retry_on_exceptions</strong> (<em>tuple</em>) – A tuple of exception classes to retry on. If None, retries on all exceptions.</p></li>
-<li><p><strong>delay</strong> (<em>int</em>) – The delay in seconds between retries. Default is 2.</p></li>
-<li><p><strong>verbosity</strong> (<em>int</em>) – Controls the verbosity of logging.
-0 - No logging.
-1 - Logs only the error when all retries fail.
-2 - Logs the error and the state of the wrapped function.
-3 - Logs warnings and everything in level 2.
-4 - Logs warnings and the state of the function for every warning.</p></li>
-<li><p><strong>logging_level</strong> (<em>str</em>) – The logging level to use. Can be “DEBUG”, “INFO”, “WARNING”, “ERROR”, or “CRITICAL”. Default is “WARNING”.</p></li>
+<li><p><strong>retry_on_exceptions</strong> (<em>tuple</em><em>, </em><em>optional</em>) – A tuple of exceptions that should trigger a retry.</p></li>
+<li><p><strong>max_retries</strong> (<em>int</em><em>, </em><em>optional</em>) – The maximum number of retries.</p></li>
+<li><p><strong>delay</strong> (<em>int</em><em>, </em><em>optional</em>) – The delay in seconds between retries.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The result of the decorated function, if it succeeds within the allowed retries.</p>
+<dd class="field-even"><p>The result of the decorated function if successful.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Exception</strong> – If the function raises an exception not in <cite>retry_on_exceptions</cite> or if <cite>max_retries</cite> is exceeded.</p>
 </dd>
 </dl>
-<dl>
-<dt>Usage example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">json</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">requests</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">botocore.exceptions</span> <span class="kn">import</span> <span class="n">ClientError</span><span class="p">,</span> <span class="n">BotoCoreError</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">WrenchCL</span> <span class="kn">import</span> <span class="n">Retryable</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">JSONDecodeError</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@Retryable</span><span class="p">(</span><span class="n">max_retries</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">retry_on_exceptions</span><span class="o">=</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,),</span> <span class="n">verbosity</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">logging_level</span><span class="o">=</span><span class="s2">&quot;WARNING&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">fetch_data</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">try</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="s2">&quot;https://api.example.com/data&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">except</span> <span class="p">(</span><span class="n">JSONDecodeError</span><span class="p">,</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to fetch data after multiple retries.&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<p>This will retry the <cite>fetch_data</cite> function up to 3 times if it encounters a <cite>JSONDecodeError</cite>, specific <cite>requests</cite> exceptions,
-<cite>botocore</cite> exceptions, or any other specified exceptions. The logging level is set to “DEBUG”, and warnings and errors are logged.</p>
 </dd></dl>
 
 </section>
@@ -230,15 +167,12 @@ instance exists.</p>
 <span id="wrenchcl-decorators-timedmethod-module"></span><h2>WrenchCL.Decorators.TimedMethod module<a class="headerlink" href="#module-WrenchCL.Decorators.TimedMethod" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Decorators.TimedMethod.TimedMethod">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.TimedMethod.</span></span><span class="sig-name descname"><span class="pre">TimedMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DEBUG'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/TimedMethod.html#TimedMethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.TimedMethod.TimedMethod" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.TimedMethod.</span></span><span class="sig-name descname"><span class="pre">TimedMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/TimedMethod.html#TimedMethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.TimedMethod.TimedMethod" title="Link to this definition"></a></dt>
 <dd><p>Decorator that logs the execution time of the decorated function. This can be useful for monitoring performance
 and identifying bottlenecks in the code.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>func</strong> (<em>function</em>) – The function to be decorated.</p></li>
-<li><p><strong>level</strong> (<em>String</em><em> [</em><em>'DEBUG'</em><em>, </em><em>'INFO'</em><em>, </em><em>'CONTEXT'</em><em>]</em>) – The logging level of the decorator</p></li>
-</ul>
+<dd class="field-odd"><p><strong>func</strong> (<em>function</em>) – The function to be decorated.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The decorated function that logs its execution time.</p>
@@ -261,88 +195,25 @@ and identifying bottlenecks in the code.</p>
 <section id="module-WrenchCL.Decorators">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-WrenchCL.Decorators" title="Link to this heading"></a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="WrenchCL.Decorators.MultiThreaded">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.</span></span><span class="sig-name descname"><span class="pre">MultiThreaded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logging_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WARNING'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/MultiThreaded.html#MultiThreaded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.MultiThreaded" title="Link to this definition"></a></dt>
-<dd><p>A decorator that runs a function in multiple threads and collects the results.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>num_threads</strong> (<em>int</em>) – The number of threads to spawn. Default is 2.</p></li>
-<li><p><strong>logging_level</strong> (<em>str</em>) – The logging level to use. Can be “DEBUG”, “INFO”, “WARNING”, “ERROR”, or “CRITICAL”. Default is “WARNING”.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A list of results from each thread.</p>
-</dd>
-</dl>
-<dl>
-<dt>Usage example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">your_module</span> <span class="kn">import</span> <span class="n">MultiThreaded</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@MultiThreaded</span><span class="p">(</span><span class="n">num_threads</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">logging_level</span><span class="o">=</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">example_function</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="c1"># Function logic here</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="k">return</span> <span class="n">data</span> <span class="o">*</span> <span class="mi">2</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">results</span> <span class="o">=</span> <span class="n">example_function</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<p>This will run <cite>example_function</cite> in 4 separate threads and collect the results.</p>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Decorators.Retryable">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.</span></span><span class="sig-name descname"><span class="pre">Retryable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_on_exceptions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logging_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WARNING'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/Retryable.html#Retryable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.Retryable" title="Link to this definition"></a></dt>
-<dd><p>A decorator that retries a function call a specified number of times if it raises an exception or if the request status code is not 200.</p>
-<p>This decorator catches <cite>JSONDecodeError</cite>, specific <cite>requests</cite> exceptions, <cite>botocore</cite> exceptions, and general <cite>Exception</cite> during the function execution,
-retries the function up to <cite>max_retries</cite> times, and logs each attempt. If the maximum number of retries is reached,
-it raises the last caught exception.</p>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.</span></span><span class="sig-name descname"><span class="pre">Retryable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">retry_on_exceptions=(&lt;class</span> <span class="pre">'botocore.exceptions.ClientError'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'botocore.exceptions.BotoCoreError'&gt;)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_retries=3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay=2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/Retryable.html#Retryable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.Retryable" title="Link to this definition"></a></dt>
+<dd><p>Decorator to retry function calls based on specified exceptions. If the function raises any of the specified
+exceptions, it will be retried up to <cite>max_retries</cite> times with a delay between retries.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>max_retries</strong> (<em>int</em>) – The maximum number of retries before giving up. Default is 5.</p></li>
-<li><p><strong>retry_on_exceptions</strong> (<em>tuple</em>) – A tuple of exception classes to retry on. If None, retries on all exceptions.</p></li>
-<li><p><strong>delay</strong> (<em>int</em>) – The delay in seconds between retries. Default is 2.</p></li>
-<li><p><strong>verbosity</strong> (<em>int</em>) – Controls the verbosity of logging.
-0 - No logging.
-1 - Logs only the error when all retries fail.
-2 - Logs the error and the state of the wrapped function.
-3 - Logs warnings and everything in level 2.
-4 - Logs warnings and the state of the function for every warning.</p></li>
-<li><p><strong>logging_level</strong> (<em>str</em>) – The logging level to use. Can be “DEBUG”, “INFO”, “WARNING”, “ERROR”, or “CRITICAL”. Default is “WARNING”.</p></li>
+<li><p><strong>retry_on_exceptions</strong> (<em>tuple</em><em>, </em><em>optional</em>) – A tuple of exceptions that should trigger a retry.</p></li>
+<li><p><strong>max_retries</strong> (<em>int</em><em>, </em><em>optional</em>) – The maximum number of retries.</p></li>
+<li><p><strong>delay</strong> (<em>int</em><em>, </em><em>optional</em>) – The delay in seconds between retries.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The result of the decorated function, if it succeeds within the allowed retries.</p>
+<dd class="field-even"><p>The result of the decorated function if successful.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Exception</strong> – If the function raises an exception not in <cite>retry_on_exceptions</cite> or if <cite>max_retries</cite> is exceeded.</p>
 </dd>
 </dl>
-<dl>
-<dt>Usage example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">json</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">requests</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">botocore.exceptions</span> <span class="kn">import</span> <span class="n">ClientError</span><span class="p">,</span> <span class="n">BotoCoreError</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">WrenchCL</span> <span class="kn">import</span> <span class="n">Retryable</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">JSONDecodeError</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@Retryable</span><span class="p">(</span><span class="n">max_retries</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">retry_on_exceptions</span><span class="o">=</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,),</span> <span class="n">verbosity</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">logging_level</span><span class="o">=</span><span class="s2">&quot;WARNING&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">fetch_data</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">try</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">fetch_data</span><span class="p">(</span><span class="s2">&quot;https://api.example.com/data&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">except</span> <span class="p">(</span><span class="n">JSONDecodeError</span><span class="p">,</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to fetch data after multiple retries.&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<p>This will retry the <cite>fetch_data</cite> function up to 3 times if it encounters a <cite>JSONDecodeError</cite>, specific <cite>requests</cite> exceptions,
-<cite>botocore</cite> exceptions, or any other specified exceptions. The logging level is set to “DEBUG”, and warnings and errors are logged.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -380,15 +251,12 @@ instance exists.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Decorators.TimedMethod">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.</span></span><span class="sig-name descname"><span class="pre">TimedMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DEBUG'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/TimedMethod.html#TimedMethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.TimedMethod" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.</span></span><span class="sig-name descname"><span class="pre">TimedMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/TimedMethod.html#TimedMethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.TimedMethod" title="Link to this definition"></a></dt>
 <dd><p>Decorator that logs the execution time of the decorated function. This can be useful for monitoring performance
 and identifying bottlenecks in the code.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>func</strong> (<em>function</em>) – The function to be decorated.</p></li>
-<li><p><strong>level</strong> (<em>String</em><em> [</em><em>'DEBUG'</em><em>, </em><em>'INFO'</em><em>, </em><em>'CONTEXT'</em><em>]</em>) – The logging level of the decorator</p></li>
-</ul>
+<dd class="field-odd"><p><strong>func</strong> (<em>function</em>) – The function to be decorated.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The decorated function that logs its execution time.</p>

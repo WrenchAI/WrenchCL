@@ -60,7 +60,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.Image2B64">WrenchCL.Tools.Image2B64 module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.JsonSerializer">WrenchCL.Tools.JsonSerializer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.MaybeMonad">WrenchCL.Tools.MaybeMonad module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.TypeChecker">WrenchCL.Tools.TypeChecker module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#wrenchcl-tools-typechecker-module">WrenchCL.Tools.TypeChecker module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools.WrenchLogger">WrenchCL.Tools.WrenchLogger module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-WrenchCL.Tools">Module contents</a></li>
 </ul>
@@ -162,11 +162,11 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.FileTyper.get_file_type">
 <span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.FileTyper.</span></span><span class="sig-name descname"><span class="pre">get_file_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FileTyper.html#get_file_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.FileTyper.get_file_type" title="Link to this definition"></a></dt>
-<dd><p>Determine the file type of file from a URL, file path, or Base64 string.</p>
+<dd><p>Determine the file type of a file from a URL or file path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file_source</strong> (<em>str</em>) – URL, file path, or Base64 string of the file</p></li>
+<li><p><strong>file_source</strong> (<em>str</em>) – URL or file path of the file</p></li>
 <li><p><strong>is_url</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag indicating if the file_source is a URL, defaults to True</p></li>
 </ul>
 </dd>
@@ -183,56 +183,21 @@
 <section id="module-WrenchCL.Tools.Image2B64">
 <span id="wrenchcl-tools-image2b64-module"></span><h2>WrenchCL.Tools.Image2B64 module<a class="headerlink" href="#module-WrenchCL.Tools.Image2B64" title="Link to this heading"></a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="WrenchCL.Tools.Image2B64.get_hash">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Image2B64.</span></span><span class="sig-name descname"><span class="pre">get_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#get_hash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Image2B64.get_hash" title="Link to this definition"></a></dt>
-<dd><p>Generate SHA-1 hash for the given data.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>data</strong> – Data in bytes</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>SHA-1 hash of the data</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.Image2B64.image_to_base64">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Image2B64.</span></span><span class="sig-name descname"><span class="pre">image_to_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#image_to_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Image2B64.image_to_base64" title="Link to this definition"></a></dt>
-<dd><p>Convert an image from a URL or file path to a Base64 string, optionally returning its SHA-1 hash.</p>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Image2B64.</span></span><span class="sig-name descname"><span class="pre">image_to_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#image_to_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Image2B64.image_to_base64" title="Link to this definition"></a></dt>
+<dd><p>Convert an image from a URL or file path to a Base64 string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>image_source</strong> (<em>str</em>) – URL or file path of the image</p></li>
 <li><p><strong>is_url</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag indicating if the image_source is a URL, defaults to True</p></li>
-<li><p><strong>return_hash</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag indicating if the SHA-1 hash of the image should be returned, defaults to False</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Base64 encoded string of the image and optionally the SHA-1 hash in order</p>
+<dd class="field-even"><p>Base64 encoded string of the image</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>str | tuple(str, str)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="WrenchCL.Tools.Image2B64.validate_base64">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.Image2B64.</span></span><span class="sig-name descname"><span class="pre">validate_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">b64_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#validate_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.Image2B64.validate_base64" title="Link to this definition"></a></dt>
-<dd><p>Validate a Base64 encoded string.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>b64_string</strong> (<em>str</em>) – Base64 encoded string</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>True if the string is a valid Base64 encoded string, False otherwise</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>bool</p>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -309,81 +274,6 @@
 <span class="go">}</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="WrenchCL.Tools.JsonSerializer.single_quote_decoder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.JsonSerializer.</span></span><span class="sig-name descname"><span class="pre">single_quote_decoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder" title="Link to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">JSONDecoder</span></code></p>
-<p>A custom JSON decoder that pre-processes JSON strings to handle single quotes and Markdown block markers.
-Used when decoding JSON output from LLM’s as they often use the wrong syntax</p>
-<p>This class extends the default <cite>json.JSONDecoder</cite> to allow for the decoding of JSON strings that:
-- Use single quotes for keys and values instead of double quotes.
-- May include Markdown block markers for JSON code blocks.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>object_hook</strong> – Optional function that will be called with the result of any object literal decoded (a dict). 
-The return value of <cite>object_hook</cite> will be used instead of the <cite>dict</cite>. This can be used to 
-provide custom deserializations (e.g., to support JSON-RPC class hinting).</p></li>
-<li><p><strong>args</strong> – Additional positional arguments passed to the base <cite>json.JSONDecoder</cite>.</p></li>
-<li><p><strong>kwargs</strong> – Additional keyword arguments passed to the base <cite>json.JSONDecoder</cite>.</p></li>
-</ul>
-</dd>
-</dl>
-<p>method decode: Decodes a JSON string after pre-processing it to handle single quotes and remove Markdown block markers.
-:param s: The JSON string to be decoded.
-:param args: Additional positional arguments passed to the base <cite>decode</cite> method.
-:param kwargs: Additional keyword arguments passed to the base <cite>decode</cite> method.
-:return: The Python object represented by the JSON string.</p>
-<dl>
-<dt>Usage example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">json</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">json_str</span> <span class="o">=</span> <span class="s2">&quot;{&#39;name&#39;: &#39;John&#39;, &#39;age&#39;: 30, &#39;city&#39;: &#39;New York&#39;}&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">decoded_obj</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_str</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">single_quote_decoder</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">decoded_obj</span><span class="p">)</span>
-<span class="go">{&#39;name&#39;: &#39;John&#39;, &#39;age&#39;: 30, &#39;city&#39;: &#39;New York&#39;}</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="WrenchCL.Tools.JsonSerializer.single_quote_decoder.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder.__init__" title="Link to this definition"></a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">object_hook</span></code>, if specified, will be called with the result
-of every JSON object decoded and its return value will be used in
-place of the given <code class="docutils literal notranslate"><span class="pre">dict</span></code>.  This can be used to provide custom
-deserializations (e.g. to support JSON-RPC class hinting).</p>
-<p><code class="docutils literal notranslate"><span class="pre">object_pairs_hook</span></code>, if specified will be called with the result of
-every JSON object decoded with an ordered list of pairs.  The return
-value of <code class="docutils literal notranslate"><span class="pre">object_pairs_hook</span></code> will be used instead of the <code class="docutils literal notranslate"><span class="pre">dict</span></code>.
-This feature can be used to implement custom decoders.
-If <code class="docutils literal notranslate"><span class="pre">object_hook</span></code> is also defined, the <code class="docutils literal notranslate"><span class="pre">object_pairs_hook</span></code> takes
-priority.</p>
-<p><code class="docutils literal notranslate"><span class="pre">parse_float</span></code>, if specified, will be called with the string
-of every JSON float to be decoded. By default this is equivalent to
-float(num_str). This can be used to use another datatype or parser
-for JSON floats (e.g. decimal.Decimal).</p>
-<p><code class="docutils literal notranslate"><span class="pre">parse_int</span></code>, if specified, will be called with the string
-of every JSON int to be decoded. By default this is equivalent to
-int(num_str). This can be used to use another datatype or parser
-for JSON integers (e.g. float).</p>
-<p><code class="docutils literal notranslate"><span class="pre">parse_constant</span></code>, if specified, will be called with one of the
-following strings: -Infinity, Infinity, NaN.
-This can be used to raise an exception if invalid JSON numbers
-are encountered.</p>
-<p>If <code class="docutils literal notranslate"><span class="pre">strict</span></code> is false (true is the default), then control
-characters will be allowed inside strings.  Control characters in
-this context are those with character codes in the 0-31 range,
-including <code class="docutils literal notranslate"><span class="pre">'\t'</span></code> (tab), <code class="docutils literal notranslate"><span class="pre">'\n'</span></code>, <code class="docutils literal notranslate"><span class="pre">'\r'</span></code> and <code class="docutils literal notranslate"><span class="pre">'\0'</span></code>.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="WrenchCL.Tools.JsonSerializer.single_quote_decoder.decode">
-<span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder.decode" title="Link to this definition"></a></dt>
-<dd><p>Return the Python representation of <code class="docutils literal notranslate"><span class="pre">s</span></code> (a <code class="docutils literal notranslate"><span class="pre">str</span></code> instance
-containing a JSON document).</p>
-</dd></dl>
-
 </dd></dl>
 
 </section>
@@ -524,53 +414,8 @@ _chain: A flag indicating whether chaining is enabled.</p>
 </dd></dl>
 
 </section>
-<section id="module-WrenchCL.Tools.TypeChecker">
-<span id="wrenchcl-tools-typechecker-module"></span><h2>WrenchCL.Tools.TypeChecker module<a class="headerlink" href="#module-WrenchCL.Tools.TypeChecker" title="Link to this heading"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="WrenchCL.Tools.TypeChecker.typechecker">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.TypeChecker.</span></span><span class="sig-name descname"><span class="pre">typechecker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">none_is_ok</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'raise'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/TypeChecker.html#typechecker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.TypeChecker.typechecker" title="Link to this definition"></a></dt>
-<dd><p>Validates that each entry in a dictionary or a list of dictionaries matches the expected type.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
-</dd>
-</dl>
-<dl>
-<dt>Args:</dt><dd><p>data: A dictionary or a list of dictionaries to validate.
-expected_types: A dictionary mapping parameter names to the expected types. Each type can be a single type or a list of types.
-none_is_ok: If True, allows None as a valid value.
-errors: A string that determines the error handling strategy. If set to ‘raise’, the function will raise a TypeError when a mismatch is found.</p>
-<blockquote>
-<div><p>If set to ‘coerce’, the function will attempt to coerce the value to the expected type.</p>
-</div></blockquote>
-</dd>
-<dt>Raises:</dt><dd><p>TypeError: If any parameter does not match the expected type and ‘errors’ is set to ‘raise’.
-ValueError: If any required parameter is missing.</p>
-</dd>
-<dt>Returns:</dt><dd><p>bool: True if the data is valid, False otherwise.</p>
-</dd>
-<dt>Usage example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">WrenchCL.Tools</span> <span class="kn">import</span> <span class="n">typechecker</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">[</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;John&quot;</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">},</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Jane&quot;</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="s2">&quot;twenty&quot;</span><span class="p">}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">expected_types</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">}</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">try</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">typechecker</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">expected_types</span><span class="p">,</span> <span class="n">none_is_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Data is valid:&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p># This will raise a TypeError because the age of “Jane” is not an int</p>
-</dd>
-</dl>
-</dd></dl>
-
+<section id="wrenchcl-tools-typechecker-module">
+<h2>WrenchCL.Tools.TypeChecker module<a class="headerlink" href="#wrenchcl-tools-typechecker-module" title="Link to this heading"></a></h2>
 </section>
 <section id="module-WrenchCL.Tools.WrenchLogger">
 <span id="wrenchcl-tools-wrenchlogger-module"></span><h2>WrenchCL.Tools.WrenchLogger module<a class="headerlink" href="#module-WrenchCL.Tools.WrenchLogger" title="Link to this heading"></a></h2>
@@ -775,11 +620,11 @@ _chain: A flag indicating whether chaining is enabled.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.get_file_type">
 <span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">get_file_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/FileTyper.html#get_file_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.get_file_type" title="Link to this definition"></a></dt>
-<dd><p>Determine the file type of file from a URL, file path, or Base64 string.</p>
+<dd><p>Determine the file type of a file from a URL or file path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file_source</strong> (<em>str</em>) – URL, file path, or Base64 string of the file</p></li>
+<li><p><strong>file_source</strong> (<em>str</em>) – URL or file path of the file</p></li>
 <li><p><strong>is_url</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag indicating if the file_source is a URL, defaults to True</p></li>
 </ul>
 </dd>
@@ -814,21 +659,20 @@ _chain: A flag indicating whether chaining is enabled.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Tools.image_to_base64">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">image_to_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#image_to_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.image_to_base64" title="Link to this definition"></a></dt>
-<dd><p>Convert an image from a URL or file path to a Base64 string, optionally returning its SHA-1 hash.</p>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">image_to_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#image_to_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.image_to_base64" title="Link to this definition"></a></dt>
+<dd><p>Convert an image from a URL or file path to a Base64 string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>image_source</strong> (<em>str</em>) – URL or file path of the image</p></li>
 <li><p><strong>is_url</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag indicating if the image_source is a URL, defaults to True</p></li>
-<li><p><strong>return_hash</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag indicating if the SHA-1 hash of the image should be returned, defaults to False</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Base64 encoded string of the image and optionally the SHA-1 hash in order</p>
+<dd class="field-even"><p>Base64 encoded string of the image</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>str | tuple(str, str)</p>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -904,139 +748,36 @@ _chain: A flag indicating whether chaining is enabled.</p>
 </div>
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="WrenchCL.Tools.single_quote_decoder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">single_quote_decoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.single_quote_decoder" title="Link to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">JSONDecoder</span></code></p>
-<p>A custom JSON decoder that pre-processes JSON strings to handle single quotes and Markdown block markers.
-Used when decoding JSON output from LLM’s as they often use the wrong syntax</p>
-<p>This class extends the default <cite>json.JSONDecoder</cite> to allow for the decoding of JSON strings that:
-- Use single quotes for keys and values instead of double quotes.
-- May include Markdown block markers for JSON code blocks.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>object_hook</strong> – Optional function that will be called with the result of any object literal decoded (a dict). 
-The return value of <cite>object_hook</cite> will be used instead of the <cite>dict</cite>. This can be used to 
-provide custom deserializations (e.g., to support JSON-RPC class hinting).</p></li>
-<li><p><strong>args</strong> – Additional positional arguments passed to the base <cite>json.JSONDecoder</cite>.</p></li>
-<li><p><strong>kwargs</strong> – Additional keyword arguments passed to the base <cite>json.JSONDecoder</cite>.</p></li>
-</ul>
-</dd>
-</dl>
-<p>method decode: Decodes a JSON string after pre-processing it to handle single quotes and remove Markdown block markers.
-:param s: The JSON string to be decoded.
-:param args: Additional positional arguments passed to the base <cite>decode</cite> method.
-:param kwargs: Additional keyword arguments passed to the base <cite>decode</cite> method.
-:return: The Python object represented by the JSON string.</p>
-<dl>
-<dt>Usage example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">json</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">json_str</span> <span class="o">=</span> <span class="s2">&quot;{&#39;name&#39;: &#39;John&#39;, &#39;age&#39;: 30, &#39;city&#39;: &#39;New York&#39;}&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">decoded_obj</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_str</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">single_quote_decoder</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">decoded_obj</span><span class="p">)</span>
-<span class="go">{&#39;name&#39;: &#39;John&#39;, &#39;age&#39;: 30, &#39;city&#39;: &#39;New York&#39;}</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="WrenchCL.Tools.single_quote_decoder.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.single_quote_decoder.__init__" title="Link to this definition"></a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">object_hook</span></code>, if specified, will be called with the result
-of every JSON object decoded and its return value will be used in
-place of the given <code class="docutils literal notranslate"><span class="pre">dict</span></code>.  This can be used to provide custom
-deserializations (e.g. to support JSON-RPC class hinting).</p>
-<p><code class="docutils literal notranslate"><span class="pre">object_pairs_hook</span></code>, if specified will be called with the result of
-every JSON object decoded with an ordered list of pairs.  The return
-value of <code class="docutils literal notranslate"><span class="pre">object_pairs_hook</span></code> will be used instead of the <code class="docutils literal notranslate"><span class="pre">dict</span></code>.
-This feature can be used to implement custom decoders.
-If <code class="docutils literal notranslate"><span class="pre">object_hook</span></code> is also defined, the <code class="docutils literal notranslate"><span class="pre">object_pairs_hook</span></code> takes
-priority.</p>
-<p><code class="docutils literal notranslate"><span class="pre">parse_float</span></code>, if specified, will be called with the string
-of every JSON float to be decoded. By default this is equivalent to
-float(num_str). This can be used to use another datatype or parser
-for JSON floats (e.g. decimal.Decimal).</p>
-<p><code class="docutils literal notranslate"><span class="pre">parse_int</span></code>, if specified, will be called with the string
-of every JSON int to be decoded. By default this is equivalent to
-int(num_str). This can be used to use another datatype or parser
-for JSON integers (e.g. float).</p>
-<p><code class="docutils literal notranslate"><span class="pre">parse_constant</span></code>, if specified, will be called with one of the
-following strings: -Infinity, Infinity, NaN.
-This can be used to raise an exception if invalid JSON numbers
-are encountered.</p>
-<p>If <code class="docutils literal notranslate"><span class="pre">strict</span></code> is false (true is the default), then control
-characters will be allowed inside strings.  Control characters in
-this context are those with character codes in the 0-31 range,
-including <code class="docutils literal notranslate"><span class="pre">'\t'</span></code> (tab), <code class="docutils literal notranslate"><span class="pre">'\n'</span></code>, <code class="docutils literal notranslate"><span class="pre">'\r'</span></code> and <code class="docutils literal notranslate"><span class="pre">'\0'</span></code>.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="WrenchCL.Tools.single_quote_decoder.decode">
-<span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/JsonSerializer.html#single_quote_decoder.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.single_quote_decoder.decode" title="Link to this definition"></a></dt>
-<dd><p>Return the Python representation of <code class="docutils literal notranslate"><span class="pre">s</span></code> (a <code class="docutils literal notranslate"><span class="pre">str</span></code> instance
-containing a JSON document).</p>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="py function">
-<dt class="sig sig-object py" id="WrenchCL.Tools.typechecker">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">typechecker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">none_is_ok</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'raise'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/TypeChecker.html#typechecker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.typechecker" title="Link to this definition"></a></dt>
-<dd><p>Validates that each entry in a dictionary or a list of dictionaries matches the expected type.</p>
+<dt class="sig sig-object py" id="WrenchCL.Tools.validate_input_dict">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">validate_input_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'raise'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/DictValidator.html#validate_input_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.validate_input_dict" title="Link to this definition"></a></dt>
+<dd><p>Validates that each entry in a dictionary matches the expected type.</p>
+<p>This function iterates through a dictionary of parameters (params) and checks
+each value against a corresponding expected type defined in expected_types. If
+the type does not match, the function will either raise a TypeError or attempt
+to coerce the value to the correct type based on the ‘errors’ argument.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
 </dd>
 </dl>
-<dl>
-<dt>Args:</dt><dd><p>data: A dictionary or a list of dictionaries to validate.
-expected_types: A dictionary mapping parameter names to the expected types. Each type can be a single type or a list of types.
-none_is_ok: If True, allows None as a valid value.
-errors: A string that determines the error handling strategy. If set to ‘raise’, the function will raise a TypeError when a mismatch is found.</p>
-<blockquote>
-<div><p>If set to ‘coerce’, the function will attempt to coerce the value to the expected type.</p>
-</div></blockquote>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>params: A dictionary of parameters to validate, where the key is a string</dt><dd><p>representing the name of the parameter, and the value is the value
+of the parameter.</p>
 </dd>
-<dt>Raises:</dt><dd><p>TypeError: If any parameter does not match the expected type and ‘errors’ is set to ‘raise’.
-ValueError: If any required parameter is missing.</p>
+<dt>expected_types: A dictionary mapping parameter names to the expected types.</dt><dd><p>The keys should correspond to keys in ‘params’.</p>
 </dd>
-<dt>Returns:</dt><dd><p>bool: True if the data is valid, False otherwise.</p>
-</dd>
-<dt>Usage example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">WrenchCL.Tools</span> <span class="kn">import</span> <span class="n">typechecker</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">[</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;John&quot;</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">},</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Jane&quot;</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="s2">&quot;twenty&quot;</span><span class="p">}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">expected_types</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">}</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">try</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">typechecker</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">expected_types</span><span class="p">,</span> <span class="n">none_is_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Data is valid:&quot;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p># This will raise a TypeError because the age of “Jane” is not an int</p>
+<dt>errors: A string that determines the error handling strategy. If set to</dt><dd><p>‘raise’, the function will raise a TypeError when a mismatch is found.
+If set to ‘coerce’, the function will attempt to coerce the value
+to the expected type.</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="WrenchCL.Tools.validate_base64">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">validate_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">b64_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/Image2B64.html#validate_base64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.validate_base64" title="Link to this definition"></a></dt>
-<dd><p>Validate a Base64 encoded string.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>b64_string</strong> (<em>str</em>) – Base64 encoded string</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>True if the string is a valid Base64 encoded string, False otherwise</p>
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>TypeError: If any parameter does not match the expected type and ‘errors’</dt><dd><p>is set to ‘raise’.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>bool</p>
+</dl>
 </dd>
 </dl>
 </dd></dl>

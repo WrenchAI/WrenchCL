@@ -86,41 +86,43 @@
 <span class="c1">#</span>
 <span class="c1">#  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).</span>
 <span class="c1">#</span>
-<span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">import</span> <span class="nn">mimetypes</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
 <span class="kn">import</span> <span class="nn">requests</span>
-<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
-
-<span class="kn">from</span> <span class="nn">.Image2B64</span> <span class="kn">import</span> <span class="n">validate_base64</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">magic</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+        <span class="s2">&quot;Failed to import &#39;magic&#39;. Please install the appropriate library. &quot;</span>
+        <span class="s2">&quot;On Windows, you can install it with:</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;pip uninstall python-magic -y</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;pip install WrenchCL[libmagic]</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;On other platforms, ensure &#39;libmagic&#39; is installed.&quot;</span>
+    <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
 
 
 <div class="viewcode-block" id="get_file_type">
 <a class="viewcode-back" href="../../../WrenchCL.Tools.html#WrenchCL.Tools.FileTyper.get_file_type">[docs]</a>
 <span class="k">def</span> <span class="nf">get_file_type</span><span class="p">(</span><span class="n">file_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Determine the file type of file from a URL, file path, or Base64 string.</span>
+<span class="sd">    Determine the file type of a file from a URL or file path.</span>
 
-<span class="sd">    :param file_source: URL, file path, or Base64 string of the file</span>
+<span class="sd">    :param file_source: URL or file path of the file</span>
 <span class="sd">    :type file_source: str</span>
 <span class="sd">    :param is_url: Flag indicating if the file_source is a URL, defaults to True</span>
 <span class="sd">    :type is_url: bool, optional</span>
 <span class="sd">    :return: File type based on extension or MIME type</span>
 <span class="sd">    :rtype: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">validate_base64</span><span class="p">(</span><span class="n">file_source</span><span class="p">):</span>
-        <span class="c1"># Decode the Base64 string momentarily to determine the file type</span>
-        <span class="n">base64_data</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">file_source</span><span class="p">)</span>
-        <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">base64_data</span><span class="p">))</span>
-        <span class="n">mime_type</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">MIME</span><span class="p">[</span><span class="n">image</span><span class="o">.</span><span class="n">format</span><span class="p">]</span>
-    <span class="k">elif</span> <span class="n">is_url</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">is_url</span><span class="p">:</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">file_source</span><span class="p">)</span>
         <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
         <span class="n">mime_type</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">mime_type</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="n">file_source</span><span class="p">)</span>
+        <span class="n">mime</span> <span class="o">=</span> <span class="n">magic</span><span class="o">.</span><span class="n">Magic</span><span class="p">(</span><span class="n">mime</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">mime_type</span> <span class="o">=</span> <span class="n">mime</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">file_source</span><span class="p">)</span>
 
     <span class="n">file_extension</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_extension</span><span class="p">(</span><span class="n">mime_type</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">file_extension</span><span class="p">,</span> <span class="n">mime_type</span></div>
 
 

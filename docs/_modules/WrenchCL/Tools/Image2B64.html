@@ -86,86 +86,44 @@
 <span class="c1">#</span>
 <span class="c1">#  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).</span>
 <span class="c1">#</span>
+
 <span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">import</span> <span class="nn">requests</span>
-<span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
-
-
-<div class="viewcode-block" id="get_hash">
-<a class="viewcode-back" href="../../../WrenchCL.Tools.html#WrenchCL.Tools.Image2B64.get_hash">[docs]</a>
-<span class="k">def</span> <span class="nf">get_hash</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generate SHA-1 hash for the given data.</span>
-
-<span class="sd">    :param data: Data in bytes</span>
-<span class="sd">    :return: SHA-1 hash of the data</span>
-<span class="sd">    :rtype: str</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
-
-
-    <span class="n">sha1</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">()</span>
-    <span class="n">sha1</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">sha1</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
-
 
 
 <div class="viewcode-block" id="image_to_base64">
 <a class="viewcode-back" href="../../../WrenchCL.Tools.html#WrenchCL.Tools.Image2B64.image_to_base64">[docs]</a>
-<span class="k">def</span> <span class="nf">image_to_base64</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_hash</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">image_to_base64</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Convert an image from a URL or file path to a Base64 string, optionally returning its SHA-1 hash.</span>
+<span class="sd">    Convert an image from a URL or file path to a Base64 string.</span>
 
 <span class="sd">    :param image_source: URL or file path of the image</span>
 <span class="sd">    :type image_source: str</span>
 <span class="sd">    :param is_url: Flag indicating if the image_source is a URL, defaults to True</span>
 <span class="sd">    :type is_url: bool, optional</span>
-<span class="sd">    :param return_hash: Flag indicating if the SHA-1 hash of the image should be returned, defaults to False</span>
-<span class="sd">    :type return_hash: bool, optional</span>
-<span class="sd">    :return: Base64 encoded string of the image and optionally the SHA-1 hash in order</span>
-<span class="sd">    :rtype: str | tuple(str, str)</span>
+<span class="sd">    :return: Base64 encoded string of the image</span>
+<span class="sd">    :rtype: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">is_url</span><span class="p">:</span>
         <span class="c1"># Handle the URL case</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">image_source</span><span class="p">)</span>
         <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
-        <span class="n">image_data</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+        <span class="n">image_data</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Handle the file path case</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">image_file</span><span class="p">:</span>
-            <span class="n">image_data</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="n">image_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+            <span class="n">image_data</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="n">image_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
 
     <span class="c1"># Encode the image data to Base64</span>
-    <span class="n">base64_string</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">image_data</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">return_hash</span><span class="p">:</span>
-        <span class="n">image_hash</span> <span class="o">=</span> <span class="n">get_hash</span><span class="p">(</span><span class="n">image_data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">base64_string</span><span class="p">,</span> <span class="n">image_hash</span>
+    <span class="n">base64_string</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">image_data</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">base64_string</span></div>
 
 
-
-<div class="viewcode-block" id="validate_base64">
-<a class="viewcode-back" href="../../../WrenchCL.Tools.html#WrenchCL.Tools.Image2B64.validate_base64">[docs]</a>
-<span class="k">def</span> <span class="nf">validate_base64</span><span class="p">(</span><span class="n">b64_string</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Validate a Base64 encoded string.</span>
-
-<span class="sd">    :param b64_string: Base64 encoded string</span>
-<span class="sd">    :type b64_string: str</span>
-<span class="sd">    :return: True if the string is a valid Base64 encoded string, False otherwise</span>
-<span class="sd">    :rtype: bool</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="c1"># Decode the base64 string</span>
-        <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">b64_string</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
-    <span class="k">except</span> <span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">binascii</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">False</span></div>
-
+<span class="c1"># Example usage:</span>
+<span class="c1"># base64_str = image_to_base64(&quot;https://example.com/image.jpg&quot;)</span>
+<span class="c1"># base64_str = image_to_base64(&quot;/path/to/image.jpg&quot;, is_url=False)</span>
 </pre></div>
 
            </div>

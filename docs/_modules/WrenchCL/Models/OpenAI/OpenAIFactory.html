@@ -124,42 +124,38 @@
 
 
     <span class="nd">@TimedMethod</span>
-    <span class="k">def</span> <span class="nf">audio_to_text_to_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_source</span><span class="p">,</span> <span class="n">dimensions</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">embedding_model</span><span class="o">=</span><span class="s2">&quot;text-embedding-3-small&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">audio_to_text_to_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_path</span><span class="p">,</span> <span class="n">embedding_model</span><span class="o">=</span><span class="s2">&quot;text-embedding-3-small&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Transcribes audio to text and then generates embeddings for the text.</span>
 
-<span class="sd">        :param audio_source: The path to the audio file.</span>
-<span class="sd">        :type audio_source: str</span>
-<span class="sd">        :param dimensions: The dimension of the return vector.</span>
-<span class="sd">        :type dimensions: int, optional</span>
+<span class="sd">        :param audio_path: The path to the audio file.</span>
+<span class="sd">        :type audio_path: str</span>
 <span class="sd">        :param embedding_model: The model to use for generating embeddings.</span>
 <span class="sd">        :type embedding_model: str, optional</span>
 <span class="sd">        :returns: The generated embeddings for the transcribed text.</span>
 <span class="sd">        :rtype: list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">transcription</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_to_text</span><span class="p">(</span><span class="n">audio_source</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;whisper-1&quot;</span><span class="p">)</span>
-        <span class="n">embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_embeddings</span><span class="p">(</span><span class="n">transcription</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">embedding_model</span><span class="p">,</span> <span class="n">dimensions</span> <span class="o">=</span> <span class="n">dimensions</span><span class="p">)</span>
+        <span class="n">transcription</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_to_text</span><span class="p">(</span><span class="n">audio_path</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;whisper-1&quot;</span><span class="p">)</span>
+        <span class="n">embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_embeddings</span><span class="p">(</span><span class="n">transcription</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">embedding_model</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">embeddings</span>
 
     <span class="nd">@TimedMethod</span>
-    <span class="k">def</span> <span class="nf">image_to_text_to_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_source</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">dimensions</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">embedding_model</span><span class="o">=</span><span class="s2">&quot;text-embedding-3-small&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">image_to_text_to_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,</span> <span class="n">question</span><span class="p">,</span> <span class="n">embedding_model</span><span class="o">=</span><span class="s2">&quot;text-embedding-3-small&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Performs a vision query to understand an image and then generates embeddings for the response.</span>
 
-<span class="sd">        :param image_source: The path to the image file.</span>
-<span class="sd">        :type image_source: str</span>
-<span class="sd">        :param prompt: The question to ask about the image.</span>
-<span class="sd">        :type prompt: str</span>
-<span class="sd">        :param dimensions: The dimension of the return vector.</span>
-<span class="sd">        :type dimensions: int, optional</span>
+<span class="sd">        :param image_path: The path to the image file.</span>
+<span class="sd">        :type image_path: str</span>
+<span class="sd">        :param question: The question to ask about the image.</span>
+<span class="sd">        :type question: str</span>
 <span class="sd">        :param embedding_model: The model to use for generating embeddings.</span>
 <span class="sd">        :type embedding_model: str, optional</span>
-<span class="sd">        :returns: The generated embeddings for the vision query response. and the text content response</span>
-<span class="sd">        :rtype: tuple(list, str)</span>
+<span class="sd">        :returns: The generated embeddings for the vision query response.</span>
+<span class="sd">        :rtype: list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">vision_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_to_text</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">image_source</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_embeddings</span><span class="p">(</span><span class="n">vision_response</span><span class="p">,</span> <span class="n">dimensions</span> <span class="o">=</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">embedding_model</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">embeddings</span><span class="p">,</span> <span class="n">vision_response</span>
+        <span class="n">vision_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_to_text</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">image_path</span><span class="p">)</span>
+        <span class="n">embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_embeddings</span><span class="p">(</span><span class="n">vision_response</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">embedding_model</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">embeddings</span>
 
     <span class="nd">@TimedMethod</span>
     <span class="k">def</span> <span class="nf">validate_response_with_gpt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_response</span><span class="p">,</span> <span class="n">validation_prompt</span><span class="p">):</span>
@@ -173,7 +169,7 @@
 <span class="sd">        :returns: The validated or expanded response.</span>
 <span class="sd">        :rtype: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">validated_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_response</span><span class="p">(</span><span class="n">validation_prompt</span> <span class="o">+</span> <span class="s2">&quot; :  &quot;</span> <span class="o">+</span> <span class="n">initial_response</span><span class="p">)</span>
+        <span class="n">validated_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_response</span><span class="p">(</span><span class="n">validation_prompt</span> <span class="o">+</span> <span class="n">initial_response</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">validated_response</span></div>
 
 </pre></div>

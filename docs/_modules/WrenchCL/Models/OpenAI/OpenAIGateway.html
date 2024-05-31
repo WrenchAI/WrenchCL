@@ -102,11 +102,8 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">import</span> <span class="nn">os</span>
-
-<span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">openai</span> <span class="kn">import</span> <span class="n">OpenAI</span>
 
-<span class="kn">from</span> <span class="nn">...Tools</span> <span class="kn">import</span> <span class="n">image_to_base64</span><span class="p">,</span><span class="n">get_file_type</span><span class="p">,</span> <span class="n">validate_base64</span>
 <span class="kn">from</span> <span class="nn">...Decorators.TimedMethod</span> <span class="kn">import</span> <span class="n">TimedMethod</span>
 <span class="kn">from</span> <span class="nn">._ConversationManager</span> <span class="kn">import</span> <span class="n">ConversationManager</span>
 <span class="kn">from</span> <span class="nn">...Tools.WrenchLogger</span> <span class="kn">import</span> <span class="n">logger</span>
@@ -185,7 +182,7 @@
 
 
     <span class="nd">@TimedMethod</span>
-    <span class="k">def</span> <span class="nf">text_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-3.5-turbo&quot;</span><span class="p">,</span> <span class="n">assistant_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">response_format</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">system_prompt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">json_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">text_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-3.5-turbo&quot;</span><span class="p">,</span> <span class="n">system_prompt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">image_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">json_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Processes text input using the specified model and returns the response.</span>
 
@@ -193,12 +190,10 @@
 <span class="sd">        :type text: str</span>
 <span class="sd">        :param model: The model to use for text processing.</span>
 <span class="sd">        :type model: str, optional</span>
-<span class="sd">        :param response_format: (Optional) The assistant to use, will internally switch to threads (Streaming not supported)</span>
-<span class="sd">        :type response_format: str</span>
-<span class="sd">        :param response_format: (Optional) The format of the response. Possible values: { &quot;type&quot;: &quot;json_object&quot; }</span>
-<span class="sd">        :type response_format: dict</span>
 <span class="sd">        :param system_prompt: A system prompt to include in the request.</span>
 <span class="sd">        :type system_prompt: str, optional</span>
+<span class="sd">        :param image_url: An image URL to include in the request.</span>
+<span class="sd">        :type image_url: str, optional</span>
 <span class="sd">        :param json_mode: If True, expects the response to be in JSON format.</span>
 <span class="sd">        :type json_mode: bool, optional</span>
 <span class="sd">        :param stream: If True, stream the response as it&#39;s generated.</span>
@@ -215,42 +210,26 @@
                 <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">system_prompt</span><span class="p">}]})</span>
 
             <span class="n">user_content</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">text</span><span class="p">}]</span>
+            <span class="k">if</span> <span class="n">image_url</span><span class="p">:</span>
+                <span class="n">user_content</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;image_url&quot;</span><span class="p">,</span> <span class="s2">&quot;image_url&quot;</span><span class="p">:</span> <span class="n">image_url</span><span class="p">})</span>
 
             <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">user_content</span><span class="p">})</span>
 
-            <span class="k">if</span> <span class="n">assistant_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using threads as assistant_id has been passed: </span><span class="si">{</span><span class="n">assistant_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s1">&#39;WARNING&#39;</span><span class="p">)</span>
-                <span class="n">thread</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">threads</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">messages</span> <span class="o">=</span> <span class="n">messages</span><span class="p">)</span>
-                <span class="n">run</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">threads</span><span class="o">.</span><span class="n">runs</span><span class="o">.</span><span class="n">create_and_poll</span><span class="p">(</span><span class="n">thread_id</span> <span class="o">=</span> <span class="n">thread</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-                                                                    <span class="n">assistant_id</span> <span class="o">=</span> <span class="n">assistant_id</span><span class="p">,</span>
-                                                                    <span class="n">response_format</span> <span class="o">=</span> <span class="n">response_format</span><span class="p">,</span>
-                                                                    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
-                                                                    <span class="n">max_completion_tokens</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_tokens&#39;</span><span class="p">,</span> <span class="mi">2500</span><span class="p">))</span>
-                <span class="n">messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">threads</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">list</span><span class="p">(</span>
-                  <span class="n">thread_id</span><span class="o">=</span><span class="n">thread</span><span class="o">.</span><span class="n">id</span>
-                <span class="p">)</span>
-                <span class="n">response</span> <span class="o">=</span> <span class="n">messages</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">value</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">revertLoggingLevel</span><span class="p">()</span>
-                <span class="k">return</span> <span class="n">response</span>
             <span class="k">if</span> <span class="n">stream</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s1">&#39;WARNING&#39;</span><span class="p">)</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
                     <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
                     <span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span>
                     <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                     <span class="n">max_tokens</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_tokens&#39;</span><span class="p">,</span> <span class="mi">2500</span><span class="p">)</span>
                 <span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">revertLoggingLevel</span><span class="p">()</span>
                 <span class="k">return</span> <span class="n">response</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s1">&#39;WARNING&#39;</span><span class="p">)</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
                     <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
                     <span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span>
                     <span class="n">max_tokens</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_tokens&#39;</span><span class="p">,</span> <span class="mi">2500</span><span class="p">)</span>
                 <span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">revertLoggingLevel</span><span class="p">()</span>
+
                 <span class="n">finish_reason</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">finish_reason</span>
                 <span class="k">if</span> <span class="n">finish_reason</span> <span class="o">==</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span>
                     <span class="n">response_content</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span>
@@ -281,7 +260,7 @@
 
 
     <span class="nd">@TimedMethod</span>
-    <span class="k">def</span> <span class="nf">get_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">dimensions</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;text-embedding-3-small&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;text-embedding-3-small&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves embeddings for the given text using the specified model.</span>
 
@@ -289,13 +268,11 @@
 <span class="sd">        :type text: str</span>
 <span class="sd">        :param model: The model to use for generating embeddings.</span>
 <span class="sd">        :type model: str, optional</span>
-<span class="sd">        :param dimensions: The dimension of the return vector.</span>
-<span class="sd">        :type dimensions: int, optional</span>
 <span class="sd">        :returns: The generated embeddings.</span>
 <span class="sd">        :raises Exception: If an error occurs while retrieving embeddings.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">embeddings</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="n">dimensions</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">embeddings</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
             <span class="n">embeddings</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">embedding</span>
             <span class="k">return</span> <span class="n">embeddings</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -398,61 +375,47 @@
             <span class="k">raise</span>
 
     <span class="nd">@TimedMethod</span>
-    <span class="k">def</span> <span class="nf">image_to_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">image_source</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;gpt-4-turbo&#39;</span><span class="p">,</span> <span class="n">max_tokens</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span> <span class="n">system_prompt</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">response_format</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">image_to_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">question</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Processes a vision query based on the provided question and image.</span>
+<span class="sd">        Processes a vision query based on the provided question and image.</span>
 
-<span class="sd">            :param prompt: The question to ask.</span>
-<span class="sd">            :type prompt: str</span>
-<span class="sd">            :param image_source: The path to the image file, a URL, or a Base64-encoded string.</span>
-<span class="sd">            :type image_source: str</span>
-<span class="sd">            :param model: The name of the model to use for the vision query. Default is &#39;gpt-4-turbo&#39;.</span>
-<span class="sd">            :type model: str</span>
-<span class="sd">            :param max_tokens: The maximum number of tokens to generate in the response. Default is 300.</span>
-<span class="sd">            :type max_tokens: int</span>
-<span class="sd">            :param system_prompt: (Optional) The system prompt to use for the request</span>
-<span class="sd">            :type system_prompt: str</span>
-<span class="sd">            :param response_format: (Optional) The format of the response. Possible values: { &quot;type&quot;: &quot;json_object&quot; }</span>
-<span class="sd">            :type response_format: dict</span>
-<span class="sd">            :returns: The response to the vision query.</span>
-<span class="sd">            :rtype: str</span>
-<span class="sd">            :raises ValueError: If an invalid image path, URL, or Base64 string is provided.</span>
-<span class="sd">            :raises Exception: If an error occurs while processing the vision query.</span>
+<span class="sd">        :param question: The question to ask.</span>
+<span class="sd">        :type question: str</span>
+<span class="sd">        :param image_path: The path to the image file.</span>
+<span class="sd">        :type image_path: str</span>
+<span class="sd">        :returns: The response to the vision query.</span>
+<span class="sd">        :raises Exception: If an error occurs while processing the vision query.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">image_source</span><span class="p">):</span>
-                <span class="n">base64_image</span> <span class="o">=</span> <span class="n">image_to_base64</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-                <span class="n">_</span><span class="p">,</span> <span class="n">mime_type</span> <span class="o">=</span> <span class="n">get_file_type</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-                <span class="n">image_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">mime_type</span><span class="si">}</span><span class="s2">;base64,</span><span class="si">{</span><span class="n">base64_image</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">elif</span> <span class="n">validate_base64</span><span class="p">(</span><span class="n">image_source</span><span class="p">):</span>
-                <span class="n">_</span><span class="p">,</span> <span class="n">mime_type</span> <span class="o">=</span> <span class="n">get_file_type</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-                <span class="n">image_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">mime_type</span><span class="si">}</span><span class="s2">;base64,</span><span class="si">{</span><span class="n">image_source</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">elif</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">image_source</span><span class="p">)</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
-                <span class="n">base64_image</span> <span class="o">=</span> <span class="n">image_to_base64</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">_</span><span class="p">,</span> <span class="n">mime_type</span> <span class="o">=</span> <span class="n">get_file_type</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">image_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">mime_type</span><span class="si">}</span><span class="s2">;base64,</span><span class="si">{</span><span class="n">base64_image</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid image path, URL, or Base64 string&quot;</span><span class="p">)</span>
-            <span class="n">messages</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">if</span> <span class="n">system_prompt</span><span class="p">:</span>
-                <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">system_prompt</span><span class="p">}]})</span>
-            <span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-                <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[</span>
-                    <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">},</span>
-                    <span class="p">{</span>
-                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;image_url&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;image_url&quot;</span><span class="p">:</span> <span class="p">{</span>
-                            <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="n">image_url</span>
-                        <span class="p">}</span>
-                    <span class="p">}</span>
-                <span class="p">]</span>
-            <span class="p">})</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="n">max_tokens</span><span class="p">,</span> <span class="n">response_format</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;response_format&#39;</span><span class="p">))</span>
-            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span>
+            <span class="n">image_content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_image_to_url_or_base64</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+            <span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">question</span><span class="p">},</span>
+                                                     <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;image_url&quot;</span><span class="p">,</span> <span class="s2">&quot;image_url&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="n">image_content</span><span class="p">}}]}]</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4-turbo&quot;</span><span class="p">,</span> <span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+                                                           <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error in vision query: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">raise</span>
+
+    <span class="nd">@TimedMethod</span>
+    <span class="k">def</span> <span class="nf">convert_image_to_url_or_base64</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts an image to a URL or base64 encoded string.</span>
+
+<span class="sd">        :param image_path: The path to the image file.</span>
+<span class="sd">        :type image_path: str</span>
+<span class="sd">        :returns: The image URL or base64 encoded string.</span>
+<span class="sd">        :raises ValueError: If the image path or data is invalid.</span>
+<span class="sd">        :raises Exception: If an error occurs while processing the image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">image_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http://&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">image_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;https://&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">image_path</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">image_file</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;data:image/jpeg;base64,</span><span class="si">{</span><span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">image_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to process image for vision query&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid image path or data.&quot;</span><span class="p">)</span>
 
     <span class="nd">@TimedMethod</span>
     <span class="k">def</span> <span class="nf">start_conversation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -462,14 +425,7 @@
 <span class="sd">        :raises Exception: If an error occurs while initiating the conversation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">conversation_manager</span> <span class="o">=</span> <span class="n">ConversationManager</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;assistant_id&quot;</span><span class="p">))</span>
-        <span class="n">conversation_manager</span><span class="o">.</span><span class="n">initiate_conversation</span><span class="p">()</span>
-
-    <span class="nd">@TimedMethod</span>
-    <span class="k">def</span> <span class="nf">get_assistant_response</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">thread_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">threads</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">thread_id</span><span class="p">)</span></div>
-
-
+        <span class="n">conversation_manager</span><span class="o">.</span><span class="n">initiate_conversation</span><span class="p">()</span></div>
 
 </pre></div>
 

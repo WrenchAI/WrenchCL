@@ -87,7 +87,6 @@
 <span class="c1">#  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).</span>
 <span class="c1">#</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">date</span>
 <span class="kn">from</span> <span class="nn">decimal</span> <span class="kn">import</span> <span class="n">Decimal</span>
 
@@ -161,62 +160,6 @@
         <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__dict__</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>  <span class="c1"># Fallback for other types</span></div>
-
-
-
-<div class="viewcode-block" id="single_quote_decoder">
-<a class="viewcode-back" href="../../../WrenchCL.Tools.html#WrenchCL.Tools.JsonSerializer.single_quote_decoder">[docs]</a>
-<span class="k">class</span> <span class="nc">single_quote_decoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A custom JSON decoder that pre-processes JSON strings to handle single quotes and Markdown block markers.</span>
-<span class="sd">    Used when decoding JSON output from LLM&#39;s as they often use the wrong syntax</span>
-<span class="sd">    </span>
-<span class="sd">    This class extends the default `json.JSONDecoder` to allow for the decoding of JSON strings that:</span>
-<span class="sd">    - Use single quotes for keys and values instead of double quotes.</span>
-<span class="sd">    - May include Markdown block markers for JSON code blocks.</span>
-
-<span class="sd">    :param object_hook: Optional function that will be called with the result of any object literal decoded (a dict). </span>
-<span class="sd">                        The return value of `object_hook` will be used instead of the `dict`. This can be used to </span>
-<span class="sd">                        provide custom deserializations (e.g., to support JSON-RPC class hinting).</span>
-<span class="sd">    :param args: Additional positional arguments passed to the base `json.JSONDecoder`.</span>
-<span class="sd">    :param kwargs: Additional keyword arguments passed to the base `json.JSONDecoder`.</span>
-
-<span class="sd">    method decode: Decodes a JSON string after pre-processing it to handle single quotes and remove Markdown block markers.</span>
-<span class="sd">    :param s: The JSON string to be decoded.</span>
-<span class="sd">    :param args: Additional positional arguments passed to the base `decode` method.</span>
-<span class="sd">    :param kwargs: Additional keyword arguments passed to the base `decode` method.</span>
-<span class="sd">    :return: The Python object represented by the JSON string.</span>
-
-<span class="sd">    Usage example:</span>
-<span class="sd">        &gt;&gt;&gt; import json</span>
-<span class="sd">        &gt;&gt;&gt; json_str = &quot;{&#39;name&#39;: &#39;John&#39;, &#39;age&#39;: 30, &#39;city&#39;: &#39;New York&#39;}&quot;</span>
-<span class="sd">        &gt;&gt;&gt; decoded_obj = json.loads(json_str, cls=single_quote_decoder)</span>
-<span class="sd">        &gt;&gt;&gt; print(decoded_obj)</span>
-<span class="sd">        {&#39;name&#39;: &#39;John&#39;, &#39;age&#39;: 30, &#39;city&#39;: &#39;New York&#39;}</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-<div class="viewcode-block" id="single_quote_decoder.__init__">
-<a class="viewcode-back" href="../../../WrenchCL.Tools.html#WrenchCL.Tools.JsonSerializer.single_quote_decoder.__init__">[docs]</a>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">object_hook</span><span class="o">=</span><span class="n">object_hook</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">object_hook</span> <span class="o">=</span> <span class="n">object_hook</span></div>
-
-
-<div class="viewcode-block" id="single_quote_decoder.decode">
-<a class="viewcode-back" href="../../../WrenchCL.Tools.html#WrenchCL.Tools.JsonSerializer.single_quote_decoder.decode">[docs]</a>
-    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c1"># Remove Markdown block markers if present</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;```json\s*&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;```python\s*&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s*```&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
-
-        <span class="c1"># Pre-process string values for proper quote handling</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(?&lt;!</span><span class="se">\\</span><span class="s2">)&#39;(\w+)&#39;&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;&quot;\1&quot;&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>  <span class="c1"># Replace single quotes</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>  <span class="c1"># Fixes escaped quotes</span>
-
-        <span class="c1"># Decode the pre-processed JSON string</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-</div>
 
 </pre></div>
 

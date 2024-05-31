@@ -91,18 +91,15 @@
 
 <span class="kn">from</span> <span class="nn">..Tools.WrenchLogger</span> <span class="kn">import</span> <span class="n">logger</span>
 
-
 <div class="viewcode-block" id="TimedMethod">
 <a class="viewcode-back" href="../../../WrenchCL.Decorators.html#WrenchCL.Decorators.TimedMethod.TimedMethod">[docs]</a>
-<span class="k">def</span> <span class="nf">TimedMethod</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">TimedMethod</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Decorator that logs the execution time of the decorated function. This can be useful for monitoring performance</span>
 <span class="sd">    and identifying bottlenecks in the code.</span>
 
 <span class="sd">    :param func: The function to be decorated.</span>
 <span class="sd">    :type func: function</span>
-<span class="sd">    :param level: The logging level of the decorator</span>
-<span class="sd">    :type level: String [&#39;DEBUG&#39;, &#39;INFO&#39;, &#39;CONTEXT&#39;]</span>
 <span class="sd">    :returns: The decorated function that logs its execution time.</span>
 <span class="sd">    :rtype: function</span>
 
@@ -114,7 +111,6 @@
 <span class="sd">        ...</span>
 <span class="sd">        &gt;&gt;&gt; example_function()  # Logs: example_function took 2.00 seconds</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Wraps the function call to log its execution time.</span>
@@ -126,14 +122,7 @@
         <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
-        <span class="n">log_string</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> took </span><span class="si">{</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span>
-        <span class="k">if</span> <span class="n">level</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">log_string</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">level</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;context&quot;</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="n">log_string</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">log_string</span><span class="p">)</span>
-
+        <span class="n">logger</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> took </span><span class="si">{</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span>
 
     <span class="k">return</span> <span class="n">wrapper</span></div>
