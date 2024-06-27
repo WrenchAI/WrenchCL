@@ -132,7 +132,6 @@ class single_quote_decoder(json.JSONDecoder):
         # Properly handle escaped double quotes within string values
         s = re.sub(r'(?<!\\)"([^\"]*?)(?<!\\)"', lambda match: match.group(0).replace('"', '\\"'), s)
 
-        # Fix any improperly escaped quotes
         s = s.replace("\\'", "'")  # Fixes escaped single quotes
         s = s.replace('\\"', '"')  # Fixes double quotes within string values
 
