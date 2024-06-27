@@ -6,8 +6,6 @@ import requests
 from botocore.exceptions import ClientError, BotoCoreError
 import inspect
 
-from ..Tools.WrenchLogger import logger
-
 
 def Retryable(max_retries=5, retry_on_exceptions=None, delay=2, verbosity=1, logging_level="WARNING"):
     """
@@ -35,6 +33,8 @@ def Retryable(max_retries=5, retry_on_exceptions=None, delay=2, verbosity=1, log
 
     :return: The result of the decorated function, if it succeeds within the allowed retries.
     """
+    from WrenchCL.Tools.WrenchLogger import Logger
+    logger = Logger()
     if retry_on_exceptions is None:
         retry_on_exceptions = (Exception,)
 
