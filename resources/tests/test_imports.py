@@ -51,7 +51,8 @@ def test_tools_import():
 
 def test_logger_import():
     try:
-        from WrenchCL import logger
+        from WrenchCL import Logger
+logger = Logger()
     except ImportError as e:
         pytest.fail(f"Importing logger from WrenchCL failed: {e}")
 
