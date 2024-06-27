@@ -36,7 +36,10 @@ from ...Tools import image_to_base64,get_file_type, validate_base64
 from ...Decorators.TimedMethod import TimedMethod
 from ._ConversationManager import ConversationManager
 from ...Tools.WrenchLogger import logger
+import logging
 
+logging.getLogger("openai").setLevel(40)
+logging.getLogger("httpx").setLevel(40)
 
 class OpenAIGateway:
     """
@@ -316,7 +319,7 @@ class OpenAIGateway:
             raise
 
     @TimedMethod
-    def image_to_text(self, prompt, image_source, model = 'gpt-4-turbo', max_tokens = 300, system_prompt = None, response_format = None, **kwargs):
+    def image_to_text(self, prompt, image_source, model = 'gpt-4o', max_tokens = 300, system_prompt = None, response_format = None, **kwargs):
         """
             Processes a vision query based on the provided question and image.
 
