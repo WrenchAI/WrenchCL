@@ -16,7 +16,7 @@ import json
 import re
 from datetime import datetime, date
 from decimal import Decimal
-
+from WrenchLogger import logger
 
 def robust_serializer(obj):
     """
@@ -89,24 +89,20 @@ def robust_serializer(obj):
 
 class single_quote_decoder(json.JSONDecoder):
     """
-    A custom JSON decoder that pre-processes JSON strings to handle single quotes and Markdown block markers.
-    Used when decoding JSON output from LLM's as they often use the wrong syntax
-    
+    A custom JSON decoder that preprocesses JSON strings to handle single quotes, Markdown block markers,
+    and unescaped double quotes within string values. This is useful when decoding JSON output from LLMs
+    as they often use incorrect syntax.
+
     This class extends the default `json.JSONDecoder` to allow for the decoding of JSON strings that:
     - Use single quotes for keys and values instead of double quotes.
     - May include Markdown block markers for JSON code blocks.
+    - Contain unescaped double quotes within string values.
 
-    :param object_hook: Optional function that will be called with the result of any object literal decoded (a dict). 
-                        The return value of `object_hook` will be used instead of the `dict`. This can be used to 
+    :param object_hook: Optional function that will be called with the result of any object literal decoded (a dict).
+                        The return value of `object_hook` will be used instead of the `dict`. This can be used to
                         provide custom deserializations (e.g., to support JSON-RPC class hinting).
     :param args: Additional positional arguments passed to the base `json.JSONDecoder`.
     :param kwargs: Additional keyword arguments passed to the base `json.JSONDecoder`.
-
-    method decode: Decodes a JSON string after pre-processing it to handle single quotes and remove Markdown block markers.
-    :param s: The JSON string to be decoded.
-    :param args: Additional positional arguments passed to the base `decode` method.
-    :param kwargs: Additional keyword arguments passed to the base `decode` method.
-    :return: The Python object represented by the JSON string.
 
     Usage example:
         >>> import json
@@ -121,14 +117,54 @@ class single_quote_decoder(json.JSONDecoder):
         self.object_hook = object_hook
 
     def decode(self, s, *args, **kwargs):
-        # Remove Markdown block markers if present
-        s = re.sub(r'```json\s*', '', s)
-        s = re.sub(r'```python\s*', '', s)
+        # Remove everything before ```json or ```python, including the marker itself
+        s = re.sub(r'.*?```json\s*', '', s, flags=re.DOTALL)
+        s = re.sub(r'.*?```python\s*', '', s, flags=re.DOTALL)
+
+        # Remove trailing Markdown block marker
         s = re.sub(r'\s*```', '', s)
 
-        # Pre-process string values for proper quote handling
-        s = re.sub(r"(?<!\\)'(\w+)'", r'"\1"', s)  # Replace single quotes
-        s = s.replace("\\'", "'")  # Fixes escaped quotes
+        # Replace single quotes around keys and values with double quotes
+        s = re.sub(r"(?<!\\)'(\w+)'", r'"\1"', s)  # Replace single quotes around keys
 
-        # Decode the pre-processed JSON string
-        return super().decode(s, *args, **kwargs)
+        # Replace single quotes around string values with double quotes, considering the context
+        s = re.sub(r'(?<!\\)\'([^\']*?)\'', r'"\1"', s)  # Replace single quotes around values
+
+        # Properly handle escaped double quotes within string values
+        s = re.sub(r'(?<!\\)"([^\"]*?)(?<!\\)"', lambda match: match.group(0).replace('"', '\\"'), s)
+
+        # Fix any improperly escaped quotes
+        s = s.replace("\\'", "'")  # Fixes escaped single quotes
+        s = s.replace('\\"', '"')  # Fixes double quotes within string values
+
+        # Sanitize unescaped quotes
+        return self.sanitize_unescaped_quotes_and_load_json_str(s, **kwargs)
+
+    @staticmethod
+    def sanitize_unescaped_quotes_and_load_json_str(s: str, strict=False) -> dict:
+        """
+        Sanitizes a JSON string by escaping unescaped quotes and then loads it into a dictionary.
+
+        :param s: The JSON string to be sanitized and loaded.
+        :param strict: Whether to use strict JSON parsing.
+        :return: The loaded JSON object as a dictionary.
+        """
+        js_str = s
+        prev_pos = -1
+        curr_pos = 0
+        while curr_pos > prev_pos:
+            prev_pos = curr_pos
+            try:
+                return json.loads(js_str, strict=strict)
+            except json.JSONDecodeError as err:
+                curr_pos = err.pos
+                if curr_pos <= prev_pos:
+                    raise err
+
+                # Find the previous " before e.pos
+                prev_quote_index = js_str.rfind('"', 0, curr_pos)
+                if prev_quote_index == -1:
+                    raise err
+
+                # Escape it to \"
+                js_str = js_str[:prev_quote_index] + "\\" + js_str[prev_quote_index:]
