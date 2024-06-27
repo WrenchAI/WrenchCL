@@ -16,7 +16,6 @@ import json
 import re
 from datetime import datetime, date
 from decimal import Decimal
-from WrenchLogger import logger
 
 def robust_serializer(obj):
     """

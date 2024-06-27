@@ -35,7 +35,8 @@ from openai import OpenAI
 from ...Tools import image_to_base64, get_file_type, validate_base64
 from ...Decorators.TimedMethod import TimedMethod
 from ._ConversationManager import ConversationManager
-from ...Tools.WrenchLogger import logger
+from ...Tools.WrenchLogger import Logger
+logger = Logger()
 import logging
 
 logging.getLogger("openai").setLevel(40)

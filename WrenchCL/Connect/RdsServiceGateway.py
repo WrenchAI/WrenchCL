@@ -21,7 +21,8 @@ import psycopg2.extensions
 
 from .AwsClientHub import AwsClientHub
 from ..Decorators.SingletonClass import SingletonClass
-from ..Tools.WrenchLogger import logger
+from ..Tools.WrenchLogger import Logger
+logger = Logger()
 
 try:
     import pandas as pd

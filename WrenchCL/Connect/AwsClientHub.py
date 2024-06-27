@@ -20,7 +20,8 @@ import boto3
 from .._Internal._ConfigurationManager import _ConfigurationManager
 from .._Internal._SshTunnelManager import _SshTunnelManager
 from ..Decorators.SingletonClass import SingletonClass
-from ..Tools.WrenchLogger import logger
+from ..Tools.WrenchLogger import Logger
+logger = Logger()
 from ..Tools.Coalesce import coalesce
 from mypy_boto3_s3.client import S3Client
 from mypy_boto3_rds.client import RDSClient

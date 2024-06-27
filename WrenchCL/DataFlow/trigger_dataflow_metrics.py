@@ -22,7 +22,8 @@ import time
 import json
 import uuid
 from typing import Any, Dict, Optional
-from ..Tools.WrenchLogger import logger
+from ..Tools.WrenchLogger import Logger
+logger = Logger()
 
 
 def trigger_dataflow_metrics(

@@ -18,7 +18,8 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-from ..Tools.WrenchLogger import logger
+from ..Tools.WrenchLogger import Logger
+logger = Logger()
 
 
 class _ConfigurationManager:
@@ -128,7 +129,6 @@ class _ConfigurationManager:
                 env_path = base_path.joinpath('.env')
             else:
                 env_path = base_path
-            logger.debug('Checking Path', str(env_path))
             if env_path.exists():
                 return str(env_path)
         raise FileNotFoundError("No .env file found in expected locations.")
