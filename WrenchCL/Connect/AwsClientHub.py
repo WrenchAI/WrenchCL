@@ -62,6 +62,7 @@ class AwsClientHub:
             - DB_BATCH_OVERRIDE (int): Batch size for database operations.
             - AWS_DEPLOYMENT (bool): Indicates if the deployment is on AWS, affecting SSH tunnel configuration.
         """
+        boto3.set_stream_logger(name='botocore.credentials', level=40)
         self.lambda_client = None
         self.config = None
         self.aws_session_client = None
