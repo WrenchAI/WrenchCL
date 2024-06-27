@@ -32,7 +32,7 @@ import os
 import requests
 from openai import OpenAI
 
-from ...Tools import image_to_base64,get_file_type, validate_base64
+from ...Tools import image_to_base64, get_file_type, validate_base64
 from ...Decorators.TimedMethod import TimedMethod
 from ._ConversationManager import ConversationManager
 from ...Tools.WrenchLogger import logger
@@ -40,6 +40,7 @@ import logging
 
 logging.getLogger("openai").setLevel(40)
 logging.getLogger("httpx").setLevel(40)
+
 
 class OpenAIGateway:
     """
@@ -58,7 +59,7 @@ class OpenAIGateway:
         self.client = OpenAI(api_key=api_key)
 
     def process_input(self, text=None, image_path=None, audio_path=None, operation="text", system_prompt=None,
-                      json_mode=False, **kwargs):
+            json_mode=False, **kwargs):
         """
         Processes input based on the specified operation.
 
@@ -106,7 +107,8 @@ class OpenAIGateway:
             raise ValueError("Invalid or insufficient parameters for requested operation.")
 
     @TimedMethod
-    def text_response(self, text, model="gpt-3.5-turbo", assistant_id = None, response_format = None, system_prompt=None, json_mode=False, stream=False, **kwargs):
+    def text_response(self, text, model="gpt-3.5-turbo", assistant_id=None, response_format=None, system_prompt=None,
+            json_mode=False, stream=False, **kwargs):
         """
         Processes text input using the specified model and returns the response.
 
@@ -142,44 +144,36 @@ class OpenAIGateway:
             if assistant_id is not None:
                 logger.info(f"Using threads as assistant_id has been passed: {assistant_id}")
                 logger.setLevel('WARNING')
-                thread = self.client.beta.threads.create(messages = messages)
-                run = self.client.beta.threads.runs.create_and_poll(thread_id = thread.id,
-                                                                    assistant_id = assistant_id,
-                                                                    response_format = response_format,
-                                                                    model=model,
-                                                                    max_completion_tokens = kwargs.get('max_tokens', 2500))
-                messages = self.client.beta.threads.messages.list(
-                  thread_id=thread.id
-                )
+                thread = self.client.beta.threads.create(messages=messages)
+                run = self.client.beta.threads.runs.create_and_poll(thread_id=thread.id, assistant_id=assistant_id,
+                                                                    response_format=response_format, model=model,
+                                                                    max_completion_tokens=kwargs.get('max_tokens',
+                                                                                                     2500))
+                messages = self.client.beta.threads.messages.list(thread_id=thread.id)
                 response = messages.data[0].content[0].text.value
                 logger.revertLoggingLevel()
                 return response
             if stream:
                 logger.setLevel('WARNING')
-                response = self.client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    stream=True,
-                    max_tokens=kwargs.get('max_tokens', 2500)
-                )
+                response = self.client.chat.completions.create(model=model, messages=messages, stream=True,
+                    max_tokens=kwargs.get('max_tokens', 2500))
                 logger.revertLoggingLevel()
                 return response
             else:
                 logger.setLevel('WARNING')
-                response = self.client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    max_tokens=kwargs.get('max_tokens', 2500)
-                )
+                response = self.client.chat.completions.create(model=model, messages=messages,
+                    max_tokens=kwargs.get('max_tokens', 2500))
                 logger.revertLoggingLevel()
                 finish_reason = response.choices[0].finish_reason
                 if finish_reason == 'stop':
                     response_content = response.choices[0].message.content
                 elif finish_reason == 'length':
-                    logger.warning(f"Not enough tokens available to complete message. Please increase max tokens | current setting = {kwargs.get('max_tokens', 2500)}")
+                    logger.warning(
+                        f"Not enough tokens available to complete message. Please increase max tokens | current setting = {kwargs.get('max_tokens', 2500)}")
                     response_content = response.choices[0].message.content
                 elif finish_reason == 'content_filter':
-                    logger.error("ChatGPT does not allow processing of this content due to its content filters. Cannot return any output.")
+                    logger.error(
+                        "ChatGPT does not allow processing of this content due to its content filters. Cannot return any output.")
                     response_content = None
                     raise InterruptedError
                 else:
@@ -200,9 +194,8 @@ class OpenAIGateway:
             logger.error(f"Error processing text: {str(e)}")
             raise
 
-
     @TimedMethod
-    def get_embeddings(self, text, dimensions = 512, model="text-embedding-3-small"):
+    def get_embeddings(self, text, dimensions=3072, model="text-embedding-3-large"):
         """
         Retrieves embeddings for the given text using the specified model.
 
@@ -260,10 +253,12 @@ class OpenAIGateway:
         """
         try:
             with open(audio_path, "rb") as audio_file:
-                transcription = self.client.audio.transcriptions.create(model=model, file=audio_file, response_format="verbose_json", timestamp_granularities=["segment"])
+                transcription = self.client.audio.transcriptions.create(model=model, file=audio_file,
+                                                                        response_format="verbose_json",
+                                                                        timestamp_granularities=["segment"])
             transcript_text = """\n"""
             for segment in transcription.segments:
-                segment_text = f"[{segment['start']*1000:.0f}ms-{segment['end']*1000:.0f}ms] {segment['text']}\n"
+                segment_text = f"[{segment['start'] * 1000:.0f}ms-{segment['end'] * 1000:.0f}ms] {segment['text']}\n"
                 transcript_text = transcript_text + segment_text
             return transcript_text
         except Exception as e:
@@ -312,14 +307,16 @@ class OpenAIGateway:
         """
         try:
             with open(image_path, "rb") as image, open(mask_path, "rb") as mask:
-                response = self.client.images.edit(model="dall-e-2", image=image, mask=mask, prompt=prompt, n=n, size=size)
+                response = self.client.images.edit(model="dall-e-2", image=image, mask=mask, prompt=prompt, n=n,
+                                                   size=size)
             return response.data[0].url
         except Exception as e:
             logger.error(f"Error editing image: {str(e)}")
             raise
 
     @TimedMethod
-    def image_to_text(self, prompt, image_source, model = 'gpt-4o', max_tokens = 300, system_prompt = None, response_format = None, **kwargs):
+    def image_to_text(self, prompt, image_source, model='gpt-4o', max_tokens=300, system_prompt=None,
+            response_format=None, **kwargs):
         """
             Processes a vision query based on the provided question and image.
 
@@ -357,19 +354,10 @@ class OpenAIGateway:
             messages = []
             if system_prompt:
                 messages.append({"role": "system", "content": [{"type": "text", "text": system_prompt}]})
-            messages.append({
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": image_url
-                        }
-                    }
-                ]
-            })
-            response = self.client.chat.completions.create(model=model, messages=messages, max_tokens=max_tokens, response_format=kwargs.get('response_format'))
+            messages.append({"role": "user",
+                "content": [{"type": "text", "text": prompt}, {"type": "image_url", "image_url": {"url": image_url}}]})
+            response = self.client.chat.completions.create(model=model, messages=messages, max_tokens=max_tokens,
+                                                           response_format=kwargs.get('response_format'))
             return response.choices[0].message.content
         except Exception as e:
             logger.error(f"Error in vision query: {str(e)}")
@@ -389,5 +377,3 @@ class OpenAIGateway:
     def get_assistant_response(self):
         thread_id = self.client.beta.threads.create()
         print(thread_id)
-
-
