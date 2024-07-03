@@ -1,9 +1,7 @@
 # WrenchCL/Tools/__init__.py
 
 from .WrenchLogger import Logger
-logger = Logger()
-from .WrenchLogger import Logger
-logger = Logger()
+from .WrenchLogger import logger
 from .Coalesce import coalesce
 from .FileTyper import get_file_type
 from .Image2B64 import image_to_base64, validate_base64, get_hash

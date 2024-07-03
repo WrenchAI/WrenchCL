@@ -32,6 +32,7 @@ _srcfile = os.path.normcase(__file__)
 _logging_src = os.path.normcase(logging.addLevelName.__code__.co_filename)
 
 
+
 class BaseLogger:
     def __init__(self, level: str = 'INFO') -> None:
         self._start_time = None
@@ -44,12 +45,20 @@ class BaseLogger:
         self._initialize_logger()
         self.force_stack_trace = False
 
-        logging.addLevelName(21, "CONTEXT")  # Backwards Support
-        logging.addLevelName(22, "FLOW")
-        logging.addLevelName(31, "HDL_WARN")
-        logging.addLevelName(33, "DATA")
-        logging.addLevelName(42, "HDL_ERR")
-        logging.addLevelName(43, 'RCV_ERR')
+        self.CONTEXT_lvl = 21
+        self.HDL_WARN_lvl = 31
+        self.DATA_lvl = 33
+        self.FLOW_lvl = 39
+        self.HDL_ERR_lvl = 42
+        self.RCV_ERR_lvl = 43
+
+        logging.addLevelName(self.CONTEXT_lvl, "CONTEXT")  # Backwards Support
+        logging.addLevelName(self.HDL_WARN_lvl, "HDL_WARN")
+        logging.addLevelName(self.DATA_lvl, "DATA")
+        logging.addLevelName(self.FLOW_lvl, "FLOW")
+        logging.addLevelName(self.HDL_ERR_lvl, "HDL_ERR")
+        logging.addLevelName(self.RCV_ERR_lvl, 'RCV_ERR')
+
 
     def initiate_new_run(self):
         self.run_id = self._generate_run_id()
@@ -124,7 +133,7 @@ class BaseLogger:
         prefix_style = Style.DIM
         text_style = Style.NORMAL
         style_reset = Style.RESET_ALL
-        if level == 33:
+        if level == self.DATA_lvl:
             header_style = Style.BRIGHT
             header_col = Color.LIGHTWHITE_EX
             text_col = Color.LIGHTWHITE_EX
@@ -142,7 +151,7 @@ class BaseLogger:
             style_reset = ""
 
         lines = text.splitlines()
-        colored_lines = [] if level != 33 else ['']
+        colored_lines = [] if level != self.DATA_lvl else ['']
         if len(lines) == 1:
             colored_lines += [f"{header_col}{text_style}{text}{style_reset}"]
         elif len(lines) <= 2:
@@ -156,7 +165,7 @@ class BaseLogger:
                 f"{prefix_col}{prefix_style}{idx + 1}:{style_reset} {text_col}{text_style}{line}{style_reset}" for
                 idx, line in enumerate(lines[1:])]
 
-        if level == 33 and len(lines) > 2:
+        if level == self.DATA_lvl and len(lines) > 2:
             colored_lines += [f"{prefix_col}{prefix_style}---End of File----{style_reset}"]
 
         text = '\n'.join(colored_lines)
@@ -279,6 +288,10 @@ class BaseLogger:
             return float(obj)
         elif hasattr(obj, "__dict__"):
             return obj.__dict__
+        elif isinstance(obj, bytes):
+            return obj.decode('utf-8')  # Decode bytes to string
+        elif isinstance(obj, Exception):
+            return f"{type(obj).__name__}: {str(obj)}"
         elif isinstance(obj, str):
             return obj
         else:
@@ -425,27 +438,35 @@ class Logger(BaseLogger):
     def __init__(self, level: str = 'INFO') -> None:
         super().__init__(level)
 
-    def info(self, *args: str, stack_info: Optional[bool] = False) -> None:
+    def info(self, *args: Any, stack_info: Optional[bool] = False) -> None:
         serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+
         text = ' '.join(serialized_args)
         self._log_with_color(logging.INFO, text, Color.LIGHTGREEN_EX if colorama_imported else None, stack_info)
 
-    def flow(self, *args: str, stack_info: Optional[bool] = False) -> None:
+    def flow(self, *args: Any, stack_info: Optional[bool] = False) -> None:
         serialized_args = [str(self._custom_serializer(arg)) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(22, text, Color.CYAN if colorama_imported else None, stack_info)
+        self._log_with_color(self.FLOW_lvl, text, Color.CYAN if colorama_imported else None, stack_info)
 
-    def warning(self, *args: str, stack_info: Optional[bool] = False) -> None:
+    def context(self, *args: Any, stack_info: Optional[bool] = False) -> None:
+        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        text = ' '.join(serialized_args)
+        self._log_with_color(self.CONTEXT_lvl, text, Color.MAGENTA if colorama_imported else None, stack_info)
+
+    def warning(self, *args: Any, stack_info: Optional[bool] = False) -> None:
         serialized_args = [str(self._custom_serializer(arg)) for arg in args]
         text = ' '.join(serialized_args)
         self._log_with_color(logging.WARNING, text, Color.YELLOW if colorama_imported else None, stack_info)
 
-    def HDL_WARN(self, *args: str, stack_info: Optional[bool] = False) -> None:
+    def HDL_WARN(self, *args: Any, stack_info: Optional[bool] = False) -> None:
         serialized_args = [str(self._custom_serializer(arg)) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(31, text, Color.MAGENTA if colorama_imported else None, stack_info)
+        self._log_with_color(self.HDL_WARN_lvl, text, Color.MAGENTA if colorama_imported else None, stack_info)
 
-    def error(self, *args: str, stack_info: Optional[bool] = False) -> None:
+    def error(self, *args: Any, stack_info: Optional[bool] = False) -> None:
+        if any(isinstance(arg, Exception) for arg in args):
+            stack_info = True
         serialized_args = [str(self._custom_serializer(arg)) for arg in args]
         text = ' '.join(serialized_args)
         self._log_with_color(logging.ERROR, text, Color.RED if colorama_imported else None, stack_info)
@@ -454,30 +475,31 @@ class Logger(BaseLogger):
             max_rows: Optional[int] = None, stack_info: Optional[bool] = False, indent: Optional[int] = 4) -> None:
         object_name = type(data).__name__
         formatted_data = self._format_data(data, object_name, content, wrap_length, max_rows, indent=indent)
-        self._log_with_color(33, formatted_data, Color.BLUE if colorama_imported else None, stack_info)
+        self._log_with_color(self.DATA_lvl, formatted_data, Color.BLUE if colorama_imported else None, stack_info)
 
-    def HDL_ERR(self, *args: str, stack_info: Optional[bool] = False) -> None:
+    def HDL_ERR(self, *args: Any, stack_info: Optional[bool] = False) -> None:
         serialized_args = [str(self._custom_serializer(arg)) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(42, text, Color.LIGHTMAGENTA_EX if colorama_imported else None, stack_info)
+        self._log_with_color(self.HDL_ERR_lvl, text, Color.LIGHTMAGENTA_EX if colorama_imported else None, stack_info)
 
-    def RECV_ERR(self, *args: str, stack_info: Optional[bool] = False) -> None:
+    def RECV_ERR(self, *args: Any, stack_info: Optional[bool] = False) -> None:
         serialized_args = [str(self._custom_serializer(arg)) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(43, text, Color.LIGHTRED_EX if colorama_imported else None, stack_info)
+        self._log_with_color(self.RCV_ERR_lvl, text, Color.LIGHTRED_EX if colorama_imported else None, stack_info)
 
-    def critical(self, *args: str, stack_info: Optional[bool] = False) -> None:
+    def critical(self, *args: Any, stack_info: Optional[bool] = False) -> None:
         serialized_args = [str(self._custom_serializer(arg)) for arg in args]
         text = ' '.join(serialized_args)
         self._log_with_color(logging.CRITICAL, text, Color.RED if colorama_imported else None, stack_info)
 
-    def debug(self, *args: str, stack_info: Optional[bool] = False) -> None:
+    def debug(self, *args: Any, stack_info: Optional[bool] = False) -> None:
         serialized_args = [str(self._custom_serializer(arg)) for arg in args]
         text = ' '.join(serialized_args)
         self._log_with_color(logging.DEBUG, text, Color.LIGHTWHITE_EX if colorama_imported else None, stack_info)
 
     log_info = INFO = info  # Aliases for info
-    log_context = CONTEXT = context = log_flow = FLOW = flow  # Aliases for flow
+    log_context = CONTEXT = context # Aliases for Context
+    log_flow = FLOW = flow  # Aliases for flow
     log_warning = WARNING = warning  # Aliases for warning
     log_handled_warning = log_hdl_warn = HDL_WARN  # Aliases for HDL_WARN
     log_error = ERROR = error  # Aliases for error
