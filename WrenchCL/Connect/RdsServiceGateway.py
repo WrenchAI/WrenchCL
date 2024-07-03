@@ -51,7 +51,8 @@ class RdsServiceGateway:
         self.connection = client_manager.get_db_client()
         self.config = client_manager.get_config()
 
-    def get_data(self, query: str, payload: Optional[tuple] = None, fetchall: bool = True, return_dict: bool = True) -> Optional[Any]:
+    def get_data(self, query: str, payload: Optional[tuple] = None, fetchall: bool = True, return_dict: bool = True,
+            show_query: bool = False) -> Optional[Any]:
         """
         Fetch data from the database based on the input query and parameters.
 
@@ -62,6 +63,8 @@ class RdsServiceGateway:
         :param fetchall: Whether to fetch all rows or just one.
         :type fetchall: bool, optional
         :param return_dict: Whether to return a dictionary or raw dict cursor response.
+        :type return_dict: bool, optional
+        :param return_dict: Whether to log the query to be run to info.
         :type return_dict: bool, optional
         :returns: The fetched data or None if an error occurs.
                  - If `fetchall` is True and `return_dict` is True, returns a list of dictionaries.
@@ -83,12 +86,12 @@ class RdsServiceGateway:
             >>>     ''', (client_id, image_hash),
             >>>     fetchall=False, return_dict=False)
         """
-        logger.debug("Executing query: %s", query)
-        logger.debug("With payload: %s", payload)
 
         try:
             with self.connection as conn:
                 with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                    if show_query:
+                        logger.context("Mogrified Query:", cursor.mogrify(query, payload))
                     cursor.execute(query, payload)
                     data = cursor.fetchall() if fetchall else cursor.fetchone()
                     logger.debug("Fetched data: %s", str(data)[:100] if fetchall else str(data))
