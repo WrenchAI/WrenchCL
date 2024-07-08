@@ -48,6 +48,11 @@ class BaseLogger:
         self.force_stack_trace = False
         self.non_verbose_mode = False
 
+        self.INFO_lvl = logging.INFO
+        self.WARNING_lvl = logging.WARNING
+        self.ERROR_lvl = logging.ERROR
+        self.DEBUG_lvl = logging.DEBUG
+        self.Critical_lvl = logging.CRITICAL
         self.CONTEXT_lvl = 21
         self.HDL_WARN_lvl = 31
         self.DATA_lvl = 33
@@ -187,9 +192,6 @@ class BaseLogger:
         else:
             self._handlerFormat()
 
-        if (self.force_stack_trace and level >= 30) or level >= 40:
-            stack_info = True
-
         self._log(level, text, stack_info)
 
     def _format_data(self, data, object_name=None, content=True, wrap_length=None, max_rows=None, color=True,
@@ -251,7 +253,7 @@ class BaseLogger:
 
         # Add color and whitespace for visual distinction
         if object_name is not None:
-            final_text = f"--Type: {object_name}--\n{wrapped_text}"
+            final_text = f"--{object_name}--\n{wrapped_text}"
         else:
             final_text = wrapped_text
 
@@ -293,14 +295,14 @@ class BaseLogger:
     def _custom_serializer(obj):
         if isinstance(obj, (datetime, date)):
             return obj.isoformat()
+        elif isinstance(obj, Exception):
+            return f"{type(obj).__name__}: {str(obj)}"
         elif isinstance(obj, Decimal):
             return float(obj)
         elif hasattr(obj, "__dict__"):
             return obj.__dict__
         elif isinstance(obj, bytes):
             return obj.decode('utf-8')  # Decode bytes to string
-        elif isinstance(obj, Exception):
-            return f"{type(obj).__name__}: {str(obj)}"
         elif isinstance(obj, str):
             return obj
         else:
@@ -462,63 +464,63 @@ class Logger(BaseLogger):
         super().__init__(level)
 
     def info(self, *args: Any, stack_info: Optional[bool] = False) -> None:
-        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        serialized_args = [self._custom_serializer(arg) for arg in args]
 
         text = ' '.join(serialized_args)
-        self._log_with_color(logging.INFO, text, Color.LIGHTGREEN_EX if colorama_imported else None, stack_info)
+        self._log_with_color(self.INFO_lvl, text, Color.LIGHTGREEN_EX if colorama_imported else None, stack_info)
 
     def flow(self, *args: Any, stack_info: Optional[bool] = False) -> None:
-        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
         self._log_with_color(self.FLOW_lvl, text, Color.CYAN if colorama_imported else None, stack_info)
 
     def context(self, *args: Any, stack_info: Optional[bool] = False) -> None:
-        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
         self._log_with_color(self.CONTEXT_lvl, text, Color.MAGENTA if colorama_imported else None, stack_info)
 
     def warning(self, *args: Any, stack_info: Optional[bool] = False) -> None:
-        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(logging.WARNING, text, Color.YELLOW if colorama_imported else None, stack_info)
+        self._log_with_color(self.WARNING_lvl, text, Color.YELLOW if colorama_imported else None, stack_info)
 
     def HDL_WARN(self, *args: Any, stack_info: Optional[bool] = False) -> None:
-        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
         self._log_with_color(self.HDL_WARN_lvl, text, Color.MAGENTA if colorama_imported else None, stack_info)
 
     def error(self, *args: Any, stack_info: Optional[bool] = False) -> None:
         if any(isinstance(arg, Exception) for arg in args):
             stack_info = True
-        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(logging.ERROR, text, Color.RED if colorama_imported else None, stack_info)
+        self._log_with_color(self.ERROR_lvl, text, Color.RED if colorama_imported else None, stack_info)
 
-    def data(self, data: Any, content: Optional[bool] = True, wrap_length: Optional[int] = None,
+    def data(self, data: Any, object_name: Optional[str], content: Optional[bool] = True, wrap_length: Optional[int] = None,
             max_rows: Optional[int] = None, stack_info: Optional[bool] = False, indent: Optional[int] = 4) -> None:
-        object_name = type(data).__name__
+        object_name = object_name if object_name else f"Type: {type(data).__name__}"
         formatted_data = self._format_data(data, object_name, content, wrap_length, max_rows, indent=indent)
         self._log_with_color(self.DATA_lvl, formatted_data, Color.BLUE if colorama_imported else None, stack_info)
 
     def HDL_ERR(self, *args: Any, stack_info: Optional[bool] = False) -> None:
-        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
         self._log_with_color(self.HDL_ERR_lvl, text, Color.LIGHTMAGENTA_EX if colorama_imported else None, stack_info)
 
     def RECV_ERR(self, *args: Any, stack_info: Optional[bool] = False) -> None:
-        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
         self._log_with_color(self.RCV_ERR_lvl, text, Color.LIGHTRED_EX if colorama_imported else None, stack_info)
 
     def critical(self, *args: Any, stack_info: Optional[bool] = False) -> None:
-        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(logging.CRITICAL, text, Color.RED if colorama_imported else None, stack_info)
+        self._log_with_color(self.Critical_lvl, text, Color.RED if colorama_imported else None, stack_info)
 
     def debug(self, *args: Any, stack_info: Optional[bool] = False) -> None:
-        serialized_args = [str(self._custom_serializer(arg)) for arg in args]
+        serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(logging.DEBUG, text, Color.LIGHTWHITE_EX if colorama_imported else None, stack_info)
+        self._log_with_color(self.DEBUG_lvl, text, Color.LIGHTWHITE_EX if colorama_imported else None, stack_info)
 
     log_info = INFO = info  # Aliases for info
     log_context = CONTEXT = context # Aliases for Context
