@@ -1,4 +1,6 @@
 import pytest
+import atexit
+pytestmark = pytest.mark.skipif(False, reason="datadog_itr_unskippable")
 
 def test_internal_import():
     try:
@@ -57,6 +59,11 @@ def test_logger_import():
         from WrenchCL import logger
     except ImportError as e:
         pytest.fail(f"Importing logger from WrenchCL failed: {e}")
+
+@atexit.register
+def shutdown_logging():
+    import logging
+    logging.shutdown()
 
 if __name__ == "__main__":
     pytest.main()

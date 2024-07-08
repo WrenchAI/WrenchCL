@@ -24,6 +24,7 @@ jobs:
       DD_SITE: 'us5.datadoghq.com'
       DD_SERVICE: 'wrenchcl'
       DD_ENV: 'ci'
+
     steps:
     - uses: actions/checkout@v4
 
@@ -50,7 +51,7 @@ jobs:
 
     # Run pytest across all tests
     - name: Run pytest
-      run: pytest ./tests --ddtrace
+      run: pytest ./tests -rs --ddtrace
 
       # Annotate if all tests pass
     - name: Annotate successful test completion
