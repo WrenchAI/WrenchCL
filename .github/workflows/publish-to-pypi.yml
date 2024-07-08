@@ -54,12 +54,10 @@ jobs:
       if: success()
       run: echo "::notice ::All tests passed! ✔️"
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
       with:
-        verbose: true
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ secrets.CODECOV_TOKEN }}
 
     # Inform about manual workflow dispatch
     - name: Manual workflow dispatch instruction
