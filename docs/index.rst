@@ -1,17 +1,15 @@
-.. wrench-code-library documentation master file, created by
-   sphinx-quickstart on Fri May 31 13:40:22 2024.
+.. WrenchCL documentation master file, created by
+   sphinx-quickstart on Mon Jul  8 11:10:05 2024.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to wrench-code-library's documentation!
-===============================================
+Welcome to WrenchCL's documentation!
+====================================
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    :caption: Contents:
 
-   WrenchCL
-   setup
 
 
 Indices and tables
