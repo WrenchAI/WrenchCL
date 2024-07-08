@@ -16,8 +16,8 @@
 
 # WrenchCL/Models/OpenAI/__init__.py
 
-from .OpenAIFactory import OpenAIFactory
-from .OpenAIFactory import OpenAIGateway
+from .OpenAIFactory import *
+from .OpenAIFactory import *
 # Hiding ConversationManager by not including it in __all__
 
 
