@@ -20,7 +20,9 @@
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="WrenchCL.scripts package" href="WrenchCL.scripts.html" />
+    <link rel="prev" title="WrenchCL.Models.OpenAI package" href="WrenchCL.Models.OpenAI.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,107 +44,180 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">WrenchCL.Tools package</a><ul>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-WrenchCL.Tools.Coalesce">WrenchCL.Tools.Coalesce module</a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.Coalesce.coalesce"><code class="docutils literal notranslate"><span class="pre">coalesce()</span></code></a></li>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="WrenchCL.html">WrenchCL package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="WrenchCL.Connect.html">WrenchCL.Connect package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="WrenchCL.DataFlow.html">WrenchCL.DataFlow package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="WrenchCL.Decorators.html">WrenchCL.Decorators package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="WrenchCL.Models.html">WrenchCL.Models package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">WrenchCL.Tools package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.Coalesce">WrenchCL.Tools.Coalesce module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Coalesce.coalesce"><code class="docutils literal notranslate"><span class="pre">coalesce()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-WrenchCL.Tools.FetchMetaData">WrenchCL.Tools.FetchMetaData module</a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.FetchMetaData.get_metadata"><code class="docutils literal notranslate"><span class="pre">get_metadata()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.FetchMetaData">WrenchCL.Tools.FetchMetaData module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.FetchMetaData.get_metadata"><code class="docutils literal notranslate"><span class="pre">get_metadata()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-WrenchCL.Tools.FileTyper">WrenchCL.Tools.FileTyper module</a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.FileTyper.get_file_type"><code class="docutils literal notranslate"><span class="pre">get_file_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.FileTyper">WrenchCL.Tools.FileTyper module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.FileTyper.get_file_type"><code class="docutils literal notranslate"><span class="pre">get_file_type()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-WrenchCL.Tools.Image2B64">WrenchCL.Tools.Image2B64 module</a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.Image2B64.get_hash"><code class="docutils literal notranslate"><span class="pre">get_hash()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.Image2B64.image_to_base64"><code class="docutils literal notranslate"><span class="pre">image_to_base64()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.Image2B64.validate_base64"><code class="docutils literal notranslate"><span class="pre">validate_base64()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.Image2B64">WrenchCL.Tools.Image2B64 module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Image2B64.get_hash"><code class="docutils literal notranslate"><span class="pre">get_hash()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Image2B64.image_to_base64"><code class="docutils literal notranslate"><span class="pre">image_to_base64()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Image2B64.validate_base64"><code class="docutils literal notranslate"><span class="pre">validate_base64()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-WrenchCL.Tools.JsonSerializer">WrenchCL.Tools.JsonSerializer module</a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.JsonSerializer.robust_serializer"><code class="docutils literal notranslate"><span class="pre">robust_serializer()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder</span></code></a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder.decode"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder.decode()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder.sanitize_unescaped_quotes_and_load_json_str"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder.sanitize_unescaped_quotes_and_load_json_str()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.JsonSerializer">WrenchCL.Tools.JsonSerializer module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.JsonSerializer.robust_serializer"><code class="docutils literal notranslate"><span class="pre">robust_serializer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.MaybeMonad">WrenchCL.Tools.MaybeMonad module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe"><code class="docutils literal notranslate"><span class="pre">Maybe</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-WrenchCL.Tools.MaybeMonad">WrenchCL.Tools.MaybeMonad module</a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe"><code class="docutils literal notranslate"><span class="pre">Maybe</span></code></a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.value"><code class="docutils literal notranslate"><span class="pre">Maybe.value</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe._chain"><code class="docutils literal notranslate"><span class="pre">Maybe._chain</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.chain_break"><code class="docutils literal notranslate"><span class="pre">Maybe.chain_break()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.done"><code class="docutils literal notranslate"><span class="pre">Maybe.done()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.end_maybe"><code class="docutils literal notranslate"><span class="pre">Maybe.end_maybe()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.exit"><code class="docutils literal notranslate"><span class="pre">Maybe.exit()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.extract"><code class="docutils literal notranslate"><span class="pre">Maybe.extract()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.get_value"><code class="docutils literal notranslate"><span class="pre">Maybe.get_value()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.out"><code class="docutils literal notranslate"><span class="pre">Maybe.out()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.resolve"><code class="docutils literal notranslate"><span class="pre">Maybe.resolve()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.result"><code class="docutils literal notranslate"><span class="pre">Maybe.result()</span></code></a></li>
-<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">Maybe.value()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.TypeChecker">WrenchCL.Tools.TypeChecker module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.TypeChecker.typechecker"><code class="docutils literal notranslate"><span class="pre">typechecker()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.WrenchLogger">WrenchCL.Tools.WrenchLogger module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger"><code class="docutils literal notranslate"><span class="pre">BaseLogger</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.initialize_logger"><code class="docutils literal notranslate"><span class="pre">initialize_logger()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-WrenchCL.Tools.TypeChecker">WrenchCL.Tools.TypeChecker module</a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.TypeChecker.typechecker"><code class="docutils literal notranslate"><span class="pre">typechecker()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#module-WrenchCL.Tools.WrenchLogger">WrenchCL.Tools.WrenchLogger module</a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger"><code class="docutils literal notranslate"><span class="pre">BaseLogger</span></code></a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.initiate_new_run"><code class="docutils literal notranslate"><span class="pre">BaseLogger.initiate_new_run()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.overwrite_lambda_mode"><code class="docutils literal notranslate"><span class="pre">BaseLogger.overwrite_lambda_mode()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.revertLoggingLevel"><code class="docutils literal notranslate"><span class="pre">BaseLogger.revertLoggingLevel()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.setLevel"><code class="docutils literal notranslate"><span class="pre">BaseLogger.setLevel()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.set_global_traceback"><code class="docutils literal notranslate"><span class="pre">BaseLogger.set_global_traceback()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.set_verbose"><code class="docutils literal notranslate"><span class="pre">BaseLogger.set_verbose()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.initialize_logger"><code class="docutils literal notranslate"><span class="pre">initialize_logger()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#module-WrenchCL.Tools">Module contents</a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.Logger"><code class="docutils literal notranslate"><span class="pre">Logger()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.Maybe"><code class="docutils literal notranslate"><span class="pre">Maybe</span></code></a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.Maybe.value"><code class="docutils literal notranslate"><span class="pre">Maybe.value</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.Maybe._chain"><code class="docutils literal notranslate"><span class="pre">Maybe._chain</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.Maybe.chain_break"><code class="docutils literal notranslate"><span class="pre">Maybe.chain_break()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.Maybe.done"><code class="docutils literal notranslate"><span class="pre">Maybe.done()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.Maybe.end_maybe"><code class="docutils literal notranslate"><span class="pre">Maybe.end_maybe()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.Maybe.exit"><code class="docutils literal notranslate"><span class="pre">Maybe.exit()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.Maybe.extract"><code class="docutils literal notranslate"><span class="pre">Maybe.extract()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.Maybe.get_value"><code class="docutils literal notranslate"><span class="pre">Maybe.get_value()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.Maybe.out"><code class="docutils literal notranslate"><span class="pre">Maybe.out()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.Maybe.resolve"><code class="docutils literal notranslate"><span class="pre">Maybe.resolve()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.Maybe.result"><code class="docutils literal notranslate"><span class="pre">Maybe.result()</span></code></a></li>
-<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">Maybe.value()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#WrenchCL.Tools.coalesce"><code class="docutils literal notranslate"><span class="pre">coalesce()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.get_file_type"><code class="docutils literal notranslate"><span class="pre">get_file_type()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.get_metadata"><code class="docutils literal notranslate"><span class="pre">get_metadata()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.image_to_base64"><code class="docutils literal notranslate"><span class="pre">image_to_base64()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.robust_serializer"><code class="docutils literal notranslate"><span class="pre">robust_serializer()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.single_quote_decoder"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder</span></code></a><ul>
-<li><a class="reference internal" href="#WrenchCL.Tools.single_quote_decoder.decode"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder.decode()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.single_quote_decoder.sanitize_unescaped_quotes_and_load_json_str"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder.sanitize_unescaped_quotes_and_load_json_str()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#WrenchCL.Tools.typechecker"><code class="docutils literal notranslate"><span class="pre">typechecker()</span></code></a></li>
-<li><a class="reference internal" href="#WrenchCL.Tools.validate_base64"><code class="docutils literal notranslate"><span class="pre">validate_base64()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools">Module contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Logger"><code class="docutils literal notranslate"><span class="pre">Logger()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Maybe"><code class="docutils literal notranslate"><span class="pre">Maybe</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.coalesce"><code class="docutils literal notranslate"><span class="pre">coalesce()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.get_file_type"><code class="docutils literal notranslate"><span class="pre">get_file_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.get_metadata"><code class="docutils literal notranslate"><span class="pre">get_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.image_to_base64"><code class="docutils literal notranslate"><span class="pre">image_to_base64()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.robust_serializer"><code class="docutils literal notranslate"><span class="pre">robust_serializer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.single_quote_decoder"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.typechecker"><code class="docutils literal notranslate"><span class="pre">typechecker()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.validate_base64"><code class="docutils literal notranslate"><span class="pre">validate_base64()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="WrenchCL.scripts.html">WrenchCL.scripts package</a></li>
 </ul>
-</div>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="WrenchCL.html">WrenchCL package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WrenchCL.Connect.html">WrenchCL.Connect package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WrenchCL.DataFlow.html">WrenchCL.DataFlow package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WrenchCL.Decorators.html">WrenchCL.Decorators package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WrenchCL.Models.html">WrenchCL.Models package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">WrenchCL.Tools package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-WrenchCL.Tools.Coalesce">WrenchCL.Tools.Coalesce module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.Coalesce.coalesce"><code class="docutils literal notranslate"><span class="pre">coalesce()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-WrenchCL.Tools.FetchMetaData">WrenchCL.Tools.FetchMetaData module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.FetchMetaData.get_metadata"><code class="docutils literal notranslate"><span class="pre">get_metadata()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-WrenchCL.Tools.FileTyper">WrenchCL.Tools.FileTyper module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.FileTyper.get_file_type"><code class="docutils literal notranslate"><span class="pre">get_file_type()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-WrenchCL.Tools.Image2B64">WrenchCL.Tools.Image2B64 module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.Image2B64.get_hash"><code class="docutils literal notranslate"><span class="pre">get_hash()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.Image2B64.image_to_base64"><code class="docutils literal notranslate"><span class="pre">image_to_base64()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.Image2B64.validate_base64"><code class="docutils literal notranslate"><span class="pre">validate_base64()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-WrenchCL.Tools.JsonSerializer">WrenchCL.Tools.JsonSerializer module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.JsonSerializer.robust_serializer"><code class="docutils literal notranslate"><span class="pre">robust_serializer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder.decode"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder.decode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder.sanitize_unescaped_quotes_and_load_json_str"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder.sanitize_unescaped_quotes_and_load_json_str()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-WrenchCL.Tools.MaybeMonad">WrenchCL.Tools.MaybeMonad module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe"><code class="docutils literal notranslate"><span class="pre">Maybe</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.value"><code class="docutils literal notranslate"><span class="pre">Maybe.value</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe._chain"><code class="docutils literal notranslate"><span class="pre">Maybe._chain</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.chain_break"><code class="docutils literal notranslate"><span class="pre">Maybe.chain_break()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.done"><code class="docutils literal notranslate"><span class="pre">Maybe.done()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.end_maybe"><code class="docutils literal notranslate"><span class="pre">Maybe.end_maybe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.exit"><code class="docutils literal notranslate"><span class="pre">Maybe.exit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.extract"><code class="docutils literal notranslate"><span class="pre">Maybe.extract()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.get_value"><code class="docutils literal notranslate"><span class="pre">Maybe.get_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.out"><code class="docutils literal notranslate"><span class="pre">Maybe.out()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.resolve"><code class="docutils literal notranslate"><span class="pre">Maybe.resolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe.result"><code class="docutils literal notranslate"><span class="pre">Maybe.result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">Maybe.value()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-WrenchCL.Tools.TypeChecker">WrenchCL.Tools.TypeChecker module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.TypeChecker.typechecker"><code class="docutils literal notranslate"><span class="pre">typechecker()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-WrenchCL.Tools.WrenchLogger">WrenchCL.Tools.WrenchLogger module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger"><code class="docutils literal notranslate"><span class="pre">BaseLogger</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.initiate_new_run"><code class="docutils literal notranslate"><span class="pre">BaseLogger.initiate_new_run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.overwrite_lambda_mode"><code class="docutils literal notranslate"><span class="pre">BaseLogger.overwrite_lambda_mode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.revertLoggingLevel"><code class="docutils literal notranslate"><span class="pre">BaseLogger.revertLoggingLevel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.setLevel"><code class="docutils literal notranslate"><span class="pre">BaseLogger.setLevel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.set_global_traceback"><code class="docutils literal notranslate"><span class="pre">BaseLogger.set_global_traceback()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.set_verbose"><code class="docutils literal notranslate"><span class="pre">BaseLogger.set_verbose()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.initialize_logger"><code class="docutils literal notranslate"><span class="pre">initialize_logger()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-WrenchCL.Tools">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.Logger"><code class="docutils literal notranslate"><span class="pre">Logger()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.Maybe"><code class="docutils literal notranslate"><span class="pre">Maybe</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Maybe.value"><code class="docutils literal notranslate"><span class="pre">Maybe.value</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Maybe._chain"><code class="docutils literal notranslate"><span class="pre">Maybe._chain</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Maybe.chain_break"><code class="docutils literal notranslate"><span class="pre">Maybe.chain_break()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Maybe.done"><code class="docutils literal notranslate"><span class="pre">Maybe.done()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Maybe.end_maybe"><code class="docutils literal notranslate"><span class="pre">Maybe.end_maybe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Maybe.exit"><code class="docutils literal notranslate"><span class="pre">Maybe.exit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Maybe.extract"><code class="docutils literal notranslate"><span class="pre">Maybe.extract()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Maybe.get_value"><code class="docutils literal notranslate"><span class="pre">Maybe.get_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Maybe.out"><code class="docutils literal notranslate"><span class="pre">Maybe.out()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Maybe.resolve"><code class="docutils literal notranslate"><span class="pre">Maybe.resolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Maybe.result"><code class="docutils literal notranslate"><span class="pre">Maybe.result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">Maybe.value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.coalesce"><code class="docutils literal notranslate"><span class="pre">coalesce()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.get_file_type"><code class="docutils literal notranslate"><span class="pre">get_file_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.get_metadata"><code class="docutils literal notranslate"><span class="pre">get_metadata()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.image_to_base64"><code class="docutils literal notranslate"><span class="pre">image_to_base64()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.robust_serializer"><code class="docutils literal notranslate"><span class="pre">robust_serializer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.single_quote_decoder"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.single_quote_decoder.decode"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder.decode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.single_quote_decoder.sanitize_unescaped_quotes_and_load_json_str"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder.sanitize_unescaped_quotes_and_load_json_str()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.typechecker"><code class="docutils literal notranslate"><span class="pre">typechecker()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Tools.validate_base64"><code class="docutils literal notranslate"><span class="pre">validate_base64()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="WrenchCL.scripts.html">WrenchCL.scripts package</a></li>
+</ul>
+
         </div>
       </div>
     </nav>
@@ -157,6 +232,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">Modules</a></li>
+          <li class="breadcrumb-item"><a href="WrenchCL.html">WrenchCL package</a></li>
       <li class="breadcrumb-item active">WrenchCL.Tools package</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/WrenchCL.Tools.rst.txt" rel="nofollow"> View page source</a>
@@ -1115,7 +1192,10 @@ If set to ‘coerce’, the function will attempt to coerce the value to the exp
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="WrenchCL.Models.OpenAI.html" class="btn btn-neutral float-left" title="WrenchCL.Models.OpenAI package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="WrenchCL.scripts.html" class="btn btn-neutral float-right" title="WrenchCL.scripts package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
