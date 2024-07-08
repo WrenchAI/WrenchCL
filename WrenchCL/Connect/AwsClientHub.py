@@ -15,12 +15,15 @@
 
 
 import json
-import psycopg2
+
 import boto3
-from .._Internal._ConfigurationManager import _ConfigurationManager
-from .._Internal._SshTunnelManager import _SshTunnelManager
+import psycopg2
+
 from ..Decorators.SingletonClass import SingletonClass
 from ..Tools.WrenchLogger import Logger
+from .._Internal._ConfigurationManager import _ConfigurationManager
+from .._Internal._SshTunnelManager import _SshTunnelManager
+
 logger = Logger()
 from ..Tools.Coalesce import coalesce
 from mypy_boto3_s3.client import S3Client

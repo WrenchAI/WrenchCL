@@ -12,9 +12,11 @@
 #
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
-from sshtunnel import SSHTunnelForwarder
-from ..Tools.WrenchLogger import Logger
 import logging
+
+from sshtunnel import SSHTunnelForwarder
+
+from ..Tools.WrenchLogger import Logger
 
 logger = Logger()
 logging.getLogger("paramiko").setLevel(40)

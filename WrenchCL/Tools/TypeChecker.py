@@ -41,7 +41,9 @@
 #
 
 from typing import Any, Dict, List, Type, Union, Iterable
+
 from .WrenchLogger import Logger
+
 logger = Logger()
 
 

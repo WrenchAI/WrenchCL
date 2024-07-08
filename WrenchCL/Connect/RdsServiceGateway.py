@@ -13,15 +13,16 @@
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
 import math
-from typing import Optional, Any, Union, List, Dict
+from typing import Optional, Any, Union, List
 
 import psycopg2
-import psycopg2.extras
 import psycopg2.extensions
+import psycopg2.extras
 
 from .AwsClientHub import AwsClientHub
 from ..Decorators.SingletonClass import SingletonClass
 from ..Tools.WrenchLogger import Logger
+
 logger = Logger()
 
 try:

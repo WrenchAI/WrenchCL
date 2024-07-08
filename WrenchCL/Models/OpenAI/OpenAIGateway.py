@@ -26,16 +26,16 @@
 #
 
 import json
-import base64
 import os
 
 import requests
 from openai import OpenAI
 
-from ...Tools import image_to_base64, get_file_type, validate_base64
-from ...Decorators.TimedMethod import TimedMethod
 from ._ConversationManager import ConversationManager
+from ...Decorators.TimedMethod import TimedMethod
+from ...Tools import image_to_base64, get_file_type, validate_base64
 from ...Tools.WrenchLogger import Logger
+
 logger = Logger()
 import logging
 

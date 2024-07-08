@@ -31,7 +31,9 @@ except ImportError:
     COLORAMA_AVAILABLE = False
 
 from openai import AssistantEventHandler, OpenAI
+
 from ...Tools.WrenchLogger import Logger
+
 logger = Logger()
 
 

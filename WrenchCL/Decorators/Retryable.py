@@ -1,10 +1,11 @@
-import time
 import asyncio
+import inspect
+import time
 from functools import wraps
 from json import JSONDecodeError
+
 import requests
 from botocore.exceptions import ClientError, BotoCoreError
-import inspect
 
 
 def Retryable(max_retries=5, retry_on_exceptions=None, delay=2, verbosity=1, logging_level="WARNING"):

@@ -15,6 +15,7 @@
 import base64
 import mimetypes
 from io import BytesIO
+
 import requests
 from PIL import Image
 
