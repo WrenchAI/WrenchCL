@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from decimal import Decimal
 from unittest.mock import patch, mock_open, MagicMock
-
+import atexit
 
 pytestmark = pytest.mark.skipif(False, reason="datadog_itr_unskippable")
 
@@ -197,6 +197,10 @@ def test_logger_verbose_mode(caplog):
     logger.set_verbose(False)
     assert logger.non_verbose_mode is True
 
+@atexit.register
+def shutdown_logging():
+    import logging
+    logging.shutdown()
 
 if __name__ == '__main__':
     pytest.main()
