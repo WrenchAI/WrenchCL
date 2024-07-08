@@ -28,7 +28,7 @@ jobs:
     # Generate Sphinx documentation
     - name: Generate documentation
       run: |
-        sed -i "s/release = '.*'/release = 'test-version'/" ./docs/config.py
+        sed -i "s/release = '.*'/release = 'test-version'/" ./docs/conf.py
         sphinx-apidoc -o docs WrenchCL/
         cd docs
         make html
