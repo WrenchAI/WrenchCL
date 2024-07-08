@@ -442,7 +442,7 @@ class FileLogger(BaseLogger):
                     new_file.write(old_file.read())
                 os.remove(old_filename)
         elif not self.file_logging:
-            self.set_file_logging(True)
+            # self.set_file_logging(True)
             self.filename = self._set_filename(new_append_mode)
             self._reconfigure_file_handler()
         else:
