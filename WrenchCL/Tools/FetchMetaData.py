@@ -13,10 +13,11 @@
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
 
-import os
-import requests
-from datetime import datetime
 import mimetypes
+import os
+from datetime import datetime
+
+import requests
 
 
 def get_metadata(file_source, is_url=True):

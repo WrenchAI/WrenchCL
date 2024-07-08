@@ -44,7 +44,10 @@ def test_tools_import():
             image_to_base64,
             Maybe,
             logger,
-            get_metadata
+            get_metadata,
+            robust_serializer,
+            validate_base64,
+            single_quote_decoder
         )
     except ImportError as e:
         pytest.fail(f"Importing from WrenchCL.Tools failed: {e}")

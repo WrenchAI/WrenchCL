@@ -35,7 +35,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -U ddtrace
         pip install -r requirements.txt
-        pip install pytest pytest-mock pandas
+        pip install pytest pytest-mock pytest-cov pandas
 
     # Install the package in editable mode
     - name: Install the package in editable mode
@@ -47,12 +47,17 @@ jobs:
 
     # Run pytest across all tests
     - name: Run pytest
-      run: pytest --ddtrace
+      run: pytest --ddtrace --cov app ${{ env.CODECOV_ATS_TESTS }}
 
     # Annotate if all tests pass
     - name: Annotate successful test completion
       if: success()
       run: echo "::notice ::All tests passed! ✔️"
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
 
     # Inform about manual workflow dispatch
     - name: Manual workflow dispatch instruction

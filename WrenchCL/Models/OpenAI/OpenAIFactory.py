@@ -25,8 +25,8 @@
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
 
-from ...Decorators.TimedMethod import TimedMethod
 from .OpenAIGateway import OpenAIGateway
+from ...Decorators.TimedMethod import TimedMethod
 
 
 class OpenAIFactory(OpenAIGateway):

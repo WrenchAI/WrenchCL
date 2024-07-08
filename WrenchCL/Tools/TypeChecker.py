@@ -41,7 +41,10 @@
 #
 
 from typing import Any, Dict, List, Type, Union, Iterable
-from .WrenchLogger import logger
+
+from .WrenchLogger import Logger
+
+logger = Logger()
 
 
 def typechecker(

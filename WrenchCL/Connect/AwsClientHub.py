@@ -15,12 +15,16 @@
 
 
 import json
-import psycopg2
+
 import boto3
+import psycopg2
+
+from ..Decorators.SingletonClass import SingletonClass
+from ..Tools.WrenchLogger import Logger
 from .._Internal._ConfigurationManager import _ConfigurationManager
 from .._Internal._SshTunnelManager import _SshTunnelManager
-from ..Decorators.SingletonClass import SingletonClass
-from ..Tools.WrenchLogger import logger
+
+logger = Logger()
 from ..Tools.Coalesce import coalesce
 from mypy_boto3_s3.client import S3Client
 from mypy_boto3_rds.client import RDSClient
@@ -62,6 +66,7 @@ class AwsClientHub:
             - DB_BATCH_OVERRIDE (int): Batch size for database operations.
             - AWS_DEPLOYMENT (bool): Indicates if the deployment is on AWS, affecting SSH tunnel configuration.
         """
+        boto3.set_stream_logger(name='botocore.credentials', level=40)
         self.lambda_client = None
         self.config = None
         self.aws_session_client = None

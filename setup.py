@@ -30,9 +30,25 @@ else:
             with open(requires_path, "r", encoding="utf-8") as f:
                 required = f.read().splitlines()
 
-setup(name='WrenchCL', version='0.0.1.dev0', author='willem@wrench.ai',
-      description='WrenchCL is a comprehensive library designed to facilitate seamless interactions with AWS services, OpenAI models, and various utility tools. This package aims to streamline the development process by providing robust components for database interactions, cloud storage, and AI-powered functionalities.',
-      long_description=long_description, long_description_content_type="text/markdown",
-      url='https://github.com/WrenchAI/WrenchCL', packages=find_packages(), install_requires=required, python_requires='>=3.11',
-      classifiers=['Programming Language :: Python :: 3', 'License :: OSI Approved :: MIT License',
-                   'Operating System :: OS Independent', ], )
+setup(
+    name='WrenchCL',
+    version='0.0.1.dev0',
+    author='willem@wrench.ai',
+    description='WrenchCL is a comprehensive library designed to facilitate seamless interactions with AWS services, OpenAI models, and various utility tools. This package aims to streamline the development process by providing robust components for database interactions, cloud storage, and AI-powered functionalities.',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url='https://github.com/WrenchAI/WrenchCL',
+    packages=find_packages(),
+    install_requires=required,
+    python_requires='>=3.11',
+    classifiers=[
+        'Programming Language :: Python :: 3',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+    ],
+    entry_points={
+        'console_scripts': [
+            'combine-files=WrenchCL.scripts.combine_files:main',
+        ],
+    },
+)

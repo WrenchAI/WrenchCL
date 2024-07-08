@@ -15,7 +15,9 @@
 from boto3 import client as boto3client
 
 from ..Tools.TypeChecker import typechecker  # Update this to the correct import path
-from ..Tools.WrenchLogger import logger
+from ..Tools.WrenchLogger import Logger
+
+logger = Logger()
 from .build_return_json import build_return_json
 from .trigger_dataflow_metrics import trigger_minimum_dataflow_metrics
 
