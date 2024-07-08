@@ -9,9 +9,9 @@ import time
 import traceback
 from datetime import datetime, timedelta, date
 from decimal import Decimal
+from inspect import currentframe
 from textwrap import fill
 from typing import Any, Optional
-from inspect import currentframe
 
 from ..Decorators import SingletonClass
 
@@ -39,11 +39,14 @@ class BaseLogger:
         self.run_id = self._generate_run_id()
         self.running_on_lambda = 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
         self.previous_level = None
-        self.logging_level = self._set_logging_level(level)
+        self.logging_level = logging.INFO
+        self.non_verbose_mode = False
         self.console_handler = self._configure_console_handler()
         self.file_handler = None
         self._initialize_logger()
+        self.logging_level = self._set_logging_level(level)
         self.force_stack_trace = False
+        self.non_verbose_mode = False
 
         self.CONTEXT_lvl = 21
         self.HDL_WARN_lvl = 31
@@ -62,6 +65,12 @@ class BaseLogger:
 
     def initiate_new_run(self):
         self.run_id = self._generate_run_id()
+
+    def set_verbose(self, verbose: bool):
+        if verbose:
+            self.non_verbose_mode = False
+        else:
+            self.non_verbose_mode = True
 
     def setLevel(self, level: str) -> None:
         """
@@ -298,10 +307,15 @@ class BaseLogger:
             return str(obj)
 
     def _get_base_format(self) -> logging.Formatter:
-        return logging.Formatter(f"%(levelname)-8s: [{self.run_id}]"
-                                 f"%(filename)s:%(funcName)s:%(lineno)d | "
-                                 f"%(asctime)s | "
-                                 f"%(message)s", datefmt='%Y-%m-%d %H:%M:%S')
+        if not self.non_verbose_mode:
+            return logging.Formatter(f"%(levelname)-8s: [{self.run_id}]"
+                                     f"%(filename)s:%(funcName)s:%(lineno)d | "
+                                     f"%(asctime)s | "
+                                     f"%(message)s", datefmt='%Y-%m-%d %H:%M:%S')
+        else:
+            return logging.Formatter(f"%(levelname)-8s:"
+                                          f"%(asctime)s | "
+                                          f"%(message)s", datefmt='%Y-%m-%d %H:%M:%S')
 
     @staticmethod
     def _set_logging_level(level: str) -> int:
@@ -335,13 +349,22 @@ class BaseLogger:
             if 'hex_color_palette' not in locals():
                 reset_var = Style.RESET_ALL
                 white_col = Color.LIGHTWHITE_EX
-                format_str = f"{color}%(levelname)-8s:  [{self.run_id}] %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | {white_col}%(message)s {reset_var}"
+                if not self.non_verbose_mode:
+                    format_str = f"{color}%(levelname)-8s:  [{self.run_id}] %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | {white_col}%(message)s {reset_var}"
+                else:
+                    format_str = f"{color}%(levelname)-8s: %(asctime)s | {white_col}%(message)s {reset_var}"
             else:
                 reset_var = Style.RESET_ALL
                 white_col = Color.RESET
-                format_str = f"{color}%(levelname)-8s: [{self.run_id}] %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s |{reset_var} \x1b[38;20m %(message)s \x1b[0m"
+                if not self.non_verbose_mode:
+                    format_str = f"{color}%(levelname)-8s: [{self.run_id}] %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s |{reset_var} \x1b[38;20m %(message)s \x1b[0m"
+                else:
+                    format_str = f"{color}%(levelname)-8s: %(asctime)s |{reset_var} \x1b[38;20m %(message)s \x1b[0m"
         else:
-            format_str = f"%(levelname)-8s: [{self.run_id}] %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | %(message)s"
+            if not self.non_verbose_mode:
+                format_str = f"%(levelname)-8s: [{self.run_id}] %(filename)s:%(funcName)s:%(lineno)-4d | %(asctime)s | %(message)s"
+            else:
+                format_str = f"%(levelname)-8s: %(asctime)s | %(message)s"
         formatter = logging.Formatter(format_str, datefmt='%Y-%m-%d %H:%M:%S')
         self.console_handler.setFormatter(formatter)
 
