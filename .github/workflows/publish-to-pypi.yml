@@ -63,6 +63,8 @@ jobs:
         ddtrace-run pytest --cov=WrenchCL --cov-report=xml --cov-report=html --cov-report=lcov ./tests -rs --ddtrace
         coverage report
         coverage xml
+        mkdir -p coverage
+        mv lcov.info coverage/lcov.info
 
     # Upload coverage report (optional)
     - name: Upload coverage report
