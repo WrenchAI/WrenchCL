@@ -1,7 +1,7 @@
 import pytest
 from WrenchCL.Tools import coalesce, get_metadata, get_file_type, image_to_base64, validate_base64, get_hash, robust_serializer, single_quote_decoder, Maybe, typechecker, Logger
 import json
-from datetime import datetime, date
+from datetime import datetime
 from decimal import Decimal
 from unittest.mock import patch, mock_open, MagicMock
 
@@ -113,7 +113,7 @@ def test_logger_basic(caplog):
         assert "Info message" in caplog.text
         logger.warning("Warning message")
         assert "Warning message" in caplog.text
-        logger.error("Error message")
+        logger.error(ValueError("Error message"))
         assert "Error message" in caplog.text
         assert "---Stack Trace---" in caplog.text
 
@@ -150,8 +150,9 @@ def test_logger_recv_err(caplog):
 def test_logger_data(caplog):
     logger = Logger()
     with caplog.at_level('DATA'):
-        logger.data({"key": "value"})
+        logger.data({"key": "value"}, object_name='Test Dict')
         assert '"key": "value"' in caplog.text
+        assert 'Test Dict' in caplog.text
 
 def test_logger_time(caplog):
     logger = Logger()
@@ -185,6 +186,14 @@ def test_logger_set_global_traceback():
     assert logger.force_stack_trace
     logger.set_global_traceback(False)
     assert not logger.force_stack_trace
+
+def test_logger_verbose_mode(caplog):
+    logger = Logger()
+    logger.run_id = "test123"
+    assert logger.non_verbose_mode is False
+    logger.set_verbose(False)
+    assert logger.non_verbose_mode is True
+
 
 if __name__ == '__main__':
     pytest.main()
