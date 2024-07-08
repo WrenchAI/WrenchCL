@@ -40,6 +40,7 @@ jobs:
         pip install -U ddtrace
         pip install -r requirements.txt
         pip install pytest pytest-mock pandas
+        pip install coverage pytest-cov
 
     # Install the package in editable mode
     - name: Install the package in editable mode
@@ -49,9 +50,12 @@ jobs:
     - name: Install plugin
       run: pip install pytest-github-actions-annotate-failures
 
-    # Run pytest across all tests
-    - name: Run pytest
-      run: pytest ./tests -rs --ddtrace
+    # Run pytest with coverage
+    - name: Run pytest with coverage
+      run: |
+        DD_ENV=ci DD_SERVICE=my-python-service coverage run -m pytest ./tests -rs --ddtrace
+        coverage report
+        coverage xml
 
       # Annotate if all tests pass
     - name: Annotate successful test completion
@@ -174,18 +178,3 @@ jobs:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
         skip_existing: true
-
-    # Generate Sphinx documentation
-    - name: Generate documentation
-      run: |
-        sed -i "s/release = '.*'/release = '${{ env.NEW_VERSION }}'/" ./docs/config.py
-        sphinx-apidoc -o docs WrenchCL/
-        cd docs
-        make html
-
-    # Deploy to GitHub Pages
-    - name: Deploy to GitHub Pages
-      uses: JamesIves/github-pages-deploy-action@v4
-      with:
-        branch: gh-pages
-        folder: docs/_build/html
