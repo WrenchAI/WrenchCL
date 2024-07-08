@@ -50,7 +50,7 @@ jobs:
 
     # Run pytest across all tests
     - name: Run pytest
-      run: pytest ./tests --ddtrace
+      run: pytest ./tests -rs --ddtrace
 
       # Annotate if all tests pass
     - name: Annotate successful test completion
