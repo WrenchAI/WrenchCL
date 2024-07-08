@@ -26,16 +26,19 @@ jobs:
           pip install sphinx
           pip install sphinx-rtd-theme
 
+      - name: Fetch all tags
+        run: git fetch --tags
+
       - name: Get latest version tag
         id: get_latest_version
         run: |
-          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
-          echo "::set-output name=latest_tag::$LATEST_TAG"
+          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) || echo "v0.0.0")
+          echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
 
       # Generate Sphinx documentation
       - name: Generate documentation
         run: |
-          sed -i "s/release = '.*'/release = '${{ steps.get_latest_version.outputs.latest_tag }}'/" ./docs/conf.py
+          sed -i "s/release = '.*'/release = '${{ env.LATEST_TAG }}'/" ./docs/conf.py
           sphinx-apidoc -o docs WrenchCL/
           cd docs
           make html
