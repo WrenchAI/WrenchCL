@@ -1,6 +1,9 @@
 name: Test & Publish 🐍 to PyPI 📦
 
 on:
+  push:
+    branches:
+      - v2
   workflow_dispatch:
     inputs:
       versionIncrement:
