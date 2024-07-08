@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - v2
+  pull_request:
+    branches:
+      - v2
   workflow_dispatch:
     inputs:
       versionIncrement:
@@ -23,7 +26,7 @@ jobs:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
       DD_SITE: 'us5.datadoghq.com'
       DD_SERVICE: 'wrenchcl'
-      DD_ENV: 'ci'
+      DD_ENV: 'prod'
 
     steps:
     - uses: actions/checkout@v4
@@ -52,12 +55,31 @@ jobs:
 
     # Run pytest with coverage
     - name: Run pytest with coverage
+      env:
+        DD_ENV: prod
+        DD_SERVICE: wrenchcl
+        DD_TRACE_DEBUG: 'true'
       run: |
-        DD_ENV=ci DD_SERVICE=my-python-service coverage run -m pytest ./tests -rs --ddtrace
+        ddtrace-run pytest --cov=WrenchCL --cov-report=xml --cov-report=html --cov-report=lcov ./tests -rs --ddtrace
         coverage report
         coverage xml
 
-      # Annotate if all tests pass
+    # Upload coverage report (optional)
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage/lcov.info
+
+    # Post coverage report as a comment on pull requests
+    - name: Post coverage report
+      uses: romeovs/lcov-reporter-action@v0.4.0
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        lcov-file: coverage/lcov.info
+        delete-old-comments: true
+
+    # Annotate if all tests pass
     - name: Annotate successful test completion
       if: success()
       run: echo "::notice ::All tests passed! ✔️"

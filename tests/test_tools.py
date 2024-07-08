@@ -1,5 +1,14 @@
 import pytest
-from WrenchCL.Tools import coalesce, get_metadata, get_file_type, image_to_base64, validate_base64, get_hash, robust_serializer, single_quote_decoder, Maybe, typechecker, Logger
+from WrenchCL.Tools import coalesce
+from WrenchCL.Tools import get_metadata
+from WrenchCL.Tools import get_file_type
+from WrenchCL.Tools import image_to_base64, validate_base64
+from WrenchCL.Tools import get_hash
+from WrenchCL.Tools import robust_serializer
+from WrenchCL.Tools import single_quote_decoder
+from WrenchCL.Tools import Maybe
+from WrenchCL.Tools import typechecker
+from WrenchCL.Tools import Logger
 import json
 from datetime import datetime
 from decimal import Decimal
