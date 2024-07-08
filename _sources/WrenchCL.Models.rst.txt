@@ -1,0 +1,18 @@
+WrenchCL.Models package
+=======================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   WrenchCL.Models.OpenAI
+
+Module contents
+---------------
+
+.. automodule:: WrenchCL.Models
+   :members:
+   :undoc-members:
+   :show-inheritance:

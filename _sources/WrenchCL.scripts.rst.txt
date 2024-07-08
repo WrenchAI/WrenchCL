@@ -1,0 +1,21 @@
+WrenchCL.scripts package
+========================
+
+Submodules
+----------
+
+WrenchCL.scripts.combine\_files module
+--------------------------------------
+
+.. automodule:: WrenchCL.scripts.combine_files
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: WrenchCL.scripts
+   :members:
+   :undoc-members:
+   :show-inheritance:

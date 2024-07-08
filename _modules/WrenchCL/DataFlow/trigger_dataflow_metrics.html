@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WrenchCL.DataFlow.trigger_dataflow_metrics &mdash; WrenchCL test-version documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=e448b9e4"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            WrenchCL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">WrenchCL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">WrenchCL.DataFlow.trigger_dataflow_metrics</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for WrenchCL.DataFlow.trigger_dataflow_metrics</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  Copyright (c) $YEAR$. Copyright (c) $YEAR$ Wrench.AI., Willem van der Schans, Jeong Kim</span>
+<span class="c1">#</span>
+<span class="c1">#  MIT License</span>
+<span class="c1">#</span>
+<span class="c1">#  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1">#  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1">#  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="c1">#</span>
+<span class="c1">#  All works within the Software are owned by their respective creators and are distributed by Wrench.AI.</span>
+<span class="c1">#</span>
+<span class="c1">#  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).</span>
+<span class="c1">#</span>
+
+<span class="c1"># Created by Jeong Kim</span>
+<span class="c1"># Github: https://github.com/dalmad2</span>
+<span class="c1"># Annotated and refactored by Willem van der Schans</span>
+<span class="c1"># Github: https://github.com/Kydoimos97</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">..Tools.WrenchLogger</span> <span class="kn">import</span> <span class="n">Logger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="trigger_dataflow_metrics">
+<a class="viewcode-back" href="../../../WrenchCL.DataFlow.html#WrenchCL.DataFlow.trigger_dataflow_metrics.trigger_dataflow_metrics">[docs]</a>
+<span class="k">def</span> <span class="nf">trigger_dataflow_metrics</span><span class="p">(</span>
+        <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">context</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">lambda_client</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Triggers comprehensive dataflow metrics for a given job.</span>
+
+<span class="sd">    This function captures comprehensive dataflow metrics related to a job execution,</span>
+<span class="sd">    including details about resource usage, input/output counts, exception messages,</span>
+<span class="sd">    and other relevant information.</span>
+
+<span class="sd">    :param event: The event input received by the Lambda function.</span>
+<span class="sd">    :type event: dict</span>
+<span class="sd">    :param context: The context object provided by AWS Lambda.</span>
+<span class="sd">    :type context: Any</span>
+<span class="sd">    :param lambda_client: The AWS Lambda client object.</span>
+<span class="sd">    :type lambda_client: Any</span>
+<span class="sd">    :param kwargs: Additional keyword arguments to provide more detailed metrics:</span>
+<span class="sd">        - job_type (str): The type of job being executed (e.g., glue, batch, lambda, fargate).</span>
+<span class="sd">        - job_name (str): The name of the job being executed.</span>
+<span class="sd">        - status_code (int): The status code indicating the result of the job execution.</span>
+<span class="sd">        - client_id (str, optional): The client ID associated with the job.</span>
+<span class="sd">        - action (str, optional): The action performed by the job.</span>
+<span class="sd">        - exception_msg (str, optional): The exception message encountered during the job execution.</span>
+<span class="sd">        - trigger (str): The type of job being executed (e.g., glue, batch, lambda, fargate).</span>
+<span class="sd">        - state_machine_name (str): The name of the state machine associated with the job.</span>
+<span class="sd">        - state_name (str): The name of the state under which the job is run.</span>
+<span class="sd">        - workflow_id (str): The ID of the workflow associated with the job.</span>
+<span class="sd">        - job_run_state (str): The state of the job execution (e.g., &#39;Success&#39;, &#39;Failure&#39;).</span>
+<span class="sd">        - client_job_processing_datetime (str): The processing datetime associated with the job.</span>
+<span class="sd">        - job_run_started_on (str): The start time of the job run.</span>
+<span class="sd">        - duration (None): The duration of the job execution.</span>
+<span class="sd">        - bootstrap_duration (float): The duration of the bootstrap process.</span>
+<span class="sd">        - lifecycle_duration (None): The duration of the job lifecycle.</span>
+<span class="sd">        - max_memory_used (None): The maximum memory used during the job execution.</span>
+<span class="sd">        - rows_input (Any): The number of input rows for the job.</span>
+<span class="sd">        - rows_input_detail (Any): Additional details about the input rows.</span>
+<span class="sd">        - rows_output (Any): The number of output rows for the job.</span>
+<span class="sd">        - rows_output_detail (Any): Additional details about the output rows.</span>
+<span class="sd">        - uuids_input_detail (Any): Details about the UUIDs of input rows.</span>
+<span class="sd">        - uuids_output (Any): Details about the UUIDs of output rows.</span>
+<span class="sd">        - s3_output_path (str): The S3 output path for the job.</span>
+<span class="sd">        - rds_target_table (str): The target RDS table for the job.</span>
+<span class="sd">        - rds_input_table (str): The input RDS table for the job.</span>
+<span class="sd">        - job_id (str): The ID of the job.</span>
+<span class="sd">        - memory_limit_in_mb (int): The memory limit in megabytes.</span>
+<span class="sd">        - time_remaining_in_ms (int): The time remaining in milliseconds.</span>
+<span class="sd">        - source_id (str): The ID of the source service.</span>
+<span class="sd">        - log_stream_name (str): The name of the log stream.</span>
+<span class="sd">        - log_group_name (str): The name of the log group.</span>
+<span class="sd">        - state_entered_time (str): The time when the state was entered.</span>
+<span class="sd">        - status_code (int): The status code indicating the result of the job execution.</span>
+<span class="sd">        - message (str): Additional message related to the job execution.</span>
+<span class="sd">        - action (str): The action performed by the job.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">bootstrap_duration</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="n">end_time</span><span class="p">)</span>
+
+        <span class="n">performance_metrics</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;trigger&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;job_type&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;job_name&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;job_name&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;state_machine_name&#39;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;state_machine_name&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;state_name&#39;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;state_name&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;workflow_id&#39;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;statemachine_id&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;job_type&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;job_type&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;job_run_state&#39;</span><span class="p">:</span> <span class="s1">&#39;Success&#39;</span> <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status_code&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">200</span> <span class="k">else</span> <span class="s1">&#39;Failure&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;client_id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;client_id&#39;</span><span class="p">))</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;client_id&#39;</span><span class="p">),</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">)</span> <span class="k">else</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;client_id&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;client_job_processing_datetime&#39;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;processing_datetime&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;job_run_started_on&#39;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;execution_starttime&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;duration&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;bootstrap_duration&#39;</span><span class="p">:</span> <span class="n">bootstrap_duration</span><span class="p">,</span>
+            <span class="s1">&#39;lifecycle_duration&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;max_memory_used&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;rows_input&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rows_input&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;rows_input_detail&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rows_input_detail&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;rows_output&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rows_output&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;rows_output_detail&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rows_output_detail&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;uuids_input_detail&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;uuids_input_detail&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;uuids_output&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;uuids_output&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;exception_msg&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exception_msg&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;s3_output_path&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3_output_path&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;rds_target_table&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rds_target_table&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;rds_input_table&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rds_input_table&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;job_id&#39;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;job_id&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;memory_limit_in_mb&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="s1">&#39;memory_limit_in_mb&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="s1">&#39;time_remaining_in_ms&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="s1">&#39;get_remaining_time_in_millis&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span><span class="p">)(),</span>
+            <span class="s1">&#39;source_id&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="s1">&#39;aws_request_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="s1">&#39;log_stream_name&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="s1">&#39;log_stream_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="s1">&#39;log_group_name&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="s1">&#39;log_group_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="s1">&#39;state_entered_time&#39;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;state_enteredtime&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;status_code&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status_code&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;message&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;action&#39;</span><span class="p">)</span>
+        <span class="p">}</span>
+
+        <span class="n">lambda_client</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+            <span class="n">FunctionName</span><span class="o">=</span><span class="s1">&#39;dataflow-metrics&#39;</span><span class="p">,</span>
+            <span class="n">InvocationType</span><span class="o">=</span><span class="s1">&#39;Event&#39;</span><span class="p">,</span>
+            <span class="n">Payload</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">performance_metrics</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Invoked dataflow-metrics lambda&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Failed to invoke dataflow-metrics lambda&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="trigger_minimum_dataflow_metrics">
+<a class="viewcode-back" href="../../../WrenchCL.DataFlow.html#WrenchCL.DataFlow.trigger_dataflow_metrics.trigger_minimum_dataflow_metrics">[docs]</a>
+<span class="k">def</span> <span class="nf">trigger_minimum_dataflow_metrics</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">context</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">lambda_client</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">job_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">client_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">exception_msg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Triggers the minimum dataflow metrics for a given job.</span>
+
+<span class="sd">    This function triggers the minimum set of dataflow metrics, capturing essential</span>
+<span class="sd">    information about the job execution.</span>
+
+<span class="sd">    :param event: The event input received by the Lambda function.</span>
+<span class="sd">    :type event: dict</span>
+<span class="sd">    :param context: The context object provided by AWS Lambda.</span>
+<span class="sd">    :type context: Any</span>
+<span class="sd">    :param lambda_client: The AWS Lambda client object.</span>
+<span class="sd">    :type lambda_client: Any</span>
+<span class="sd">    :param job_type: The type of job being executed (e.g., glue, batch, lambda, fargate).</span>
+<span class="sd">    :type job_type: str</span>
+<span class="sd">    :param job_name: The name of the job being executed.</span>
+<span class="sd">    :type job_name: str</span>
+<span class="sd">    :param status_code: The status code indicating the result of the job execution.</span>
+<span class="sd">    :type status_code: int</span>
+<span class="sd">    :param client_id: The client ID associated with the job (optional).</span>
+<span class="sd">    :type client_id: str, optional</span>
+<span class="sd">    :param action: The action performed by the job (optional).</span>
+<span class="sd">    :type action: str, optional</span>
+<span class="sd">    :param exception_msg: The exception message encountered during the job execution (optional).</span>
+<span class="sd">    :type exception_msg: str, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">trigger_dataflow_metrics</span><span class="p">(</span><span class="n">event</span><span class="o">=</span><span class="n">event</span><span class="p">,</span>
+                             <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
+                             <span class="n">lambda_client</span><span class="o">=</span><span class="n">lambda_client</span><span class="p">,</span>
+                             <span class="n">job_type</span><span class="o">=</span><span class="n">job_type</span><span class="p">,</span>
+                             <span class="n">job_name</span><span class="o">=</span><span class="n">job_name</span><span class="p">,</span>
+                             <span class="n">status_code</span><span class="o">=</span><span class="n">status_code</span><span class="p">,</span>
+                             <span class="n">client_id</span><span class="o">=</span><span class="n">client_id</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span>
+                             <span class="n">exception_msg</span><span class="o">=</span><span class="n">exception_msg</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Willem van der Schans.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

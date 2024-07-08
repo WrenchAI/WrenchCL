@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WrenchCL.Models.OpenAI package &mdash; WrenchCL test-version documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=e448b9e4"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            WrenchCL
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">WrenchCL.Models.OpenAI package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-WrenchCL.Models.OpenAI.OpenAIFactory">WrenchCL.Models.OpenAI.OpenAIFactory module</a><ul>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory"><code class="docutils literal notranslate"><span class="pre">OpenAIFactory</span></code></a><ul>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory.audio_to_text_to_embeddings"><code class="docutils literal notranslate"><span class="pre">OpenAIFactory.audio_to_text_to_embeddings()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory.image_to_text_to_embeddings"><code class="docutils literal notranslate"><span class="pre">OpenAIFactory.image_to_text_to_embeddings()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory.validate_response_with_gpt"><code class="docutils literal notranslate"><span class="pre">OpenAIFactory.validate_response_with_gpt()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-WrenchCL.Models.OpenAI.OpenAIGateway">WrenchCL.Models.OpenAI.OpenAIGateway module</a><ul>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway</span></code></a><ul>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.audio_to_text"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.audio_to_text()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.generate_image_variations"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.generate_image_variations()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.get_assistant_response"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.get_assistant_response()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.get_embeddings"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.get_embeddings()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.image_to_text"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.image_to_text()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.modify_image"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.modify_image()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.process_input"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.process_input()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.start_conversation"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.start_conversation()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.text_response"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.text_response()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.text_to_image"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.text_to_image()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-WrenchCL.Models.OpenAI">Module contents</a><ul>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIFactory"><code class="docutils literal notranslate"><span class="pre">OpenAIFactory</span></code></a><ul>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIFactory.audio_to_text_to_embeddings"><code class="docutils literal notranslate"><span class="pre">OpenAIFactory.audio_to_text_to_embeddings()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIFactory.image_to_text_to_embeddings"><code class="docutils literal notranslate"><span class="pre">OpenAIFactory.image_to_text_to_embeddings()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIFactory.validate_response_with_gpt"><code class="docutils literal notranslate"><span class="pre">OpenAIFactory.validate_response_with_gpt()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway</span></code></a><ul>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.audio_to_text"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.audio_to_text()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.generate_image_variations"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.generate_image_variations()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.get_assistant_response"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.get_assistant_response()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.get_embeddings"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.get_embeddings()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.image_to_text"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.image_to_text()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.modify_image"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.modify_image()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.process_input"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.process_input()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.start_conversation"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.start_conversation()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.text_response"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.text_response()</span></code></a></li>
+<li><a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.text_to_image"><code class="docutils literal notranslate"><span class="pre">OpenAIGateway.text_to_image()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">WrenchCL</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">WrenchCL.Models.OpenAI package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/WrenchCL.Models.OpenAI.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wrenchcl-models-openai-package">
+<h1>WrenchCL.Models.OpenAI package<a class="headerlink" href="#wrenchcl-models-openai-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-WrenchCL.Models.OpenAI.OpenAIFactory">
+<span id="wrenchcl-models-openai-openaifactory-module"></span><h2>WrenchCL.Models.OpenAI.OpenAIFactory module<a class="headerlink" href="#module-WrenchCL.Models.OpenAI.OpenAIFactory" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Models.OpenAI.OpenAIFactory.</span></span><span class="sig-name descname"><span class="pre">OpenAIFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Models/OpenAI/OpenAIFactory.html#OpenAIFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway" title="WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway"><code class="xref py py-class docutils literal notranslate"><span class="pre">OpenAIGateway</span></code></a></p>
+<p>A factory class that extends OpenAIGateway to provide additional methods for processing audio, images, and text,
+and generating embeddings using OpenAI’s models.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory.audio_to_text_to_embeddings">
+<span class="sig-name descname"><span class="pre">audio_to_text_to_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory.audio_to_text_to_embeddings" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory.image_to_text_to_embeddings">
+<span class="sig-name descname"><span class="pre">image_to_text_to_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory.image_to_text_to_embeddings" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory.validate_response_with_gpt">
+<span class="sig-name descname"><span class="pre">validate_response_with_gpt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory.validate_response_with_gpt" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-WrenchCL.Models.OpenAI.OpenAIGateway">
+<span id="wrenchcl-models-openai-openaigateway-module"></span><h2>WrenchCL.Models.OpenAI.OpenAIGateway module<a class="headerlink" href="#module-WrenchCL.Models.OpenAI.OpenAIGateway" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Models.OpenAI.OpenAIGateway.</span></span><span class="sig-name descname"><span class="pre">OpenAIGateway</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Models/OpenAI/OpenAIGateway.html#OpenAIGateway"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A gateway class to interact with OpenAI’s API, providing methods to handle text, image, and audio processing.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.audio_to_text">
+<span class="sig-name descname"><span class="pre">audio_to_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.audio_to_text" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.generate_image_variations">
+<span class="sig-name descname"><span class="pre">generate_image_variations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.generate_image_variations" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.get_assistant_response">
+<span class="sig-name descname"><span class="pre">get_assistant_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.get_assistant_response" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.get_embeddings">
+<span class="sig-name descname"><span class="pre">get_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.get_embeddings" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.image_to_text">
+<span class="sig-name descname"><span class="pre">image_to_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.image_to_text" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.modify_image">
+<span class="sig-name descname"><span class="pre">modify_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.modify_image" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.process_input">
+<span class="sig-name descname"><span class="pre">process_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'text'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_prompt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Models/OpenAI/OpenAIGateway.html#OpenAIGateway.process_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.process_input" title="Link to this definition"></a></dt>
+<dd><p>Processes input based on the specified operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<em>str</em><em>, </em><em>optional</em>) – The text input.</p></li>
+<li><p><strong>image_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to the image file.</p></li>
+<li><p><strong>audio_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to the audio file.</p></li>
+<li><p><strong>operation</strong> (<em>str</em><em>, </em><em>optional</em>) – The type of operation to perform (e.g., “text”, “image”, “audio”).</p></li>
+<li><p><strong>system_prompt</strong> (<em>str</em><em>, </em><em>optional</em>) – A system prompt to include in the request.</p></li>
+<li><p><strong>json_mode</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, expects the response to be in JSON format.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the specified operation.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If no input is provided or the parameters are invalid for the requested operation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.start_conversation">
+<span class="sig-name descname"><span class="pre">start_conversation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.start_conversation" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.text_response">
+<span class="sig-name descname"><span class="pre">text_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.text_response" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.text_to_image">
+<span class="sig-name descname"><span class="pre">text_to_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway.text_to_image" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-WrenchCL.Models.OpenAI">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-WrenchCL.Models.OpenAI" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIFactory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Models.OpenAI.</span></span><span class="sig-name descname"><span class="pre">OpenAIFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Models/OpenAI/OpenAIFactory.html#OpenAIFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIFactory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway" title="WrenchCL.Models.OpenAI.OpenAIGateway.OpenAIGateway"><code class="xref py py-class docutils literal notranslate"><span class="pre">OpenAIGateway</span></code></a></p>
+<p>A factory class that extends OpenAIGateway to provide additional methods for processing audio, images, and text,
+and generating embeddings using OpenAI’s models.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIFactory.audio_to_text_to_embeddings">
+<span class="sig-name descname"><span class="pre">audio_to_text_to_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIFactory.audio_to_text_to_embeddings" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIFactory.image_to_text_to_embeddings">
+<span class="sig-name descname"><span class="pre">image_to_text_to_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIFactory.image_to_text_to_embeddings" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIFactory.validate_response_with_gpt">
+<span class="sig-name descname"><span class="pre">validate_response_with_gpt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIFactory.validate_response_with_gpt" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Models.OpenAI.</span></span><span class="sig-name descname"><span class="pre">OpenAIGateway</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Models/OpenAI/OpenAIGateway.html#OpenAIGateway"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A gateway class to interact with OpenAI’s API, providing methods to handle text, image, and audio processing.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.audio_to_text">
+<span class="sig-name descname"><span class="pre">audio_to_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.audio_to_text" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.generate_image_variations">
+<span class="sig-name descname"><span class="pre">generate_image_variations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.generate_image_variations" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.get_assistant_response">
+<span class="sig-name descname"><span class="pre">get_assistant_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.get_assistant_response" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.get_embeddings">
+<span class="sig-name descname"><span class="pre">get_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.get_embeddings" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.image_to_text">
+<span class="sig-name descname"><span class="pre">image_to_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.image_to_text" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.modify_image">
+<span class="sig-name descname"><span class="pre">modify_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.modify_image" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.process_input">
+<span class="sig-name descname"><span class="pre">process_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'text'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_prompt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Models/OpenAI/OpenAIGateway.html#OpenAIGateway.process_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.process_input" title="Link to this definition"></a></dt>
+<dd><p>Processes input based on the specified operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<em>str</em><em>, </em><em>optional</em>) – The text input.</p></li>
+<li><p><strong>image_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to the image file.</p></li>
+<li><p><strong>audio_path</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to the audio file.</p></li>
+<li><p><strong>operation</strong> (<em>str</em><em>, </em><em>optional</em>) – The type of operation to perform (e.g., “text”, “image”, “audio”).</p></li>
+<li><p><strong>system_prompt</strong> (<em>str</em><em>, </em><em>optional</em>) – A system prompt to include in the request.</p></li>
+<li><p><strong>json_mode</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, expects the response to be in JSON format.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the specified operation.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If no input is provided or the parameters are invalid for the requested operation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.start_conversation">
+<span class="sig-name descname"><span class="pre">start_conversation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.start_conversation" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.text_response">
+<span class="sig-name descname"><span class="pre">text_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.text_response" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Models.OpenAI.OpenAIGateway.text_to_image">
+<span class="sig-name descname"><span class="pre">text_to_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Models.OpenAI.OpenAIGateway.text_to_image" title="Link to this definition"></a></dt>
+<dd><p>Wraps the function call to log its execution time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the function.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the function call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Willem van der Schans.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
