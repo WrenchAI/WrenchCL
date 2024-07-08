@@ -47,12 +47,19 @@ jobs:
 
     # Run pytest across all tests
     - name: Run pytest
-      run: pytest --ddtrace
+      run: pytest --ddtrace --cov app ${{ env.CODECOV_ATS_TESTS }}
 
     # Annotate if all tests pass
     - name: Annotate successful test completion
       if: success()
       run: echo "::notice ::All tests passed! ✔️"
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        verbose: true
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     # Inform about manual workflow dispatch
     - name: Manual workflow dispatch instruction
