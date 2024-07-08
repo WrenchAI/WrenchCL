@@ -173,3 +173,18 @@ jobs:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
         skip_existing: true
+
+    # Generate Sphinx documentation
+    - name: Generate documentation
+      run: |
+        sed -i "s/release = '.*'/release = '${{ env.NEW_VERSION }}'/" ./docs/config.py
+        sphinx-apidoc -o docs WrenchCL/
+        cd docs
+        make html
+
+    # Deploy to GitHub Pages
+    - name: Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        branch: gh-pages
+        folder: docs/_build/html
