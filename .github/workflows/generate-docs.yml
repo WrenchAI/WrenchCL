@@ -35,14 +35,16 @@ jobs:
           LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) || echo "v0.0.0")
           echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
 
-      # Generate Sphinx documentation
+      # Generate Sphinx .rst files using sphinx-apidoc
+      - name: Generate .rst files
+        run: |
+          sphinx-apidoc -o docs/source WrenchCL/
+
+      # Generate Sphinx documentation using sphinx-build
       - name: Generate documentation
         run: |
-          sed -i "s/release = '.*'/release = '${{ env.LATEST_TAG }}'/" ./docs/conf.py
-          sphinx-apidoc -o docs WrenchCL/
-          cd docs
-          make html
-          touch _build/html/.nojekyll
+          sphinx-build -D release=${{ env.LATEST_TAG }} -b html docs/source docs/_build/html
+          touch docs/_build/html/.nojekyll
 
       # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
