@@ -5,6 +5,9 @@ from datetime import datetime
 from decimal import Decimal
 from unittest.mock import patch, mock_open, MagicMock
 
+
+pytestmark = pytest.mark.skipif(False, reason="datadog_itr_unskippable")
+
 def test_coalesce():
     assert coalesce(None, None, "first non-none", 5) == "first non-none"
     assert coalesce(None, None, None) is None
