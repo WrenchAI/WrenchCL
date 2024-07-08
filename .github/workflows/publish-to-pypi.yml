@@ -50,12 +50,10 @@ jobs:
 
     # Run pytest across all tests
     - name: Run pytest
-      run: pytest ./tests --cov=WrenchCL --cov-report=xml --ddtrace
+      run: pytest --cov=WrenchCL ./tests --cov-report=xml --ddtrace
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
-      with:
-        verbose: true
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
