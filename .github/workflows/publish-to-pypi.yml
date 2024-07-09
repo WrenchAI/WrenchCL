@@ -70,14 +70,6 @@ jobs:
         name: coverage-report
         path: coverage/lcov.info
 
-    # Post coverage report as a comment on pull requests
-    - name: Post coverage report
-      uses: romeovs/lcov-reporter-action@v0.4.0
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        lcov-file: coverage/lcov.info
-        delete-old-comments: true
-
     # Annotate if all tests pass
     - name: Annotate successful test completion
       if: success()
