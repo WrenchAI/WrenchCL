@@ -26,10 +26,9 @@ Table of Contents
    :maxdepth: 1
    :caption: Contents:
 
-   modules
+   modules/modules
    installation
    development
-   
 
 Indices and tables
 ==================
