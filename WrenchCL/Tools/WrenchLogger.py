@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, date
 from decimal import Decimal
 from inspect import currentframe
 from textwrap import fill
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from ..Decorators import SingletonClass
 
@@ -140,9 +140,8 @@ class BaseLogger:
         self.logger.handle(record)
 
     def _log_with_color(self, level: int, text: str, color: Optional[str] = None,
-            stack_info: Optional[bool] = False) -> None:
-        indent_prefix = '-> '
-
+            stack_info: Optional[bool] = False,  compact: Optional[bool] = False) -> None:
+        indent_prefix = ': '
         prefix_col = Color.WHITE
         prefix_style = Style.DIM
         text_style = Style.NORMAL
@@ -166,8 +165,8 @@ class BaseLogger:
 
         lines = text.splitlines()
         colored_lines = [] if level != self.DATA_lvl else ['']
-        if len(lines) == 1:
-            colored_lines += [f"{header_col}{text_style}{text}{style_reset}"]
+        if len(lines) == 1 or compact:
+            colored_lines += [f"{header_col}{text_style}{' '.join(lines)}{style_reset}"]
         elif len(lines) <= 2:
             colored_lines += [f"{header_col}{header_style}{lines[0]}"]
             colored_lines += [
@@ -183,7 +182,6 @@ class BaseLogger:
             colored_lines += [f"{prefix_col}{prefix_style}---End of File----{style_reset}"]
 
         text = '\n'.join(colored_lines)
-
         if colorama_imported and color and not self.running_on_lambda:
             self._handlerFormat(color)
         elif self.running_on_lambda:
@@ -192,10 +190,11 @@ class BaseLogger:
         else:
             self._handlerFormat()
 
+        # Print the raw output for debugging
+
         self._log(level, text, stack_info)
 
-    def _format_data(self, data, object_name=None, content=True, wrap_length=None, max_rows=None, color=True,
-            stack_trace=False, indent=4):
+    def _format_data(self, data, object_name=None, content=True, wrap_length=None, max_rows=None, indent=4):
         """Format data for logging, applying wrapping and color formatting where applicable."""
 
         def serialize(obj):
@@ -299,8 +298,6 @@ class BaseLogger:
             return f"{type(obj).__name__}: {str(obj)}"
         elif isinstance(obj, Decimal):
             return float(obj)
-        elif hasattr(obj, "__dict__"):
-            return obj.__dict__
         elif isinstance(obj, bytes):
             return obj.decode('utf-8')  # Decode bytes to string
         elif isinstance(obj, str):
@@ -320,13 +317,16 @@ class BaseLogger:
                                           f"%(message)s", datefmt='%Y-%m-%d %H:%M:%S')
 
     @staticmethod
-    def _set_logging_level(level: str) -> int:
-        level = level.lower()
-        levels = {"debug": logging.DEBUG, "info": logging.INFO, "warning": logging.WARNING, "error": logging.ERROR,
-                  "critical": logging.CRITICAL}
-        if level not in levels:
-            raise ValueError(f"Invalid logging level: {level}")
-        return levels[level]
+    def _set_logging_level(level: Union[str, int]) -> int:
+        if isinstance(level, str):
+            level = level.lower()
+            levels = {"debug": logging.DEBUG, "info": logging.INFO, "warning": logging.WARNING, "error": logging.ERROR,
+                      "critical": logging.CRITICAL}
+            if level not in levels:
+                raise ValueError(f"Invalid logging level: {level}")
+            return levels[level]
+        elif isinstance(level, int):
+            return level
 
     def _configure_console_handler(self):
         handler = logging.StreamHandler(sys.stdout)
@@ -344,7 +344,7 @@ class BaseLogger:
         self.logger.addHandler(self.console_handler)
 
         if colorama_imported and not self.running_on_lambda:
-            init()
+            init(autoreset=True)
 
     def _handlerFormat(self, color: Optional[str] = None) -> None:
         if colorama_imported and color:
@@ -463,64 +463,63 @@ class Logger(BaseLogger):
     def __init__(self, level: str = 'INFO') -> None:
         super().__init__(level)
 
-    def info(self, *args: Any, stack_info: Optional[bool] = False) -> None:
-        serialized_args = [self._custom_serializer(arg) for arg in args]
-
-        text = ' '.join(serialized_args)
-        self._log_with_color(self.INFO_lvl, text, Color.LIGHTGREEN_EX if colorama_imported else None, stack_info)
-
-    def flow(self, *args: Any, stack_info: Optional[bool] = False) -> None:
+    def info(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = True) -> None:
         serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(self.FLOW_lvl, text, Color.CYAN if colorama_imported else None, stack_info)
+        self._log_with_color(self.INFO_lvl, text, Color.GREEN if colorama_imported else None, stack_info, compact)
 
-    def context(self, *args: Any, stack_info: Optional[bool] = False) -> None:
+    def flow(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = True) -> None:
         serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(self.CONTEXT_lvl, text, Color.MAGENTA if colorama_imported else None, stack_info)
+        self._log_with_color(self.FLOW_lvl, text, Color.CYAN if colorama_imported else None, stack_info, compact)
 
-    def warning(self, *args: Any, stack_info: Optional[bool] = False) -> None:
+    def context(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = True) -> None:
         serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(self.WARNING_lvl, text, Color.YELLOW if colorama_imported else None, stack_info)
+        self._log_with_color(self.CONTEXT_lvl, text, Color.MAGENTA if colorama_imported else None, stack_info, compact)
 
-    def HDL_WARN(self, *args: Any, stack_info: Optional[bool] = False) -> None:
+    def warning(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = True) -> None:
         serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(self.HDL_WARN_lvl, text, Color.MAGENTA if colorama_imported else None, stack_info)
+        self._log_with_color(self.WARNING_lvl, text, Color.YELLOW if colorama_imported else None, stack_info, compact)
 
-    def error(self, *args: Any, stack_info: Optional[bool] = False) -> None:
+    def HDL_WARN(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = True) -> None:
+        serialized_args = [self._custom_serializer(arg) for arg in args]
+        text = ' '.join(serialized_args)
+        self._log_with_color(self.HDL_WARN_lvl, text, Color.MAGENTA if colorama_imported else None, stack_info, compact)
+
+    def error(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = False) -> None:
         if any(isinstance(arg, Exception) for arg in args):
             stack_info = True
         serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(self.ERROR_lvl, text, Color.RED if colorama_imported else None, stack_info)
+        self._log_with_color(self.ERROR_lvl, text, Color.RED if colorama_imported else None, stack_info, compact)
 
-    def data(self, data: Any, object_name: Optional[str], content: Optional[bool] = True, wrap_length: Optional[int] = None,
+    def data(self, data: Any, object_name: Optional[str] = None, content: Optional[bool] = True, wrap_length: Optional[int] = None,
             max_rows: Optional[int] = None, stack_info: Optional[bool] = False, indent: Optional[int] = 4) -> None:
         object_name = object_name if object_name else f"Type: {type(data).__name__}"
         formatted_data = self._format_data(data, object_name, content, wrap_length, max_rows, indent=indent)
-        self._log_with_color(self.DATA_lvl, formatted_data, Color.BLUE if colorama_imported else None, stack_info)
+        self._log_with_color(self.DATA_lvl, formatted_data, Color.BLUE if colorama_imported else None, stack_info, False)
 
-    def HDL_ERR(self, *args: Any, stack_info: Optional[bool] = False) -> None:
+    def HDL_ERR(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = True) -> None:
         serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(self.HDL_ERR_lvl, text, Color.LIGHTMAGENTA_EX if colorama_imported else None, stack_info)
+        self._log_with_color(self.HDL_ERR_lvl, text, Color.LIGHTMAGENTA_EX if colorama_imported else None, stack_info, compact)
 
-    def RECV_ERR(self, *args: Any, stack_info: Optional[bool] = False) -> None:
+    def RECV_ERR(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = True) -> None:
         serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(self.RCV_ERR_lvl, text, Color.LIGHTRED_EX if colorama_imported else None, stack_info)
+        self._log_with_color(self.RCV_ERR_lvl, text, Color.LIGHTRED_EX if colorama_imported else None, stack_info, compact)
 
-    def critical(self, *args: Any, stack_info: Optional[bool] = False) -> None:
+    def critical(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = False) -> None:
         serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(self.Critical_lvl, text, Color.RED if colorama_imported else None, stack_info)
+        self._log_with_color(self.Critical_lvl, text, Color.RED if colorama_imported else None, stack_info, compact)
 
-    def debug(self, *args: Any, stack_info: Optional[bool] = False) -> None:
+    def debug(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = False) -> None:
         serialized_args = [self._custom_serializer(arg) for arg in args]
         text = ' '.join(serialized_args)
-        self._log_with_color(self.DEBUG_lvl, text, Color.LIGHTWHITE_EX if colorama_imported else None, stack_info)
+        self._log_with_color(self.DEBUG_lvl, text, Color.LIGHTWHITE_EX if colorama_imported else None, stack_info, compact)
 
     log_info = INFO = info  # Aliases for info
     log_context = CONTEXT = context # Aliases for Context
