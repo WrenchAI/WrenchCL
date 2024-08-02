@@ -26,25 +26,10 @@ Table of Contents
    :maxdepth: 1
    :caption: Contents:
 
+   modules
    installation
    development
-   modules
-
-Modules
-=======
-
-.. autosummary::
-   :toctree: modules
-   :recursive:
-
-   WrenchCL
-   WrenchCL.Connect
-   WrenchCL.DataFlow
-   WrenchCL.Decorators
-   WrenchCL.Models
-   WrenchCL.Tools
-   WrenchCL._Internal
-   WrenchCL.scripts
+   
 
 Indices and tables
 ==================
