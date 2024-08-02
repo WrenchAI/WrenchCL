@@ -53,7 +53,7 @@ class RdsServiceGateway:
         self.config = client_manager.get_config()
 
     def get_data(self, query: str, payload: Optional[tuple] = None, fetchall: bool = True, return_dict: bool = True,
-            show_query: bool = False) -> Optional[Any]:
+            show_query: bool = False, raise_on_error: bool = False) -> Optional[Any]:
         """
         Fetch data from the database based on the input query and parameters.
 
@@ -65,8 +65,10 @@ class RdsServiceGateway:
         :type fetchall: bool, optional
         :param return_dict: Whether to return a dictionary or raw dict cursor response.
         :type return_dict: bool, optional
-        :param return_dict: Whether to log the query to be run to info.
-        :type return_dict: bool, optional
+        :param show_query: Whether to log the query to be run to info.
+        :type show_query: bool, optional
+        :param raise_on_error: Whether to return None or raise on error
+        :type raise_on_error: bool, optional
         :returns: The fetched data or None if an error occurs.
                  - If `fetchall` is True and `return_dict` is True, returns a list of dictionaries.
                  - If `fetchall` is True and `return_dict` is False, returns a list of raw rows.
@@ -105,22 +107,26 @@ class RdsServiceGateway:
             else:
                 return data
         except Exception as e:
-            logger.error(f"Error executing query: {e}", stack_info=True)
-            return None
+            if raise_on_error:
+                logger.error(f"Error executing query: {e}")
+                raise e
+            else:
+                logger.warning(f"Query returned None: {e}")
+                return None
 
-    def update_database(self, query: str, payload: Union[tuple, 'pd.DataFrame'], returning: bool = False, column_order: Optional[List[str]] = None) -> Optional[List[tuple]]:
+    def update_database(self, query: str, payload: Union[tuple, list[tuple], 'pd.DataFrame'], returning: bool = False, column_order: Optional[List[str]] = None) -> Optional[List[tuple]]:
         """
         Updates the database by executing the given query with the provided payload.
 
         :param query: SQL query to execute.
         :type query: str
-        :param payload: Data to use in the query. Can be a tuple for single operations or a DataFrame for batch operations.
-        :type payload: Union[tuple, pd.DataFrame]
-        :param returning: Flag to be able to return a postgres returning update statement
+        :param payload: Data to use in the query. Can be a tuple for single operations, a list of tuples for batch operations, or a DataFrame for batch operations.
+        :type payload: Union[tuple, list, pd.DataFrame]
+        :param returning: Flag to be able to return a postgres returning update statement.
         :type returning: bool
         :param column_order: The order of columns to be used if the payload is a DataFrame.
         :type column_order: List[str], optional
-        :returns: A list of tuples if returning is true else None
+        :returns: A list of tuples if returning is true else None.
         :rtype: Optional[List[tuple]]
         """
         with self.connection as conn:
@@ -133,6 +139,16 @@ class RdsServiceGateway:
                         return return_value
                 except Exception as e:
                     logger.error(f"Error inserting data: {str(e)}")
+                    conn.rollback()
+            elif isinstance(payload, list) and all(isinstance(item, tuple) for item in payload):
+                try:
+                    with conn.cursor() as cursor:
+                        psycopg2.extras.execute_values(cursor, query, payload, page_size=self.config.db_batch_size)
+                        return_value = cursor.fetchall() if returning else None
+                        conn.commit()
+                        return return_value
+                except Exception as e:
+                    logger.error(f"Error processing batch: {str(e)}")
                     conn.rollback()
             elif PANDAS_AVAILABLE and isinstance(payload, pd.DataFrame) and column_order:
                 if returning:
@@ -158,6 +174,7 @@ class RdsServiceGateway:
                     conn.rollback()
             else:
                 logger.error("Invalid payload type or missing column_order for DataFrame payload.")
+
 
     def format_sql_query(self, query: str, payload: tuple) -> None:
         """
