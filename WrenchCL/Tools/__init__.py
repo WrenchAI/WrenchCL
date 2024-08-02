@@ -6,7 +6,6 @@ from .JsonSerializer import *
 from .MaybeMonad import *
 from .TypeChecker import *
 from .WrenchLogger import *
-from .FormatValidator import FormatValidator
 
 __all__ = [
     'coalesce',
@@ -19,8 +18,5 @@ __all__ = [
     'get_metadata',
     'robust_serializer',
     'validate_base64',
-    'single_quote_decoder',
-    'validate_format'
+    'single_quote_decoder'
 ]
-
-validate_format = FormatValidator.validate_format
