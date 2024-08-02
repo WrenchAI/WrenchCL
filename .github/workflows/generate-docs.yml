@@ -1,6 +1,13 @@
 name: Build and Deploy Documentation
 
 on:
+  push:
+    branches:
+      - release
+    paths:
+      - 'docs/**'
+      - 'WrenchCL/**'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 permissions:
@@ -11,8 +18,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout 🛎️
+      - name: Checkout Release Branch 🛎️
         uses: actions/checkout@v4
+        with:
+          ref: release
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -26,40 +35,32 @@ jobs:
           pip install sphinx
           pip install sphinx-rtd-theme
 
-      - name: Fetch all tags
-        run: git fetch --tags
-
-      - name: Get latest version tag
-        id: get_latest_version
+      - name: Copy docs folder from release branch
         run: |
-          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) || echo "v0.0.0")
-          echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
+          cp -r docs /tmp/docs
 
-      - name: Generate .rst files
+      - name: Checkout gh-pages Branch
         run: |
-          sphinx-apidoc -o docs WrenchCL/
+          git fetch origin gh-pages
+          git checkout gh-pages
 
-      - name: List .rst files
+      - name: Delete old docs folder
         run: |
-          ls -la docs
+          rm -rf docs
 
-      - name: Commit and push updated .rst files
+      - name: Copy docs folder to gh-pages branch
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add docs
-          git commit -m "Update .rst files"
-          git push origin release
+          cp -r /tmp/docs docs
 
       - name: Generate documentation
         run: |
-          sphinx-build -D release=${{ env.LATEST_TAG }} -b html docs docs/_build/html
+          sphinx-build -b html docs docs/_build/html
           touch docs/_build/html/.nojekyll
 
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          branch: gh-pages
-          folder: docs/_build/html
-          clean-exclude: |
-            .nojekyll
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add docs/_build/html
+          git commit -m "Update documentation"
+          git push origin gh-pages
