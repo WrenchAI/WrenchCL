@@ -27,10 +27,9 @@ Table of Contents
 =======
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
-   modules
    installation
    development
 
@@ -38,7 +37,7 @@ Modules
 =======
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Modules:
 
    WrenchCL

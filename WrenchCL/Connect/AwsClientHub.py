@@ -15,9 +15,11 @@
 
 
 import json
+from typing import Optional
 
 import boto3
 import psycopg2
+from botocore.config import Config
 
 from ..Decorators.SingletonClass import SingletonClass
 from ..Tools.WrenchLogger import Logger
@@ -73,10 +75,11 @@ class AwsClientHub:
         self.db_client = None
         self.s3_client = None
         self.secret_client = None
+        self.secret_string = None
         self.need_ssh_tunnel = False
         self._kwargs = kwargs  # Store kwargs as an instance variable
         self.reload_config(env_path=env_path, **kwargs)
-        self._get_secret()
+        self.get_secret()
         self._initialized = True
 
     def reload_config(self, env_path=None, **kwargs):
@@ -133,19 +136,25 @@ class AwsClientHub:
             self._init_rds_client()
         return self.db_client
 
-    def get_s3_client(self) -> S3Client:
+    def get_s3_client(self, config: Optional[Config] = None, force_refresh: bool = False) -> S3Client:
         """
         Retrieves and returns the S3 client instance, initializing it if not already done.
 
+        :param config: Optional configuration to initialize the S3 client. Defaults to None.
+        :type config: Config, optional
+        :param force_refresh: Flag to force re-initialization of the S3 client with the given config. Defaults to False.
+        :type force_refresh: bool
         :returns: The initialized S3 client instance.
         :rtype: S3Client
 
         :Usage:
             s3_client = client_manager.get_s3_client()
+            s3_client = client_manager.get_s3_client(config={'region_name': 'us-west-1'}, force_refresh=True)
         """
-        if self.s3_client is None:
-            self._init_s3_client()
+        if self.s3_client is None or force_refresh:
+            self._init_s3_client(config)
         return self.s3_client
+
 
     def get_secret_client(self):
         """
@@ -228,14 +237,14 @@ class AwsClientHub:
 
         return db_client
 
-    def _init_s3_client(self):
+    def _init_s3_client(self, config=None):
         """
         Initializes the S3 client, setting it up with the correct region configuration.
 
         :raises Exception: If there is an issue initializing the S3 client.
         """
         try:
-            self.s3_client = self.aws_session_client.client('s3', region_name=self.config.region_name)
+            self.s3_client = self.aws_session_client.client('s3', region_name=self.config.region_name, config=config)
         except Exception as e:
             logger.error(f"An exception occurred when initializing connection to S3: {e}")
             raise e
@@ -255,24 +264,35 @@ class AwsClientHub:
             logger.error(f"An exception occurred when initializing connection to {aws_service}: {e}")
             raise e
 
-    def _get_secret(self):
+    def get_secret(self, secret_id=None) -> Optional[dict]:
         """
         Fetches and decodes the secret configuration from AWS Secrets Manager, setting up necessary client
         configuration and determining if SSH tunneling is required.
 
+        :param secret_id: Optional; The ID of the secret to fetch. If not provided, uses the default secret ARN from the configuration.
+        :type secret_id: str, optional
+
         :raises Exception: If there is an error fetching or interpreting the secret.
+        :raises ValueError: If the secret string is invalid.
+
+        :returns: The secret configuration as a dictionary if `secret_id` is provided.
+        :rtype: dict, optional
         """
         try:
+            sec_id = self.config.secret_arn if secret_id is None else secret_id
             self.aws_session_client = boto3.session.Session(profile_name=self.config.aws_profile)
             client_object = self.aws_session_client.client('secretsmanager', region_name=self.config.region_name)
-            secret_data = client_object.get_secret_value(SecretId=self.config.secret_arn)['SecretString']
+            secret_data = client_object.get_secret_value(SecretId=sec_id)['SecretString']
             self.secret_string = json.loads(secret_data)
 
             if self.secret_string is None:
                 raise ValueError(f"Invalid secret string found {self.secret_string}")
 
-            if self.config.qa_host_check in self.secret_string['host'] and not self.config.aws_deployment:
-                self.need_ssh_tunnel = True
+            if secret_id is not None:
+                return self.secret_string
+            else:
+                if self.config.qa_host_check in self.secret_string['host'] and not self.config.aws_deployment:
+                    self.need_ssh_tunnel = True
 
         except Exception as e:
             logger.error(f"An exception occurred when getting credentials from AWS: {e}")
