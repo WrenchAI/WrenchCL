@@ -1,0 +1,20 @@
+WrenchCL.Tools
+==============
+
+.. automodule:: WrenchCL.Tools
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   Coalesce
+   FetchMetaData
+   FileTyper
+   Image2B64
+   JsonSerializer
+   MaybeMonad
+   TypeChecker
+   WrenchLogger

@@ -1,0 +1,6 @@
+WrenchCL.Connect.RdsServiceGateway
+==================================
+
+.. currentmodule:: WrenchCL.Connect
+
+.. autofunction:: RdsServiceGateway

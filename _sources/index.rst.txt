@@ -23,57 +23,28 @@ Table of Contents
 =================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    installation
    development
+   modules
 
 Modules
 =======
 
-.. automodule:: WrenchCL
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. autosummary::
+   :toctree: modules
+   :recursive:
 
-.. automodule:: WrenchCL.Connect
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: WrenchCL.DataFlow
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: WrenchCL.Decorators
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: WrenchCL.Models
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: WrenchCL.Tools
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-   .. automethod:: WrenchCL.Tools.MaybeMonad.Maybe.end_maybe
-      :noindex:
-
-.. automodule:: WrenchCL._Internal
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: WrenchCL.scripts
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   WrenchCL
+   WrenchCL.Connect
+   WrenchCL.DataFlow
+   WrenchCL.Decorators
+   WrenchCL.Models
+   WrenchCL.Tools
+   WrenchCL._Internal
+   WrenchCL.scripts
 
 Indices and tables
 ==================

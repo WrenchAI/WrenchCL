@@ -1,0 +1,12 @@
+WrenchCL.Tools.MaybeMonad
+=========================
+
+.. automodule:: WrenchCL.Tools.MaybeMonad
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Maybe
+   

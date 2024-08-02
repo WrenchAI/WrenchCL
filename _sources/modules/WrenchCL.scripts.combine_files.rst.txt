@@ -1,0 +1,18 @@
+WrenchCL.scripts.combine\_files
+===============================
+
+.. automodule:: WrenchCL.scripts.combine_files
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FileCombiner
+   

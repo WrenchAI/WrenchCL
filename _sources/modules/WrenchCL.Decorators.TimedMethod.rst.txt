@@ -1,0 +1,6 @@
+WrenchCL.Decorators.TimedMethod
+===============================
+
+.. currentmodule:: WrenchCL.Decorators
+
+.. autofunction:: TimedMethod

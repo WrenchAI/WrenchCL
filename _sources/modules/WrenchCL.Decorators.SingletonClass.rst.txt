@@ -1,0 +1,6 @@
+WrenchCL.Decorators.SingletonClass
+==================================
+
+.. currentmodule:: WrenchCL.Decorators
+
+.. autofunction:: SingletonClass

@@ -1,0 +1,6 @@
+WrenchCL.DataFlow.handle\_lambda\_response
+==========================================
+
+.. currentmodule:: WrenchCL.DataFlow
+
+.. autofunction:: handle_lambda_response

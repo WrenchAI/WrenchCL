@@ -1,0 +1,32 @@
+WrenchCL.Models.OpenAI.OpenAIGateway
+====================================
+
+.. currentmodule:: WrenchCL.Models.OpenAI
+
+.. autoclass:: OpenAIGateway
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~OpenAIGateway.__init__
+      ~OpenAIGateway.audio_to_text
+      ~OpenAIGateway.generate_image_variations
+      ~OpenAIGateway.get_assistant_response
+      ~OpenAIGateway.get_embeddings
+      ~OpenAIGateway.image_to_text
+      ~OpenAIGateway.modify_image
+      ~OpenAIGateway.process_input
+      ~OpenAIGateway.start_conversation
+      ~OpenAIGateway.text_response
+      ~OpenAIGateway.text_to_image
+   
+   
+
+   
+   
+   

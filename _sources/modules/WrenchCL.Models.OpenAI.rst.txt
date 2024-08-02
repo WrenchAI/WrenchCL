@@ -1,0 +1,14 @@
+WrenchCL.Models.OpenAI
+======================
+
+.. automodule:: WrenchCL.Models.OpenAI
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   OpenAIFactory
+   OpenAIGateway

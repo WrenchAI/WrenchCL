@@ -1,0 +1,18 @@
+WrenchCL.Tools.JsonSerializer
+=============================
+
+.. automodule:: WrenchCL.Tools.JsonSerializer
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      robust_serializer
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      single_quote_decoder
+   

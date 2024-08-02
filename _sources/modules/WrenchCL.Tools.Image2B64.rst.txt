@@ -1,0 +1,14 @@
+WrenchCL.Tools.Image2B64
+========================
+
+.. automodule:: WrenchCL.Tools.Image2B64
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_hash
+      image_to_base64
+      validate_base64
+   

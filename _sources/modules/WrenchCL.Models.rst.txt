@@ -1,0 +1,13 @@
+WrenchCL.Models
+===============
+
+.. automodule:: WrenchCL.Models
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   OpenAI

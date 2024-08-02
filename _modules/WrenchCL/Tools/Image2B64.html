@@ -46,6 +46,16 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.html">WrenchCL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.Connect.html">WrenchCL.Connect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.DataFlow.html">WrenchCL.DataFlow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.Decorators.html">WrenchCL.Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.Models.html">WrenchCL.Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.Tools.html">WrenchCL.Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL._Internal.html">WrenchCL._Internal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.scripts.html">WrenchCL.scripts</a></li>
+</ul>
 
         </div>
       </div>
@@ -93,6 +103,8 @@
 <span class="kn">import</span> <span class="nn">requests</span>
 
 
+<div class="viewcode-block" id="get_hash">
+<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.Tools.html#WrenchCL.Tools.Image2B64.get_hash">[docs]</a>
 <span class="k">def</span> <span class="nf">get_hash</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate SHA-1 hash for the given data.</span>
@@ -107,11 +119,12 @@
 
     <span class="n">sha1</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">()</span>
     <span class="n">sha1</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">sha1</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">sha1</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
+
 
 
 <div class="viewcode-block" id="image_to_base64">
-<a class="viewcode-back" href="../../../index.html#WrenchCL.Tools.image_to_base64">[docs]</a>
+<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.Tools.html#WrenchCL.Tools.Image2B64.image_to_base64">[docs]</a>
 <span class="k">def</span> <span class="nf">image_to_base64</span><span class="p">(</span><span class="n">image_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_hash</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert an image from a URL or file path to a Base64 string, optionally returning its SHA-1 hash.</span>
@@ -147,7 +160,7 @@
 
 
 <div class="viewcode-block" id="validate_base64">
-<a class="viewcode-back" href="../../../index.html#WrenchCL.Tools.validate_base64">[docs]</a>
+<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.Tools.html#WrenchCL.Tools.Image2B64.validate_base64">[docs]</a>
 <span class="k">def</span> <span class="nf">validate_base64</span><span class="p">(</span><span class="n">b64_string</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Validate a Base64 encoded string.</span>

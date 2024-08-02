@@ -1,0 +1,12 @@
+WrenchCL.Tools.Coalesce
+=======================
+
+.. automodule:: WrenchCL.Tools.Coalesce
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      coalesce
+   

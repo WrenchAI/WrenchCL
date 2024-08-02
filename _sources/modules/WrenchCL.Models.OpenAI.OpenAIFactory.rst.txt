@@ -1,0 +1,35 @@
+WrenchCL.Models.OpenAI.OpenAIFactory
+====================================
+
+.. currentmodule:: WrenchCL.Models.OpenAI
+
+.. autoclass:: OpenAIFactory
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~OpenAIFactory.__init__
+      ~OpenAIFactory.audio_to_text
+      ~OpenAIFactory.audio_to_text_to_embeddings
+      ~OpenAIFactory.generate_image_variations
+      ~OpenAIFactory.get_assistant_response
+      ~OpenAIFactory.get_embeddings
+      ~OpenAIFactory.image_to_text
+      ~OpenAIFactory.image_to_text_to_embeddings
+      ~OpenAIFactory.modify_image
+      ~OpenAIFactory.process_input
+      ~OpenAIFactory.start_conversation
+      ~OpenAIFactory.text_response
+      ~OpenAIFactory.text_to_image
+      ~OpenAIFactory.validate_response_with_gpt
+   
+   
+
+   
+   
+   

@@ -1,0 +1,15 @@
+WrenchCL.Connect
+================
+
+.. automodule:: WrenchCL.Connect
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   AwsClientHub
+   RdsServiceGateway
+   S3ServiceGateway

@@ -1,0 +1,12 @@
+WrenchCL.Tools.TypeChecker
+==========================
+
+.. automodule:: WrenchCL.Tools.TypeChecker
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      typechecker
+   
