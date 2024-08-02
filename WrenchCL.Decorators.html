@@ -56,24 +56,10 @@
 <li class="toctree-l1"><a class="reference internal" href="WrenchCL.DataFlow.html">WrenchCL.DataFlow package</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">WrenchCL.Decorators package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-WrenchCL.Decorators.Retryable">WrenchCL.Decorators.Retryable module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Decorators.Retryable.Retryable"><code class="docutils literal notranslate"><span class="pre">Retryable()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#module-WrenchCL.Decorators.SingletonClass">WrenchCL.Decorators.SingletonClass module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Decorators.SingletonClass.SingletonClass"><code class="docutils literal notranslate"><span class="pre">SingletonClass()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#module-WrenchCL.Decorators.TimedMethod">WrenchCL.Decorators.TimedMethod module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Decorators.TimedMethod.TimedMethod"><code class="docutils literal notranslate"><span class="pre">TimedMethod()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#module-WrenchCL.Decorators">Module contents</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Decorators.Retryable"><code class="docutils literal notranslate"><span class="pre">Retryable()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Decorators.SingletonClass"><code class="docutils literal notranslate"><span class="pre">SingletonClass()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#WrenchCL.Decorators.TimedMethod"><code class="docutils literal notranslate"><span class="pre">TimedMethod()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#wrenchcl-decorators-retryable-module">WrenchCL.Decorators.Retryable module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#wrenchcl-decorators-singletonclass-module">WrenchCL.Decorators.SingletonClass module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#wrenchcl-decorators-timedmethod-module">WrenchCL.Decorators.TimedMethod module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="WrenchCL.Models.html">WrenchCL.Models package</a></li>
@@ -111,197 +97,17 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
 </section>
-<section id="module-WrenchCL.Decorators.Retryable">
-<span id="wrenchcl-decorators-retryable-module"></span><h2>WrenchCL.Decorators.Retryable module<a class="headerlink" href="#module-WrenchCL.Decorators.Retryable" title="Link to this heading"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="WrenchCL.Decorators.Retryable.Retryable">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.Retryable.</span></span><span class="sig-name descname"><span class="pre">Retryable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_on_exceptions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logging_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WARNING'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/Retryable.html#Retryable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.Retryable.Retryable" title="Link to this definition"></a></dt>
-<dd><p>A decorator that retries a function call a specified number of times if it raises an exception or if the request status code is not 200.</p>
-<p>This decorator catches <cite>JSONDecodeError</cite>, specific <cite>requests</cite> exceptions, <cite>botocore</cite> exceptions, and general <cite>Exception</cite> during the function execution,
-retries the function up to <cite>max_retries</cite> times, and logs each attempt. If the maximum number of retries is reached,
-it raises the last caught exception.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>max_retries</strong> (<em>int</em>) – The maximum number of retries before giving up. Default is 5.</p></li>
-<li><p><strong>retry_on_exceptions</strong> (<em>tuple</em>) – A tuple of exception classes to retry on. If None, retries on all exceptions.</p></li>
-<li><p><strong>delay</strong> (<em>int</em>) – The delay in seconds between retries. Default is 2.</p></li>
-<li><p><strong>verbosity</strong> (<em>int</em>) – Controls the verbosity of logging.
-0 - No logging.
-1 - Logs only the error when all retries fail.
-2 - Logs the error and the state of the wrapped function.
-3 - Logs warnings and everything in level 2.
-4 - Logs warnings and the state of the function for every warning.</p></li>
-<li><p><strong>logging_level</strong> (<em>str</em>) – The logging level to use. Can be “DEBUG”, “INFO”, “WARNING”, “ERROR”, or “CRITICAL”. Default is “WARNING”.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The result of the decorated function, if it succeeds within the allowed retries.</p>
-</dd>
-</dl>
-</dd></dl>
-
+<section id="wrenchcl-decorators-retryable-module">
+<h2>WrenchCL.Decorators.Retryable module<a class="headerlink" href="#wrenchcl-decorators-retryable-module" title="Link to this heading"></a></h2>
 </section>
-<section id="module-WrenchCL.Decorators.SingletonClass">
-<span id="wrenchcl-decorators-singletonclass-module"></span><h2>WrenchCL.Decorators.SingletonClass module<a class="headerlink" href="#module-WrenchCL.Decorators.SingletonClass" title="Link to this heading"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="WrenchCL.Decorators.SingletonClass.SingletonClass">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.SingletonClass.</span></span><span class="sig-name descname"><span class="pre">SingletonClass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/SingletonClass.html#SingletonClass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.SingletonClass.SingletonClass" title="Link to this definition"></a></dt>
-<dd><p>Decorator for a class to implement the Singleton pattern. This decorator ensures that only one instance of the
-decorated class can exist at any time. If an instance of the class already exists, it returns that instance;
-otherwise, it creates and returns a new instance.</p>
-<p>The Singleton pattern is particularly useful when exactly one object is needed to coordinate actions across the
-system, such as in the case of managing database connections.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>cls</strong> (<em>type</em>) – The class to be decorated as a Singleton.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A wrapper function that manages the instantiation of the singleton class, ensuring that only one
-instance exists.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>function</p>
-</dd>
-</dl>
-<p><strong>Example</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@SingletonClass</span>
-<span class="gp">... </span><span class="k">class</span> <span class="nc">DatabaseManager</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection_string</span><span class="p">):</span>
-<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">connection_string</span> <span class="o">=</span> <span class="n">connection_string</span>
-<span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">db_manager1</span> <span class="o">=</span> <span class="n">DatabaseManager</span><span class="p">(</span><span class="s1">&#39;db_connection_string&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">db_manager2</span> <span class="o">=</span> <span class="n">DatabaseManager</span><span class="p">(</span><span class="s1">&#39;db_connection_string&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">db_manager1</span> <span class="ow">is</span> <span class="n">db_manager2</span>  <span class="c1"># Both variables point to the same instance</span>
-</pre></div>
-</div>
-</dd></dl>
-
+<section id="wrenchcl-decorators-singletonclass-module">
+<h2>WrenchCL.Decorators.SingletonClass module<a class="headerlink" href="#wrenchcl-decorators-singletonclass-module" title="Link to this heading"></a></h2>
 </section>
-<section id="module-WrenchCL.Decorators.TimedMethod">
-<span id="wrenchcl-decorators-timedmethod-module"></span><h2>WrenchCL.Decorators.TimedMethod module<a class="headerlink" href="#module-WrenchCL.Decorators.TimedMethod" title="Link to this heading"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="WrenchCL.Decorators.TimedMethod.TimedMethod">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.TimedMethod.</span></span><span class="sig-name descname"><span class="pre">TimedMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DEBUG'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/TimedMethod.html#TimedMethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.TimedMethod.TimedMethod" title="Link to this definition"></a></dt>
-<dd><p>Decorator that logs the execution time of the decorated function. This can be useful for monitoring performance
-and identifying bottlenecks in the code.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>func</strong> (<em>function</em>) – The function to be decorated.</p></li>
-<li><p><strong>level</strong> (<em>String</em><em> [</em><em>'DEBUG'</em><em>, </em><em>'INFO'</em><em>, </em><em>'CONTEXT'</em><em>]</em>) – The logging level of the decorator</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The decorated function that logs its execution time.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>function</p>
-</dd>
-</dl>
-<p><strong>Example</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@TimedMethod</span>
-<span class="gp">... </span><span class="k">def</span> <span class="nf">example_function</span><span class="p">():</span>
-<span class="gp">... </span>    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-<span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">example_function</span><span class="p">()</span>  <span class="c1"># Logs: example_function took 2.00 seconds</span>
-</pre></div>
-</div>
-</dd></dl>
-
+<section id="wrenchcl-decorators-timedmethod-module">
+<h2>WrenchCL.Decorators.TimedMethod module<a class="headerlink" href="#wrenchcl-decorators-timedmethod-module" title="Link to this heading"></a></h2>
 </section>
-<section id="module-WrenchCL.Decorators">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-WrenchCL.Decorators" title="Link to this heading"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="WrenchCL.Decorators.Retryable">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.</span></span><span class="sig-name descname"><span class="pre">Retryable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_on_exceptions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logging_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WARNING'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/Retryable.html#Retryable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.Retryable" title="Link to this definition"></a></dt>
-<dd><p>A decorator that retries a function call a specified number of times if it raises an exception or if the request status code is not 200.</p>
-<p>This decorator catches <cite>JSONDecodeError</cite>, specific <cite>requests</cite> exceptions, <cite>botocore</cite> exceptions, and general <cite>Exception</cite> during the function execution,
-retries the function up to <cite>max_retries</cite> times, and logs each attempt. If the maximum number of retries is reached,
-it raises the last caught exception.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>max_retries</strong> (<em>int</em>) – The maximum number of retries before giving up. Default is 5.</p></li>
-<li><p><strong>retry_on_exceptions</strong> (<em>tuple</em>) – A tuple of exception classes to retry on. If None, retries on all exceptions.</p></li>
-<li><p><strong>delay</strong> (<em>int</em>) – The delay in seconds between retries. Default is 2.</p></li>
-<li><p><strong>verbosity</strong> (<em>int</em>) – Controls the verbosity of logging.
-0 - No logging.
-1 - Logs only the error when all retries fail.
-2 - Logs the error and the state of the wrapped function.
-3 - Logs warnings and everything in level 2.
-4 - Logs warnings and the state of the function for every warning.</p></li>
-<li><p><strong>logging_level</strong> (<em>str</em>) – The logging level to use. Can be “DEBUG”, “INFO”, “WARNING”, “ERROR”, or “CRITICAL”. Default is “WARNING”.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The result of the decorated function, if it succeeds within the allowed retries.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="WrenchCL.Decorators.SingletonClass">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.</span></span><span class="sig-name descname"><span class="pre">SingletonClass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/SingletonClass.html#SingletonClass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.SingletonClass" title="Link to this definition"></a></dt>
-<dd><p>Decorator for a class to implement the Singleton pattern. This decorator ensures that only one instance of the
-decorated class can exist at any time. If an instance of the class already exists, it returns that instance;
-otherwise, it creates and returns a new instance.</p>
-<p>The Singleton pattern is particularly useful when exactly one object is needed to coordinate actions across the
-system, such as in the case of managing database connections.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>cls</strong> (<em>type</em>) – The class to be decorated as a Singleton.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A wrapper function that manages the instantiation of the singleton class, ensuring that only one
-instance exists.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>function</p>
-</dd>
-</dl>
-<p><strong>Example</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@SingletonClass</span>
-<span class="gp">... </span><span class="k">class</span> <span class="nc">DatabaseManager</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection_string</span><span class="p">):</span>
-<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">connection_string</span> <span class="o">=</span> <span class="n">connection_string</span>
-<span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">db_manager1</span> <span class="o">=</span> <span class="n">DatabaseManager</span><span class="p">(</span><span class="s1">&#39;db_connection_string&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">db_manager2</span> <span class="o">=</span> <span class="n">DatabaseManager</span><span class="p">(</span><span class="s1">&#39;db_connection_string&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">db_manager1</span> <span class="ow">is</span> <span class="n">db_manager2</span>  <span class="c1"># Both variables point to the same instance</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="WrenchCL.Decorators.TimedMethod">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.</span></span><span class="sig-name descname"><span class="pre">TimedMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DEBUG'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Decorators/TimedMethod.html#TimedMethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.TimedMethod" title="Link to this definition"></a></dt>
-<dd><p>Decorator that logs the execution time of the decorated function. This can be useful for monitoring performance
-and identifying bottlenecks in the code.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>func</strong> (<em>function</em>) – The function to be decorated.</p></li>
-<li><p><strong>level</strong> (<em>String</em><em> [</em><em>'DEBUG'</em><em>, </em><em>'INFO'</em><em>, </em><em>'CONTEXT'</em><em>]</em>) – The logging level of the decorator</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The decorated function that logs its execution time.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>function</p>
-</dd>
-</dl>
-<p><strong>Example</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nd">@TimedMethod</span>
-<span class="gp">... </span><span class="k">def</span> <span class="nf">example_function</span><span class="p">():</span>
-<span class="gp">... </span>    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-<span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">example_function</span><span class="p">()</span>  <span class="c1"># Logs: example_function took 2.00 seconds</span>
-</pre></div>
-</div>
-</dd></dl>
-
+<section id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
 </section>
 </section>
 
