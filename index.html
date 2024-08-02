@@ -73,10 +73,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <p>WrenchCL documentation master file, created by sphinx-quickstart on Mon Jul  8 11:10:05 2024.
-You can adapt this file completely to your liking, but it should at least
-contain the root <cite>toctree</cite> directive.</p>
-<section id="wrench-code-library">
+  <section id="wrench-code-library">
 <h1>Wrench Code Library<a class="headerlink" href="#wrench-code-library" title="Link to this heading"></a></h1>
 <p align="center">
     <img src="https://raw.githubusercontent.com/WrenchAI/WrenchCL/release/resources/img/logo.svg" alt="Logo" style="display: inline-block; vertical-align: middle; width: 90%; max-width: 800px;">
@@ -408,8 +405,19 @@ and identifying bottlenecks in the code.</p>
 </div>
 </dd></dl>
 
-<dl class="py function" id="module-WrenchCL.Tools">
-<span id="module-WrenchCL.Models"></span><dt class="sig sig-object py" id="WrenchCL.Tools.Logger">
+<dl class="py method" id="module-WrenchCL.Tools">
+<span id="module-WrenchCL.Models"></span><dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">Maybe.</span></span><span class="sig-name descname"><span class="pre">end_maybe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/WrenchCL/Tools/MaybeMonad.html#Maybe.end_maybe"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Disables chaining and returns the raw value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The raw value wrapped by the Maybe instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Tools.Logger">
 <span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.</span></span><span class="sig-name descname"><span class="pre">Logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Tools.Logger" title="Link to this definition"></a></dt>
 <dd><p>Returns the singleton instance of the class, creating it if it does not already exist.</p>
 <dl class="field-list simple">
