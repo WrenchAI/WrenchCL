@@ -12,17 +12,24 @@
 # 
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
-
+import binascii
 import io
-
+import base64
+import mimetypes
+from pathlib import Path
+from typing import Union, IO
+from io import BytesIO
 from botocore.exceptions import ClientError
+from botocore.response import StreamingBody
+import warnings
 
+# Assuming these are your custom modules
 from ..Decorators.Retryable import Retryable
 from ..Decorators.SingletonClass import SingletonClass
 from ..Tools.WrenchLogger import Logger
+from .AwsClientHub import AwsClientHub
 
 logger = Logger()
-from .AwsClientHub import AwsClientHub
 
 
 @SingletonClass
@@ -30,9 +37,6 @@ class S3ServiceGateway:
     """
     Provides methods to interact with AWS S3, including uploading, downloading, moving, and deleting objects. Ensures
     that a single instance is used throughout the application via the Singleton pattern.
-
-    Attributes:
-        s3_client (boto3.client.S3): The S3 client for interacting with AWS S3.
     """
 
     def __init__(self):
@@ -41,10 +45,69 @@ class S3ServiceGateway:
         """
         client_manager = AwsClientHub()
         self.s3_client = client_manager.get_s3_client()
-        logger.debug("S3Manager initialized with S3 client.")
+        logger.debug("S3ServiceGateway initialized with S3 client.")
+
+    @staticmethod
+    def _get_mime_extension(mime_type: str) -> str:
+        """Get the file extension for a given MIME type."""
+        return mimetypes.guess_extension(mime_type)
+
+    def _verify_and_correct_extension(self, object_key: str, mime_type: str) -> str:
+        """Verify the extension of the object key and correct it if necessary."""
+        correct_extension = self._get_mime_extension(mime_type)
+        if not correct_extension:
+            return object_key
+
+        current_extension = Path(object_key).suffix
+        if current_extension != correct_extension:
+            logger.debug(f"Correcting file extension from {current_extension} to {correct_extension}")
+            object_key = str(Path(object_key).with_suffix(correct_extension))
+        return object_key
 
     @Retryable()
-    def get_object(self, bucket_name, object_key):
+    def upload_file(self, file: Union[str, bytes, IO[bytes], StreamingBody], bucket_name: str, object_key: str) -> None:
+        """
+        Uploads a file to S3. Handles file paths, bytes, file-like objects, and StreamingBody.
+        Verifies and corrects the file extension based on the MIME type.
+
+        :param file: The file path, bytes, file-like object, or StreamingBody to be uploaded.
+        :type file: Union[str, bytes, IO[bytes], StreamingBody]
+        :param bucket_name: The name of the S3 bucket.
+        :type bucket_name: str
+        :param object_key: The key of the object in the S3 bucket.
+        :type object_key: str
+        """
+        if isinstance(file, (str, Path)) and Path(file).is_file():
+            file_path = Path(file)
+            logger.debug(f"Uploading file from path: {file_path} to bucket: {bucket_name} as object: {object_key}")
+            with open(file_path, 'rb') as f:
+                mime_type, _ = mimetypes.guess_type(file_path)
+                object_key = self._verify_and_correct_extension(object_key, mime_type)
+                self.s3_client.upload_fileobj(f, bucket_name, object_key)
+        elif isinstance(file, bytes) or (isinstance(file, str) and not Path(file).is_file()):
+            # Handle base64 encoded strings
+            try:
+                file_content = base64.b64decode(file) if isinstance(file, str) else file
+            except binascii.Error:
+                file_content = file.encode('utf-8') if isinstance(file, str) else file
+
+            file_obj = BytesIO(file_content)
+            mime_type = mimetypes.guess_type(object_key)[0] or 'application/octet-stream'
+            object_key = self._verify_and_correct_extension(object_key, mime_type)
+            logger.debug(f"Uploading bytes object to bucket: {bucket_name} as object: {object_key}")
+            self.s3_client.upload_fileobj(file_obj, bucket_name, object_key)
+        elif hasattr(file, 'read') and callable(file.read):
+            mime_type = mimetypes.guess_type(object_key)[0] or 'application/octet-stream'
+            object_key = self._verify_and_correct_extension(object_key, mime_type)
+            logger.debug(f"Uploading file-like object to bucket: {bucket_name} as object: {object_key}")
+            self.s3_client.upload_fileobj(file, bucket_name, object_key)
+        else:
+            raise ValueError("The file parameter must be a file path, bytes, file-like object, or StreamingBody.")
+
+        logger.debug(f"File uploaded to bucket: {bucket_name} as object: {object_key}")
+
+    @Retryable()
+    def get_object(self, bucket_name: str, object_key: str) -> io.BytesIO:
         """
         Retrieves an object from S3 and returns its content as a file stream.
 
@@ -62,7 +125,7 @@ class S3ServiceGateway:
         return file_stream
 
     @Retryable()
-    def download_object(self, bucket_name, object_key, local_path):
+    def download_object(self, bucket_name: str, object_key: str, local_path: str) -> None:
         """
         Downloads an object from S3 to a local file.
 
@@ -79,7 +142,7 @@ class S3ServiceGateway:
         logger.debug(f"Object downloaded: {object_key} to {local_path}")
 
     @Retryable()
-    def get_object_headers(self, bucket_name, object_key):
+    def get_object_headers(self, bucket_name: str, object_key: str) -> dict:
         """
         Retrieves the headers of an object in S3.
 
@@ -96,40 +159,7 @@ class S3ServiceGateway:
         return obj
 
     @Retryable()
-    def upload_file(self, file_path, bucket_name, object_key):
-        """
-        Uploads a file to S3.
-
-        :param file_path: The local path of the file to be uploaded.
-        :type file_path: str
-        :param bucket_name: The name of the S3 bucket.
-        :type bucket_name: str
-        :param object_key: The key of the object in the S3 bucket.
-        :type object_key: str
-        """
-        logger.debug(f"Uploading file: {file_path} to bucket: {bucket_name} as object: {object_key}")
-        with open(file_path, 'rb') as f:
-            self.s3_client.upload_fileobj(f, bucket_name, object_key)
-        logger.debug(f"File uploaded: {file_path} as object: {object_key} in bucket: {bucket_name}")
-
-    @Retryable()
-    def upload_object(self, obj, bucket_name, object_key):
-        """
-        Uploads an object to S3.
-
-        :param obj: The bytes of the object to be uploaded
-        :type obj: str | bytes | IO | StreamingBody
-        :param bucket_name: The name of the S3 bucket.
-        :type bucket_name: str
-        :param object_key: The key of the object in the S3 bucket.
-        :type object_key: str
-        """
-        logger.debug(f"Uploading object to bucket: {bucket_name} as object: {object_key}")
-        self.s3_client.put_object(Body=obj, Bucket=bucket_name, Key=object_key)
-        logger.debug(f"Object uploaded as object: {object_key} in bucket: {bucket_name}")
-
-    @Retryable()
-    def delete_object(self, bucket_name, object_key):
+    def delete_object(self, bucket_name: str, object_key: str) -> None:
         """
         Deletes an object from S3.
 
@@ -143,7 +173,7 @@ class S3ServiceGateway:
         logger.debug(f"Object deleted: {object_key} from bucket: {bucket_name}")
 
     @Retryable()
-    def move_object(self, src_bucket_name, src_object_key, dst_bucket_name, dst_object_key):
+    def move_object(self, src_bucket_name: str, src_object_key: str, dst_bucket_name: str, dst_object_key: str) -> None:
         """
         Moves an object from one S3 bucket to another.
 
@@ -163,7 +193,7 @@ class S3ServiceGateway:
         logger.debug(f"Object moved: {src_object_key} to {dst_bucket_name}/{dst_object_key}")
 
     @Retryable()
-    def copy_object(self, src_bucket_name, src_object_key, dst_bucket_name, dst_object_key):
+    def copy_object(self, src_bucket_name: str, src_object_key: str, dst_bucket_name: str, dst_object_key: str) -> None:
         """
         Copies an object from one S3 bucket to another.
 
@@ -182,23 +212,7 @@ class S3ServiceGateway:
         logger.debug(f"Object copied: {src_object_key} to {dst_bucket_name}/{dst_object_key}")
 
     @Retryable()
-    def rename_object(self, bucket_name, src_object_key, dst_object_key):
-        """
-        Renames an object within the same S3 bucket.
-
-        :param bucket_name: The name of the S3 bucket.
-        :type bucket_name: str
-        :param src_object_key: The current key of the object.
-        :type src_object_key: str
-        :param dst_object_key: The new key of the object.
-        :type dst_object_key: str
-        """
-        logger.debug(f"Renaming object: {src_object_key} to {dst_object_key} in bucket: {bucket_name}")
-        self.move_object(bucket_name, src_object_key, bucket_name, dst_object_key)
-        logger.debug(f"Object renamed: {src_object_key} to {dst_object_key} in bucket: {bucket_name}")
-
-    @Retryable()
-    def check_object_existence(self, bucket_name, object_key):
+    def check_object_existence(self, bucket_name: str, object_key: str) -> bool:
         """
         Checks if an object exists in an S3 bucket.
 
@@ -222,7 +236,7 @@ class S3ServiceGateway:
                 raise
 
     @Retryable()
-    def list_objects(self, bucket_name, prefix=None):
+    def list_objects(self, bucket_name: str, prefix: str = None) -> list:
         """
         Lists objects in an S3 bucket, optionally filtered by a prefix.
 
@@ -231,7 +245,7 @@ class S3ServiceGateway:
         :param prefix: The prefix to filter the objects.
         :type prefix: str, optional
         :returns: A list of object keys.
-        :rtype: List[str]
+        :rtype: list
         """
         logger.debug(f"Listing objects in bucket: {bucket_name} with prefix: {prefix}")
         paginator = self.s3_client.get_paginator('list_objects_v2')
@@ -241,7 +255,7 @@ class S3ServiceGateway:
         return object_list
 
     @Retryable()
-    def check_bucket_permissions(self, bucket_name):
+    def check_bucket_permissions(self, bucket_name: str) -> dict:
         """
         Checks the permissions of an S3 bucket.
 
@@ -254,3 +268,78 @@ class S3ServiceGateway:
         acl = self.s3_client.get_bucket_acl(Bucket=bucket_name)
         logger.debug(f"Permissions checked for bucket: {bucket_name}")
         return acl
+
+    @Retryable()
+    def list_buckets(self) -> list:
+        """
+        Lists all S3 buckets.
+
+        :returns: A list of bucket names.
+        :rtype: list
+        """
+        logger.debug("Listing all S3 buckets")
+        response = self.s3_client.list_buckets()
+        bucket_list = [bucket['Name'] for bucket in response.get('Buckets', [])]
+        logger.debug("S3 buckets listed")
+        return bucket_list
+
+    # Aliases for backward compatibility with deprecation warnings
+    def upload_fileobj(self, file_path: Union[str, IO[bytes]], bucket_name: str, object_key: str):
+        """
+        Uploads a file-like object to S3.
+
+        This method is deprecated and will be removed in a future release.
+        Use 'upload_file' instead.
+
+        :param file_path: The file-like object or path to be uploaded.
+        :type file_path: Union[str, IO[bytes]]
+        :param bucket_name: The name of the S3 bucket.
+        :type bucket_name: str
+        :param object_key: The key of the object in the S3 bucket.
+        :type object_key: str
+        """
+        warnings.warn(
+            "The 'upload_fileobj' method is deprecated and will be removed in a future release. Use 'upload_file' instead.",
+            DeprecationWarning
+        )
+        return self.upload_file(file=file_path, bucket_name=bucket_name, object_key=object_key)
+
+    def upload_object(self, obj: Union[str, bytes, IO[bytes], StreamingBody], bucket_name: str, object_key: str):
+        """
+        Uploads an object to S3.
+
+        This method is deprecated and will be removed in a future release.
+        Use 'upload_file' instead.
+
+        :param obj: The bytes of the object to be uploaded.
+        :type obj: Union[str, bytes, IO[bytes], StreamingBody]
+        :param bucket_name: The name of the S3 bucket.
+        :type bucket_name: str
+        :param object_key: The key of the object in the S3 bucket.
+        :type object_key: str
+        """
+        warnings.warn(
+            "The 'upload_object' method is deprecated and will be removed in a future release. Use 'upload_file' instead.",
+            DeprecationWarning
+        )
+        return self.upload_file(file=obj, bucket_name=bucket_name, object_key=object_key)
+
+    def rename_object(self, bucket_name: str, src_object_key: str, dst_object_key: str):
+        """
+        Renames an object within the same S3 bucket.
+
+        This method is deprecated and will be removed in a future release.
+        Use 'move_object' instead.
+
+        :param bucket_name: The name of the S3 bucket.
+        :type bucket_name: str
+        :param src_object_key: The current key of the object.
+        :type src_object_key: str
+        :param dst_object_key: The new key of the object.
+        :type dst_object_key: str
+        """
+        warnings.warn(
+            "The 'rename_object' method is deprecated and will be removed in a future release. Use 'move_object' instead.",
+            DeprecationWarning
+        )
+        return self.move_object(src_bucket_name=bucket_name, src_object_key=src_object_key, dst_bucket_name=bucket_name, dst_object_key=dst_object_key)
