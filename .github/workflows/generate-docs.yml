@@ -35,18 +35,27 @@ jobs:
           LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) || echo "v0.0.0")
           echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
 
-      # Generate Sphinx .rst files using sphinx-apidoc
       - name: Generate .rst files
         run: |
           sphinx-apidoc -o docs WrenchCL/
 
-      # Generate Sphinx documentation using sphinx-build
+      - name: List .rst files
+        run: |
+          ls -la docs
+
+      - name: Commit and push updated .rst files
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add docs
+          git commit -m "Update .rst files"
+          git push origin main
+
       - name: Generate documentation
         run: |
           sphinx-build -D release=${{ env.LATEST_TAG }} -b html docs docs/_build/html
           touch docs/_build/html/.nojekyll
 
-      # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
