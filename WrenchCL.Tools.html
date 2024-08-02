@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WrenchCL.Tools package &mdash; WrenchCL v2.4.0 documentation</title>
+  <title>WrenchCL.Tools package &mdash; WrenchCL v2.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=b627b0b9"></script>
+        <script src="_static/documentation_options.js?v=c7f2fae0"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -45,69 +45,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Modules</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.html">WrenchCL package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.Connect.html">WrenchCL.Connect package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.DataFlow.html">WrenchCL.DataFlow package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.Decorators.html">WrenchCL.Decorators package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.Models.html">WrenchCL.Models package</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">WrenchCL.Tools package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.Coalesce">WrenchCL.Tools.Coalesce module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Coalesce.coalesce"><code class="docutils literal notranslate"><span class="pre">coalesce()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.FetchMetaData">WrenchCL.Tools.FetchMetaData module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.FetchMetaData.get_metadata"><code class="docutils literal notranslate"><span class="pre">get_metadata()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.FileTyper">WrenchCL.Tools.FileTyper module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.FileTyper.get_file_type"><code class="docutils literal notranslate"><span class="pre">get_file_type()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.Image2B64">WrenchCL.Tools.Image2B64 module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Image2B64.get_hash"><code class="docutils literal notranslate"><span class="pre">get_hash()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Image2B64.image_to_base64"><code class="docutils literal notranslate"><span class="pre">image_to_base64()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Image2B64.validate_base64"><code class="docutils literal notranslate"><span class="pre">validate_base64()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.JsonSerializer">WrenchCL.Tools.JsonSerializer module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.JsonSerializer.robust_serializer"><code class="docutils literal notranslate"><span class="pre">robust_serializer()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.JsonSerializer.single_quote_decoder"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.MaybeMonad">WrenchCL.Tools.MaybeMonad module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.MaybeMonad.Maybe"><code class="docutils literal notranslate"><span class="pre">Maybe</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.TypeChecker">WrenchCL.Tools.TypeChecker module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.TypeChecker.typechecker"><code class="docutils literal notranslate"><span class="pre">typechecker()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools.WrenchLogger">WrenchCL.Tools.WrenchLogger module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.BaseLogger"><code class="docutils literal notranslate"><span class="pre">BaseLogger</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.WrenchLogger.initialize_logger"><code class="docutils literal notranslate"><span class="pre">initialize_logger()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#module-WrenchCL.Tools">Module contents</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Logger"><code class="docutils literal notranslate"><span class="pre">Logger()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.Maybe"><code class="docutils literal notranslate"><span class="pre">Maybe</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.coalesce"><code class="docutils literal notranslate"><span class="pre">coalesce()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.get_file_type"><code class="docutils literal notranslate"><span class="pre">get_file_type()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.get_metadata"><code class="docutils literal notranslate"><span class="pre">get_metadata()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.image_to_base64"><code class="docutils literal notranslate"><span class="pre">image_to_base64()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.robust_serializer"><code class="docutils literal notranslate"><span class="pre">robust_serializer()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.single_quote_decoder"><code class="docutils literal notranslate"><span class="pre">single_quote_decoder</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.typechecker"><code class="docutils literal notranslate"><span class="pre">typechecker()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#WrenchCL.Tools.validate_base64"><code class="docutils literal notranslate"><span class="pre">validate_base64()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.scripts.html">WrenchCL.scripts package</a></li>
-</ul>
-</li>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
 </ul>
@@ -232,7 +170,6 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="modules.html">Modules</a></li>
           <li class="breadcrumb-item"><a href="WrenchCL.html">WrenchCL package</a></li>
       <li class="breadcrumb-item active">WrenchCL.Tools package</li>
       <li class="wy-breadcrumbs-aside">
