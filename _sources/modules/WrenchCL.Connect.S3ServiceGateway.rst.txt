@@ -1,6 +1,0 @@
-WrenchCL.Connect.S3ServiceGateway
-=================================
-
-.. currentmodule:: WrenchCL.Connect
-
-.. autofunction:: S3ServiceGateway

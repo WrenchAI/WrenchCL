@@ -46,16 +46,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.html">WrenchCL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.Connect.html">WrenchCL.Connect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.DataFlow.html">WrenchCL.DataFlow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.Decorators.html">WrenchCL.Decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.Models.html">WrenchCL.Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.Tools.html">WrenchCL.Tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL._Internal.html">WrenchCL._Internal</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.scripts.html">WrenchCL.scripts</a></li>
-</ul>
 
         </div>
       </div>
@@ -146,7 +136,7 @@
 <span class="s2">&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="FileCombiner">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner">[docs]</a>
 <span class="k">class</span> <span class="nc">FileCombiner</span><span class="p">:</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;combined_file.md&#39;</span><span class="p">,</span> <span class="n">extensions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">compact_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">include_patterns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -176,7 +166,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">filter_tree</span> <span class="o">=</span> <span class="n">filter_tree</span>
 
 <div class="viewcode-block" id="FileCombiner.get_files_by_extension">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.get_files_by_extension">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.get_files_by_extension">[docs]</a>
     <span class="k">def</span> <span class="nf">get_files_by_extension</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Recursively get all files with specified extensions in the directory.</span>
@@ -207,7 +197,7 @@
 
 
 <div class="viewcode-block" id="FileCombiner.combine_files">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.combine_files">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.combine_files">[docs]</a>
     <span class="k">def</span> <span class="nf">combine_files</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Combine specified files into a single output file.</span>
@@ -263,7 +253,7 @@
 
 
 <div class="viewcode-block" id="FileCombiner.remove_copyright">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.remove_copyright">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.remove_copyright">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">remove_copyright</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -296,7 +286,7 @@
 
 
 <div class="viewcode-block" id="FileCombiner.remove_docstrings">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.remove_docstrings">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.remove_docstrings">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">remove_docstrings</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -314,7 +304,7 @@
 
 
 <div class="viewcode-block" id="FileCombiner.print_usage">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.print_usage">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.print_usage">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">print_usage</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -324,7 +314,7 @@
 
 
 <div class="viewcode-block" id="FileCombiner.from_argv">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.from_argv">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.from_argv">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_argv</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;FileCombiner&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -411,7 +401,7 @@
 
 
 <div class="viewcode-block" id="FileCombiner.run">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.run">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.FileCombiner.run">[docs]</a>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run the file combiner process.</span>
@@ -455,7 +445,7 @@
 
 
 <div class="viewcode-block" id="main">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.main">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.scripts.html#WrenchCL.scripts.combine_files.main">[docs]</a>
 <span class="k">def</span> <span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">combiner</span> <span class="o">=</span> <span class="n">FileCombiner</span><span class="o">.</span><span class="n">from_argv</span><span class="p">()</span>
     <span class="n">combiner</span><span class="o">.</span><span class="n">run</span><span class="p">()</span></div>

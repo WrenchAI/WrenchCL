@@ -1,6 +1,0 @@
-WrenchCL.Decorators.Retryable
-=============================
-
-.. currentmodule:: WrenchCL.Decorators
-
-.. autofunction:: Retryable

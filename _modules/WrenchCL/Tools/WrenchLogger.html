@@ -46,16 +46,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.html">WrenchCL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.Connect.html">WrenchCL.Connect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.DataFlow.html">WrenchCL.DataFlow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.Decorators.html">WrenchCL.Decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.Models.html">WrenchCL.Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.Tools.html">WrenchCL.Tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL._Internal.html">WrenchCL._Internal</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules/WrenchCL.scripts.html">WrenchCL.scripts</a></li>
-</ul>
 
         </div>
       </div>
@@ -118,7 +108,7 @@
 
 
 <div class="viewcode-block" id="BaseLogger">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger">[docs]</a>
 <span class="k">class</span> <span class="nc">BaseLogger</span><span class="p">:</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;INFO&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span> <span class="o">=</span> <span class="kc">None</span>
@@ -155,13 +145,13 @@
 
 
 <div class="viewcode-block" id="BaseLogger.initiate_new_run">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger.initiate_new_run">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger.initiate_new_run">[docs]</a>
     <span class="k">def</span> <span class="nf">initiate_new_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">run_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_run_id</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="BaseLogger.set_verbose">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger.set_verbose">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger.set_verbose">[docs]</a>
     <span class="k">def</span> <span class="nf">set_verbose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">non_verbose_mode</span> <span class="o">=</span> <span class="kc">False</span>
@@ -170,7 +160,7 @@
 
 
 <div class="viewcode-block" id="BaseLogger.setLevel">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger.setLevel">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger.setLevel">[docs]</a>
     <span class="k">def</span> <span class="nf">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Change the reporting level of the logger.</span>
@@ -189,13 +179,13 @@
 
 
 <div class="viewcode-block" id="BaseLogger.set_global_traceback">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger.set_global_traceback">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger.set_global_traceback">[docs]</a>
     <span class="k">def</span> <span class="nf">set_global_traceback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setting</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">force_stack_trace</span> <span class="o">=</span> <span class="n">setting</span></div>
 
 
 <div class="viewcode-block" id="BaseLogger.revertLoggingLevel">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger.revertLoggingLevel">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger.revertLoggingLevel">[docs]</a>
     <span class="k">def</span> <span class="nf">revertLoggingLevel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">previous_level</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_handler</span><span class="p">:</span>
@@ -205,7 +195,7 @@
 
 
 <div class="viewcode-block" id="BaseLogger.overwrite_lambda_mode">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger.overwrite_lambda_mode">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger.overwrite_lambda_mode">[docs]</a>
     <span class="k">def</span> <span class="nf">overwrite_lambda_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setting</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">running_on_lambda</span> <span class="o">=</span> <span class="n">setting</span></div>
 
@@ -676,7 +666,7 @@
 
 
 <div class="viewcode-block" id="initialize_logger">
-<a class="viewcode-back" href="../../../WrenchCL/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.initialize_logger">[docs]</a>
+<a class="viewcode-back" href="../../../modules/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.initialize_logger">[docs]</a>
 <span class="k">def</span> <span class="nf">initialize_logger</span><span class="p">():</span>
     <span class="k">global</span> <span class="n">logger</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">()</span></div>

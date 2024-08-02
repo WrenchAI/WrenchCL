@@ -1,20 +1,77 @@
-WrenchCL.Tools
-==============
+WrenchCL.Tools package
+======================
+
+Submodules
+----------
+
+WrenchCL.Tools.Coalesce module
+------------------------------
+
+.. automodule:: WrenchCL.Tools.Coalesce
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+WrenchCL.Tools.FetchMetaData module
+-----------------------------------
+
+.. automodule:: WrenchCL.Tools.FetchMetaData
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+WrenchCL.Tools.FileTyper module
+-------------------------------
+
+.. automodule:: WrenchCL.Tools.FileTyper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+WrenchCL.Tools.Image2B64 module
+-------------------------------
+
+.. automodule:: WrenchCL.Tools.Image2B64
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+WrenchCL.Tools.JsonSerializer module
+------------------------------------
+
+.. automodule:: WrenchCL.Tools.JsonSerializer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+WrenchCL.Tools.MaybeMonad module
+--------------------------------
+
+.. automodule:: WrenchCL.Tools.MaybeMonad
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+WrenchCL.Tools.TypeChecker module
+---------------------------------
+
+.. automodule:: WrenchCL.Tools.TypeChecker
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+WrenchCL.Tools.WrenchLogger module
+----------------------------------
+
+.. automodule:: WrenchCL.Tools.WrenchLogger
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
 
 .. automodule:: WrenchCL.Tools
-
-   
-.. rubric:: Modules
-
-.. autosummary::
-   :toctree:
-   :recursive:
-
-   Coalesce
-   FetchMetaData
-   FileTyper
-   Image2B64
-   JsonSerializer
-   MaybeMonad
-   TypeChecker
-   WrenchLogger
+   :members:
+   :undoc-members:
+   :show-inheritance:

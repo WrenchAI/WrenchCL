@@ -1,18 +1,23 @@
-WrenchCL
-========
+WrenchCL package
+================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   WrenchCL.Connect
+   WrenchCL.DataFlow
+   WrenchCL.Decorators
+   WrenchCL.Models
+   WrenchCL.Tools
+   WrenchCL.scripts
+
+Module contents
+---------------
 
 .. automodule:: WrenchCL
-
-   
-.. rubric:: Modules
-
-.. autosummary::
-   :toctree:
-   :recursive:
-
-   Connect
-   DataFlow
-   Decorators
-   Models
-   Tools
-   scripts
+   :members:
+   :undoc-members:
+   :show-inheritance:

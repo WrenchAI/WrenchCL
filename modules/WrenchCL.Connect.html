@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WrenchCL.Connect &mdash; WrenchCL 0.0.1.dev0 documentation</title>
+  <title>WrenchCL.Connect package &mdash; WrenchCL 0.0.1.dev0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -20,9 +20,7 @@
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="WrenchCL.Connect.AwsClientHub" href="WrenchCL.Connect.AwsClientHub.html" />
-    <link rel="prev" title="WrenchCL" href="WrenchCL.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -49,34 +47,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development.html">Development</a></li>
 </ul>
-<ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="WrenchCL.html">WrenchCL</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">WrenchCL.Connect</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Connect.AwsClientHub.html">WrenchCL.Connect.AwsClientHub</a></li>
-<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Connect.RdsServiceGateway.html">WrenchCL.Connect.RdsServiceGateway</a></li>
-<li class="toctree-l3"><a class="reference internal" href="WrenchCL.Connect.S3ServiceGateway.html">WrenchCL.Connect.S3ServiceGateway</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.DataFlow.html">WrenchCL.DataFlow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.Decorators.html">WrenchCL.Decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.Models.html">WrenchCL.Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.Tools.html">WrenchCL.Tools</a></li>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.scripts.html">WrenchCL.scripts</a></li>
-</ul>
-</li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">WrenchCL.Connect</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.Connect.AwsClientHub.html">WrenchCL.Connect.AwsClientHub</a></li>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.Connect.RdsServiceGateway.html">WrenchCL.Connect.RdsServiceGateway</a></li>
-<li class="toctree-l2"><a class="reference internal" href="WrenchCL.Connect.S3ServiceGateway.html">WrenchCL.Connect.S3ServiceGateway</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="WrenchCL.DataFlow.html">WrenchCL.DataFlow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="WrenchCL.Decorators.html">WrenchCL.Decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="WrenchCL.Models.html">WrenchCL.Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="WrenchCL.Tools.html">WrenchCL.Tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="WrenchCL._Internal.html">WrenchCL._Internal</a></li>
-<li class="toctree-l1"><a class="reference internal" href="WrenchCL.scripts.html">WrenchCL.scripts</a></li>
-</ul>
 
         </div>
       </div>
@@ -92,8 +62,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="WrenchCL.html">WrenchCL</a></li>
-      <li class="breadcrumb-item active">WrenchCL.Connect</li>
+      <li class="breadcrumb-item active">WrenchCL.Connect package</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/modules/WrenchCL.Connect.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -103,31 +72,80 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-WrenchCL.Connect">
-<span id="wrenchcl-connect"></span><h1>WrenchCL.Connect<a class="headerlink" href="#module-WrenchCL.Connect" title="Link to this heading"></a></h1>
-<p class="rubric">Modules</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="WrenchCL.Connect.AwsClientHub.html#WrenchCL.Connect.AwsClientHub" title="WrenchCL.Connect.AwsClientHub"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AwsClientHub</span></code></a>(*args, **kwargs)</p></td>
-<td><p>Returns the singleton instance of the class, creating it if it does not already exist.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="WrenchCL.Connect.RdsServiceGateway.html#WrenchCL.Connect.RdsServiceGateway" title="WrenchCL.Connect.RdsServiceGateway"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RdsServiceGateway</span></code></a>(*args, **kwargs)</p></td>
-<td><p>Returns the singleton instance of the class, creating it if it does not already exist.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="WrenchCL.Connect.S3ServiceGateway.html#WrenchCL.Connect.S3ServiceGateway" title="WrenchCL.Connect.S3ServiceGateway"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S3ServiceGateway</span></code></a>(*args, **kwargs)</p></td>
-<td><p>Returns the singleton instance of the class, creating it if it does not already exist.</p></td>
-</tr>
-</tbody>
-</table>
+  <section id="wrenchcl-connect-package">
+<h1>WrenchCL.Connect package<a class="headerlink" href="#wrenchcl-connect-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-WrenchCL.Connect.AwsClientHub">
+<span id="wrenchcl-connect-awsclienthub-module"></span><h2>WrenchCL.Connect.AwsClientHub module<a class="headerlink" href="#module-WrenchCL.Connect.AwsClientHub" title="Link to this heading"></a></h2>
+</section>
+<section id="module-WrenchCL.Connect.RdsServiceGateway">
+<span id="wrenchcl-connect-rdsservicegateway-module"></span><h2>WrenchCL.Connect.RdsServiceGateway module<a class="headerlink" href="#module-WrenchCL.Connect.RdsServiceGateway" title="Link to this heading"></a></h2>
+</section>
+<section id="module-WrenchCL.Connect.S3ServiceGateway">
+<span id="wrenchcl-connect-s3servicegateway-module"></span><h2>WrenchCL.Connect.S3ServiceGateway module<a class="headerlink" href="#module-WrenchCL.Connect.S3ServiceGateway" title="Link to this heading"></a></h2>
+</section>
+<section id="module-WrenchCL.Connect">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-WrenchCL.Connect" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Connect.AwsClientHub">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Connect.</span></span><span class="sig-name descname"><span class="pre">AwsClientHub</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Connect.AwsClientHub" title="Link to this definition"></a></dt>
+<dd><p>Returns the singleton instance of the class, creating it if it does not already exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the class constructor.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the class constructor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The singleton instance of the class.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Connect.RdsServiceGateway">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Connect.</span></span><span class="sig-name descname"><span class="pre">RdsServiceGateway</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Connect.RdsServiceGateway" title="Link to this definition"></a></dt>
+<dd><p>Returns the singleton instance of the class, creating it if it does not already exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the class constructor.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the class constructor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The singleton instance of the class.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Connect.S3ServiceGateway">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Connect.</span></span><span class="sig-name descname"><span class="pre">S3ServiceGateway</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#WrenchCL.Connect.S3ServiceGateway" title="Link to this definition"></a></dt>
+<dd><p>Returns the singleton instance of the class, creating it if it does not already exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – Positional arguments for the class constructor.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the class constructor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The singleton instance of the class.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
            </div>
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="WrenchCL.html" class="btn btn-neutral float-left" title="WrenchCL" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="WrenchCL.Connect.AwsClientHub.html" class="btn btn-neutral float-right" title="WrenchCL.Connect.AwsClientHub" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-    </div>
+          <footer>
 
   <hr/>
 

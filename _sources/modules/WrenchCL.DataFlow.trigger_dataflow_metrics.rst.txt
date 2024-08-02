@@ -1,6 +1,0 @@
-WrenchCL.DataFlow.trigger\_dataflow\_metrics
-============================================
-
-.. currentmodule:: WrenchCL.DataFlow
-
-.. autofunction:: trigger_dataflow_metrics

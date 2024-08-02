@@ -46,16 +46,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules/WrenchCL.html">WrenchCL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules/WrenchCL.Connect.html">WrenchCL.Connect</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules/WrenchCL.DataFlow.html">WrenchCL.DataFlow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules/WrenchCL.Decorators.html">WrenchCL.Decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules/WrenchCL.Models.html">WrenchCL.Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules/WrenchCL.Tools.html">WrenchCL.Tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules/WrenchCL._Internal.html">WrenchCL._Internal</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules/WrenchCL.scripts.html">WrenchCL.scripts</a></li>
-</ul>
 
         </div>
       </div>
@@ -114,15 +104,13 @@
 
 
 <div class="viewcode-block" id="OpenAIFactory">
-<a class="viewcode-back" href="../../../../modules/WrenchCL.Models.OpenAI.OpenAIFactory.html#WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory">[docs]</a>
+<a class="viewcode-back" href="../../../../modules/WrenchCL.Models.OpenAI.html#WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory">[docs]</a>
 <span class="k">class</span> <span class="nc">OpenAIFactory</span><span class="p">(</span><span class="n">OpenAIGateway</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A factory class that extends OpenAIGateway to provide additional methods for processing audio, images, and text,</span>
 <span class="sd">    and generating embeddings using OpenAI&#39;s models.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="OpenAIFactory.__init__">
-<a class="viewcode-back" href="../../../../modules/WrenchCL.Models.OpenAI.OpenAIFactory.html#WrenchCL.Models.OpenAI.OpenAIFactory.OpenAIFactory.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_key</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the OpenAIFactory with the provided API key.</span>
@@ -130,8 +118,7 @@
 <span class="sd">        :param api_key: The OpenAI API key.</span>
 <span class="sd">        :type api_key: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">api_key</span><span class="p">)</span></div>
-
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">api_key</span><span class="p">)</span>
 
     <span class="nd">@TimedMethod</span>
     <span class="k">def</span> <span class="nf">audio_to_text_to_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_source</span><span class="p">,</span> <span class="n">dimensions</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">embedding_model</span><span class="o">=</span><span class="s2">&quot;text-embedding-3-small&quot;</span><span class="p">):</span>

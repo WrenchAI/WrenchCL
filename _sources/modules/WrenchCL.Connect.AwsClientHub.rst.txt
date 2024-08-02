@@ -1,6 +1,0 @@
-WrenchCL.Connect.AwsClientHub
-=============================
-
-.. currentmodule:: WrenchCL.Connect
-
-.. autofunction:: AwsClientHub

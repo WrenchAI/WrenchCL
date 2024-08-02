@@ -1,13 +1,21 @@
-WrenchCL.scripts
-================
+WrenchCL.scripts package
+========================
+
+Submodules
+----------
+
+WrenchCL.scripts.combine\_files module
+--------------------------------------
+
+.. automodule:: WrenchCL.scripts.combine_files
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
 
 .. automodule:: WrenchCL.scripts
-
-   
-.. rubric:: Modules
-
-.. autosummary::
-   :toctree:
-   :recursive:
-
-   combine_files
+   :members:
+   :undoc-members:
+   :show-inheritance:
