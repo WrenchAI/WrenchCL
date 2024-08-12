@@ -21,7 +21,6 @@ from ..Tools.WrenchLogger import Logger
 logger = Logger()
 logging.getLogger("paramiko").setLevel(40)
 
-
 class _SshTunnelManager:
     """
     Manages the SSH tunnel for securely connecting to a remote database server. This class uses the SSHTunnelForwarder
@@ -67,7 +66,6 @@ class _SshTunnelManager:
         :returns: A tuple containing the local bind address and port.
         :rtype: tuple
         """
-        logger.setLevel("warning")
         self.tunnel = SSHTunnelForwarder(
             ssh_address_or_host=(self.ssh_config['SSH_SERVER'], self.ssh_config['SSH_PORT']),
             ssh_username=self.ssh_config['SSH_USER'],
@@ -75,7 +73,6 @@ class _SshTunnelManager:
             ssh_pkey=self.ssh_config.get('SSH_KEY_PATH', None),
             remote_bind_address=(self.config['PGHOST'], self.config['PGPORT'])
         )
-        logger.revertLoggingLevel()
         self.tunnel.start()
         return '127.0.0.1', self.tunnel.local_bind_port
 
