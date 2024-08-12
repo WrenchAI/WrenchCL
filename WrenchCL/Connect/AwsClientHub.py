@@ -230,10 +230,8 @@ class AwsClientHub:
             logger.debug("SSH Tunnel Connected")
         logger.debug(f"Connecting to DB with {host}.{port} ")
 
-        logger.setLevel("Warning")
         db_client = psycopg2.connect(host=host, port=port, database=config['PGDATABASE'], user=config['PGUSER'],
                                      password=config['PGPASSWORD'])
-        logger.revertLoggingLevel()
 
         return db_client
 
