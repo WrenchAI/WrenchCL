@@ -29,7 +29,7 @@ def build_return_json(code, response_body):
 
     Args:
         code (int): The HTTP status code to be included in the response.
-        response_body (dict): A dictionary containing data to be included in the response body. Defaults to None.
+        response_body (any): A dictionary containing data to be included in the response body. Defaults to None.
 
     Returns:
         dict: A dictionary representing the JSON response containing the status code, message, and optionally the return dictionary.

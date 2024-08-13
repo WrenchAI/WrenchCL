@@ -7,8 +7,7 @@ from json import JSONDecodeError
 import requests
 from botocore.exceptions import ClientError, BotoCoreError
 
-
-def Retryable(max_retries=5, retry_on_exceptions=None, delay=2, verbosity=1, logging_level="WARNING"):
+def Retryable(_func=None, *, max_retries=5, retry_on_exceptions=None, delay=2, verbosity=1, logging_level=None):
     """
     A decorator that retries a function call a specified number of times if it raises an exception or if the request status code is not 200.
 
@@ -30,7 +29,7 @@ def Retryable(max_retries=5, retry_on_exceptions=None, delay=2, verbosity=1, log
                       4 - Logs warnings and the state of the function for every warning.
     :type verbosity: int
     :param logging_level: The logging level to use. Can be "DEBUG", "INFO", "WARNING", "ERROR", or "CRITICAL". Default is "WARNING".
-    :type logging_level: str
+    :type logging_level: Optional str
 
     :return: The result of the decorated function, if it succeeds within the allowed retries.
     """
@@ -49,7 +48,8 @@ def Retryable(max_retries=5, retry_on_exceptions=None, delay=2, verbosity=1, log
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
             retry_count = 0
-            logger.setLevel(logging_level.upper())
+            if logging_level is not None:
+                logger.setLevel(logging_level.upper())
 
             while retry_count < max_retries:
                 try:
@@ -110,12 +110,14 @@ def Retryable(max_retries=5, retry_on_exceptions=None, delay=2, verbosity=1, log
                             log_state(func, *args, **kwargs)
                         logger.revertLoggingLevel()
                         raise e
-            logger.revertLoggingLevel()
+            if logging_level is not None:
+                logger.revertLoggingLevel()
 
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
             retry_count = 0
-            logger.setLevel(logging_level.upper())
+            if logging_level is not None:
+                logger.setLevel(logging_level.upper())
 
             while retry_count < max_retries:
                 try:
@@ -176,11 +178,15 @@ def Retryable(max_retries=5, retry_on_exceptions=None, delay=2, verbosity=1, log
                             log_state(func, *args, **kwargs)
                         logger.revertLoggingLevel()
                         raise e
-            logger.revertLoggingLevel()
+            if logging_level is not None:
+                logger.revertLoggingLevel()
 
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
         else:
             return sync_wrapper
 
-    return decorator_retry
+    if _func is None:
+        return decorator_retry
+    else:
+        return decorator_retry(_func)

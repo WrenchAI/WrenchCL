@@ -52,7 +52,7 @@ class S3ServiceGateway:
         """Get the file extension for a given MIME type."""
         return mimetypes.guess_extension(mime_type)
 
-    def _verify_and_correct_extension(self, object_key: str, mime_type: str) -> str:
+    def verify_and_correct_extension(self, object_key: str, mime_type: str) -> str:
         """Verify the extension of the object key and correct it if necessary."""
         correct_extension = self._get_mime_extension(mime_type)
         if not correct_extension:
@@ -65,24 +65,28 @@ class S3ServiceGateway:
         return object_key
 
     @Retryable()
-    def upload_file(self, file: Union[str, bytes, IO[bytes], StreamingBody], bucket_name: str, object_key: str) -> None:
+    def upload_file(self, file: Union[str, Path, bytes, BytesIO, StreamingBody],
+                    bucket_name: str, object_key: str, return_url: bool = False) -> Union[None, str]:
         """
         Uploads a file to S3. Handles file paths, bytes, file-like objects, and StreamingBody.
-        Verifies and corrects the file extension based on the MIME type.
 
         :param file: The file path, bytes, file-like object, or StreamingBody to be uploaded.
-        :type file: Union[str, bytes, IO[bytes], StreamingBody]
+        :type file: Union[str, Path, bytes, BytesIO, StreamingBody]
         :param bucket_name: The name of the S3 bucket.
         :type bucket_name: str
         :param object_key: The key of the object in the S3 bucket.
         :type object_key: str
+        :param return_url: Whether to return the S3 URL of the uploaded file.
+        :type return_url: bool
+        :return: The S3 URL of the uploaded file if `return_url` is True, otherwise None.
+        :rtype: Union[None, str]
         """
         if isinstance(file, (str, Path)) and Path(file).is_file():
             file_path = Path(file)
+            if file_path.stat().st_size == 0:
+                raise ValueError("The file is empty.")
             logger.debug(f"Uploading file from path: {file_path} to bucket: {bucket_name} as object: {object_key}")
             with open(file_path, 'rb') as f:
-                mime_type, _ = mimetypes.guess_type(file_path)
-                object_key = self._verify_and_correct_extension(object_key, mime_type)
                 self.s3_client.upload_fileobj(f, bucket_name, object_key)
         elif isinstance(file, bytes) or (isinstance(file, str) and not Path(file).is_file()):
             # Handle base64 encoded strings
@@ -91,20 +95,27 @@ class S3ServiceGateway:
             except binascii.Error:
                 file_content = file.encode('utf-8') if isinstance(file, str) else file
 
+            if len(file_content) == 0:
+                raise ValueError("The byte content is empty.")
+
             file_obj = BytesIO(file_content)
-            mime_type = mimetypes.guess_type(object_key)[0] or 'application/octet-stream'
-            object_key = self._verify_and_correct_extension(object_key, mime_type)
             logger.debug(f"Uploading bytes object to bucket: {bucket_name} as object: {object_key}")
             self.s3_client.upload_fileobj(file_obj, bucket_name, object_key)
         elif hasattr(file, 'read') and callable(file.read):
-            mime_type = mimetypes.guess_type(object_key)[0] or 'application/octet-stream'
-            object_key = self._verify_and_correct_extension(object_key, mime_type)
+            if file.seek(0, 2) == 0:  # Move to the end of the file and check the position
+                raise ValueError("The file-like object is empty.")
+            file.seek(0)  # Move back to the beginning of the file
             logger.debug(f"Uploading file-like object to bucket: {bucket_name} as object: {object_key}")
             self.s3_client.upload_fileobj(file, bucket_name, object_key)
         else:
             raise ValueError("The file parameter must be a file path, bytes, file-like object, or StreamingBody.")
 
         logger.debug(f"File uploaded to bucket: {bucket_name} as object: {object_key}")
+
+        if return_url:
+            s3_url = f"https://{bucket_name}.s3.amazonaws.com/{object_key}"
+            return s3_url
+
 
     @Retryable()
     def get_object(self, bucket_name: str, object_key: str) -> io.BytesIO:
@@ -282,6 +293,38 @@ class S3ServiceGateway:
         bucket_list = [bucket['Name'] for bucket in response.get('Buckets', [])]
         logger.debug("S3 buckets listed")
         return bucket_list
+
+    @Retryable()
+    def get_signed_url(self, bucket_name: str, object_key: str, expiration_seconds: int = 3600) -> str:
+        """
+        Generate a signed URL for an S3 object.
+
+        :param bucket_name: Name of the S3 bucket
+        :type bucket_name: str
+        :param object_key: Key of the S3 object
+        :type object_key: str
+        :param expiration_seconds: Time in seconds for the presigned URL to remain valid
+        :type expiration_seconds: int
+        :return: Presigned URL as a string
+        :rtype: str
+        :raises: Exception if URL generation fails
+        """
+        logger.debug(f'Generating signed URL for bucket: {bucket_name}, key: {object_key}')
+        try:
+            url = self.s3_client.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': bucket_name, 'Key': object_key},
+                ExpiresIn=expiration_seconds
+            )
+            if url:
+                logger.debug(f'Signed URL generated successfully: {url}')
+                return url
+            else:
+                logger.error('Failed to generate signed URL')
+                raise ValueError('Generated URL is invalid')
+        except ClientError as e:
+            logger.error(f'Error generating signed URL: {e}')
+            raise ValueError('Failed to generate signed URL') from e
 
     # Aliases for backward compatibility with deprecation warnings
     def upload_fileobj(self, file_path: Union[str, IO[bytes]], bucket_name: str, object_key: str):

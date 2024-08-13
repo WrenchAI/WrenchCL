@@ -32,7 +32,6 @@ _srcfile = os.path.normcase(__file__)
 _logging_src = os.path.normcase(logging.addLevelName.__code__.co_filename)
 
 
-
 class BaseLogger:
     def __init__(self, level: str = 'INFO') -> None:
         self._start_time = None
@@ -133,10 +132,8 @@ class BaseLogger:
                     sinfo = f"\n ---Stack Trace--- \n {sinfo_out}"
         else:
             sinfo = None
-
         record = self.logger.makeRecord(name=self.logger.name, level=level, fn=filepath_out, lno=line_no_out, msg=msg,
                                         exc_info=None, func=func_name_out, sinfo=sinfo, args=())
-
         self.logger.handle(record)
 
     def _log_with_color(self, level: int, text: str, color: Optional[str] = None,
@@ -191,7 +188,6 @@ class BaseLogger:
             self._handlerFormat()
 
         # Print the raw output for debugging
-
         self._log(level, text, stack_info)
 
     def _format_data(self, data, object_name=None, content=True, wrap_length=None, max_rows=None, indent=4):
@@ -342,7 +338,6 @@ class BaseLogger:
         self.logger.handlers = []  # Clear existing handlers
 
         self.logger.addHandler(self.console_handler)
-
         if colorama_imported and not self.running_on_lambda:
             init(autoreset=True)
 
@@ -568,13 +563,3 @@ class Logger(BaseLogger):
 
 # Provide backward compatibility
 logger = None
-
-
-def initialize_logger():
-    global logger
-    logger = Logger()
-
-
-# Lazy instantiation of the logger for backward compatibility
-if 'logger' in sys.modules:
-    initialize_logger()

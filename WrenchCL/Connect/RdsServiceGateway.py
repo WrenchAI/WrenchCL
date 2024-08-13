@@ -95,6 +95,8 @@ class RdsServiceGateway:
                 with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                     if show_query:
                         logger.context("Mogrified Query:", cursor.mogrify(query, payload))
+                    else:
+                        logger.debug("Mogrified Query:", cursor.mogrify(query, payload))
                     cursor.execute(query, payload)
                     data = cursor.fetchall() if fetchall else cursor.fetchone()
                     logger.debug("Fetched data: %s", str(data)[:100] if fetchall else str(data))
@@ -114,7 +116,7 @@ class RdsServiceGateway:
                 logger.warning(f"Query returned None: {e}")
                 return None
 
-    def update_database(self, query: str, payload: Union[tuple, list[tuple], 'pd.DataFrame'], returning: bool = False, column_order: Optional[List[str]] = None) -> Optional[List[tuple]]:
+    def update_database(self, query: str, payload: Union[tuple, list[tuple], 'pd.DataFrame'], returning: bool = False, column_order: Optional[List[str]] = None, raise_on_error: bool = True) -> Optional[List[tuple]]:
         """
         Updates the database by executing the given query with the provided payload.
 
@@ -126,8 +128,11 @@ class RdsServiceGateway:
         :type returning: bool
         :param column_order: The order of columns to be used if the payload is a DataFrame.
         :type column_order: List[str], optional
+        :param raise_on_error: If an error should be raised on failure
+        :type raise_on_error: bool, optional
         :returns: A list of tuples if returning is true else None.
         :rtype: Optional[List[tuple]]
+
         """
         with self.connection as conn:
             if isinstance(payload, tuple):
@@ -140,6 +145,8 @@ class RdsServiceGateway:
                 except Exception as e:
                     logger.error(f"Error inserting data: {str(e)}")
                     conn.rollback()
+                    if raise_on_error:
+                        raise e
             elif isinstance(payload, list) and all(isinstance(item, tuple) for item in payload):
                 try:
                     with conn.cursor() as cursor:
@@ -150,6 +157,8 @@ class RdsServiceGateway:
                 except Exception as e:
                     logger.error(f"Error processing batch: {str(e)}")
                     conn.rollback()
+                    if raise_on_error:
+                        raise e
             elif PANDAS_AVAILABLE and isinstance(payload, pd.DataFrame) and column_order:
                 if returning:
                     logger.error("Returning values not compatible with batch processing, please use dictionary input")
@@ -172,6 +181,8 @@ class RdsServiceGateway:
                 except Exception as e:
                     logger.error(f"Error processing batch: {str(e)}")
                     conn.rollback()
+                    if raise_on_error:
+                        raise e
             else:
                 logger.error("Invalid payload type or missing column_order for DataFrame payload.")
 

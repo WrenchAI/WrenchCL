@@ -37,10 +37,6 @@ from ...Tools import image_to_base64, get_file_type, validate_base64
 from ...Tools.WrenchLogger import Logger
 
 logger = Logger()
-import logging
-
-logging.getLogger("openai").setLevel(40)
-logging.getLogger("httpx").setLevel(40)
 
 
 class OpenAIGateway:
@@ -144,7 +140,6 @@ class OpenAIGateway:
 
             if assistant_id is not None:
                 logger.info(f"Using threads as assistant_id has been passed: {assistant_id}")
-                logger.setLevel('WARNING')
                 thread = self.client.beta.threads.create(messages=messages)
                 run = self.client.beta.threads.runs.create_and_poll(thread_id=thread.id, assistant_id=assistant_id,
                                                                     response_format=response_format, model=model,
@@ -152,19 +147,14 @@ class OpenAIGateway:
                                                                                                      2500))
                 messages = self.client.beta.threads.messages.list(thread_id=thread.id)
                 response = messages.data[0].content[0].text.value
-                logger.revertLoggingLevel()
                 return response
             if stream:
-                logger.setLevel('WARNING')
                 response = self.client.chat.completions.create(model=model, messages=messages, stream=True,
                     max_tokens=kwargs.get('max_tokens', 2500))
-                logger.revertLoggingLevel()
                 return response
             else:
-                logger.setLevel('WARNING')
                 response = self.client.chat.completions.create(model=model, messages=messages,
                     max_tokens=kwargs.get('max_tokens', 2500))
-                logger.revertLoggingLevel()
                 finish_reason = response.choices[0].finish_reason
                 if finish_reason == 'stop':
                     response_content = response.choices[0].message.content
