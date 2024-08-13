@@ -20,6 +20,14 @@ WrenchCL.Decorators.SingletonClass module
    :undoc-members:
    :show-inheritance:
 
+WrenchCL.Decorators.Synchronized module
+---------------------------------------
+
+.. automodule:: WrenchCL.Decorators.Synchronized
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 WrenchCL.Decorators.TimedMethod module
 --------------------------------------
 

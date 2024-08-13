@@ -101,7 +101,7 @@
 <span id="wrenchcl-decorators-retryable-module"></span><h2>WrenchCL.Decorators.Retryable module<a class="headerlink" href="#module-WrenchCL.Decorators.Retryable" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Decorators.Retryable.Retryable">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.Retryable.</span></span><span class="sig-name descname"><span class="pre">Retryable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_on_exceptions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logging_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WARNING'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/WrenchCL/Decorators/Retryable.html#Retryable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.Retryable.Retryable" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.Retryable.</span></span><span class="sig-name descname"><span class="pre">Retryable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_on_exceptions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logging_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/WrenchCL/Decorators/Retryable.html#Retryable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.Retryable.Retryable" title="Link to this definition"></a></dt>
 <dd><p>A decorator that retries a function call a specified number of times if it raises an exception or if the request status code is not 200.</p>
 <p>This decorator catches <cite>JSONDecodeError</cite>, specific <cite>requests</cite> exceptions, <cite>botocore</cite> exceptions, and general <cite>Exception</cite> during the function execution,
 retries the function up to <cite>max_retries</cite> times, and logs each attempt. If the maximum number of retries is reached,
@@ -118,7 +118,7 @@ it raises the last caught exception.</p>
 2 - Logs the error and the state of the wrapped function.
 3 - Logs warnings and everything in level 2.
 4 - Logs warnings and the state of the function for every warning.</p></li>
-<li><p><strong>logging_level</strong> (<em>str</em>) – The logging level to use. Can be “DEBUG”, “INFO”, “WARNING”, “ERROR”, or “CRITICAL”. Default is “WARNING”.</p></li>
+<li><p><strong>logging_level</strong> (<em>Optional str</em>) – The logging level to use. Can be “DEBUG”, “INFO”, “WARNING”, “ERROR”, or “CRITICAL”. Default is “WARNING”.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -164,6 +164,56 @@ instance exists.</p>
 </dd></dl>
 
 </section>
+<section id="module-WrenchCL.Decorators.Synchronized">
+<span id="wrenchcl-decorators-synchronized-module"></span><h2>WrenchCL.Decorators.Synchronized module<a class="headerlink" href="#module-WrenchCL.Decorators.Synchronized" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Decorators.Synchronized.Synchronized">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.Synchronized.</span></span><span class="sig-name descname"><span class="pre">Synchronized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">allocate_lock</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/WrenchCL/Decorators/Synchronized.html#Synchronized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.Synchronized.Synchronized" title="Link to this definition"></a></dt>
+<dd><p>Decorator to ensure that a method is executed with a lock, preventing concurrent access from multiple threads.</p>
+<p>This decorator is useful in scenarios where thread safety is a concern, particularly when accessing shared resources
+such as database connections, files, or any other critical section of the code that should not be concurrently accessed.</p>
+<p>The <cite>synchronized</cite> decorator can be applied to any method that requires thread-safe execution. It uses a threading
+lock to ensure that only one thread can execute the decorated method at any given time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>lock</strong> (<em>threading.Lock</em>) – A threading.Lock object used to lock the method. If no lock is provided, a ValueError is raised.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the lock is not provided or is None.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A decorator that wraps the target method with lock acquisition and release.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Callable[[Callable[…, Any]], Callable[…, Any]]</p>
+</dd>
+</dl>
+<p><strong>Example Usage</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">threading</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mypackage.decorators</span> <span class="kn">import</span> <span class="n">synchronized</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">SharedResource</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="nd">@synchronized</span><span class="p">(</span><span class="n">_lock</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">def</span> <span class="nf">critical_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="c1"># critical section that should not be accessed concurrently</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing value: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">resource</span> <span class="o">=</span> <span class="n">SharedResource</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Simulating concurrent access to the critical section</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t1</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">resource</span><span class="o">.</span><span class="n">critical_section</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t2</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">resource</span><span class="o">.</span><span class="n">critical_section</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t1</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t2</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t1</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t2</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
 <section id="module-WrenchCL.Decorators.TimedMethod">
 <span id="wrenchcl-decorators-timedmethod-module"></span><h2>WrenchCL.Decorators.TimedMethod module<a class="headerlink" href="#module-WrenchCL.Decorators.TimedMethod" title="Link to this heading"></a></h2>
 <dl class="py function">
@@ -200,7 +250,7 @@ and identifying bottlenecks in the code.</p>
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-WrenchCL.Decorators" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="WrenchCL.Decorators.Retryable">
-<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.</span></span><span class="sig-name descname"><span class="pre">Retryable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_on_exceptions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logging_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WARNING'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/WrenchCL/Decorators/Retryable.html#Retryable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.Retryable" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.</span></span><span class="sig-name descname"><span class="pre">Retryable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_on_exceptions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logging_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/WrenchCL/Decorators/Retryable.html#Retryable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.Retryable" title="Link to this definition"></a></dt>
 <dd><p>A decorator that retries a function call a specified number of times if it raises an exception or if the request status code is not 200.</p>
 <p>This decorator catches <cite>JSONDecodeError</cite>, specific <cite>requests</cite> exceptions, <cite>botocore</cite> exceptions, and general <cite>Exception</cite> during the function execution,
 retries the function up to <cite>max_retries</cite> times, and logs each attempt. If the maximum number of retries is reached,
@@ -217,7 +267,7 @@ it raises the last caught exception.</p>
 2 - Logs the error and the state of the wrapped function.
 3 - Logs warnings and everything in level 2.
 4 - Logs warnings and the state of the function for every warning.</p></li>
-<li><p><strong>logging_level</strong> (<em>str</em>) – The logging level to use. Can be “DEBUG”, “INFO”, “WARNING”, “ERROR”, or “CRITICAL”. Default is “WARNING”.</p></li>
+<li><p><strong>logging_level</strong> (<em>Optional str</em>) – The logging level to use. Can be “DEBUG”, “INFO”, “WARNING”, “ERROR”, or “CRITICAL”. Default is “WARNING”.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -255,6 +305,53 @@ instance exists.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">db_manager1</span> <span class="o">=</span> <span class="n">DatabaseManager</span><span class="p">(</span><span class="s1">&#39;db_connection_string&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">db_manager2</span> <span class="o">=</span> <span class="n">DatabaseManager</span><span class="p">(</span><span class="s1">&#39;db_connection_string&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">db_manager1</span> <span class="ow">is</span> <span class="n">db_manager2</span>  <span class="c1"># Both variables point to the same instance</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="WrenchCL.Decorators.Synchronized">
+<span class="sig-prename descclassname"><span class="pre">WrenchCL.Decorators.</span></span><span class="sig-name descname"><span class="pre">Synchronized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">allocate_lock</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/WrenchCL/Decorators/Synchronized.html#Synchronized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Decorators.Synchronized" title="Link to this definition"></a></dt>
+<dd><p>Decorator to ensure that a method is executed with a lock, preventing concurrent access from multiple threads.</p>
+<p>This decorator is useful in scenarios where thread safety is a concern, particularly when accessing shared resources
+such as database connections, files, or any other critical section of the code that should not be concurrently accessed.</p>
+<p>The <cite>synchronized</cite> decorator can be applied to any method that requires thread-safe execution. It uses a threading
+lock to ensure that only one thread can execute the decorated method at any given time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>lock</strong> (<em>threading.Lock</em>) – A threading.Lock object used to lock the method. If no lock is provided, a ValueError is raised.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the lock is not provided or is None.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A decorator that wraps the target method with lock acquisition and release.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Callable[[Callable[…, Any]], Callable[…, Any]]</p>
+</dd>
+</dl>
+<p><strong>Example Usage</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">threading</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mypackage.decorators</span> <span class="kn">import</span> <span class="n">synchronized</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">SharedResource</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="nd">@synchronized</span><span class="p">(</span><span class="n">_lock</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">def</span> <span class="nf">critical_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="c1"># critical section that should not be accessed concurrently</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing value: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">resource</span> <span class="o">=</span> <span class="n">SharedResource</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Simulating concurrent access to the critical section</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t1</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">resource</span><span class="o">.</span><span class="n">critical_section</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t2</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">resource</span><span class="o">.</span><span class="n">critical_section</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t1</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t2</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t1</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t2</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
 </pre></div>
 </div>
 </dd></dl>

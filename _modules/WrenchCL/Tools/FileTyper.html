@@ -88,47 +88,94 @@
 <span class="c1">#  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).</span>
 <span class="c1">#</span>
 <span class="kn">import</span> <span class="nn">base64</span>
-<span class="kn">import</span> <span class="nn">mimetypes</span>
 <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
-
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">filetype</span>
 <span class="kn">import</span> <span class="nn">requests</span>
-<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
-
+<span class="kn">from</span> <span class="nn">botocore.response</span> <span class="kn">import</span> <span class="n">StreamingBody</span>
 <span class="kn">from</span> <span class="nn">.Image2B64</span> <span class="kn">import</span> <span class="n">validate_base64</span>
+
+
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">mimetypes</span>
+<span class="kn">import</span> <span class="nn">filetype</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">botocore.response</span> <span class="kn">import</span> <span class="n">StreamingBody</span>
+
+<div class="viewcode-block" id="UnsupportedFileTypeError">
+<a class="viewcode-back" href="../../../modules/WrenchCL.Tools.html#WrenchCL.Tools.FileTyper.UnsupportedFileTypeError">[docs]</a>
+<span class="k">class</span> <span class="nc">UnsupportedFileTypeError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="get_file_type">
 <a class="viewcode-back" href="../../../modules/WrenchCL.Tools.html#WrenchCL.Tools.FileTyper.get_file_type">[docs]</a>
-<span class="k">def</span> <span class="nf">get_file_type</span><span class="p">(</span><span class="n">file_source</span><span class="p">,</span> <span class="n">is_url</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_file_type</span><span class="p">(</span><span class="n">file_source</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">BytesIO</span><span class="p">,</span> <span class="n">StreamingBody</span><span class="p">],</span> <span class="n">is_url</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Determine the file type of file from a URL, file path, or Base64 string.</span>
+<span class="sd">    Determine the file type of a file from a URL, file path, Base64 string, bytes, or BytesIO.</span>
 
-<span class="sd">    :param file_source: URL, file path, or Base64 string of the file</span>
-<span class="sd">    :type file_source: str</span>
+<span class="sd">    :param file_source: URL, file path, Base64 string, bytes, or BytesIO of the file</span>
+<span class="sd">    :type file_source: Union[str, Path, bytes, BytesIO, StreamingBody]</span>
 <span class="sd">    :param is_url: Flag indicating if the file_source is a URL, defaults to True</span>
 <span class="sd">    :type is_url: bool, optional</span>
 <span class="sd">    :return: File type based on extension or MIME type</span>
-<span class="sd">    :rtype: str</span>
+<span class="sd">    :rtype: Tuple[str, str]</span>
+<span class="sd">    :raises UnsupportedFileTypeError: If the file type cannot be determined.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">validate_base64</span><span class="p">(</span><span class="n">file_source</span><span class="p">):</span>
-        <span class="c1"># Decode the Base64 string momentarily to determine the file type</span>
-        <span class="n">base64_data</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">file_source</span><span class="p">)</span>
-        <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">base64_data</span><span class="p">))</span>
-        <span class="n">mime_type</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">MIME</span><span class="p">[</span><span class="n">image</span><span class="o">.</span><span class="n">format</span><span class="p">]</span>
-    <span class="k">elif</span> <span class="n">is_url</span><span class="p">:</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">file_source</span><span class="p">)</span>
-        <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
-        <span class="n">mime_type</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">mime_type</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="n">file_source</span><span class="p">)</span>
+    <span class="n">base64_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="n">file_extension</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_extension</span><span class="p">(</span><span class="n">mime_type</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">file_extension</span><span class="p">,</span> <span class="n">mime_type</span></div>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file_source</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">validate_base64</span><span class="p">(</span><span class="n">file_source</span><span class="p">):</span>
+            <span class="n">base64_data</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">file_source</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mime_type</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">file_source</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">mime_type</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_extension</span><span class="p">(</span><span class="n">mime_type</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">mime_type</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">is_url</span><span class="p">:</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">file_source</span><span class="p">))</span>
+                    <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+                    <span class="n">base64_data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_source</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="n">base64_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file_source</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">validate_base64</span><span class="p">(</span><span class="n">file_source</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)):</span>
+            <span class="n">base64_data</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">file_source</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">base64_data</span> <span class="o">=</span> <span class="n">file_source</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file_source</span><span class="p">,</span> <span class="n">BytesIO</span><span class="p">):</span>
+        <span class="n">base64_data</span> <span class="o">=</span> <span class="n">file_source</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">file_source</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file_source</span><span class="p">,</span> <span class="n">StreamingBody</span><span class="p">):</span>
+        <span class="n">base64_data</span> <span class="o">=</span> <span class="n">file_source</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported file_source type.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">base64_data</span><span class="p">:</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="n">filetype</span><span class="o">.</span><span class="n">guess</span><span class="p">(</span><span class="n">base64_data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kind</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">kind</span><span class="o">.</span><span class="n">extension</span><span class="p">,</span> <span class="n">kind</span><span class="o">.</span><span class="n">mime</span>
+
+    <span class="k">raise</span> <span class="n">UnsupportedFileTypeError</span><span class="p">(</span><span class="s2">&quot;Could not determine the file type.&quot;</span><span class="p">)</span></div>
 
 
 <span class="c1"># Example usage:</span>
-<span class="c1"># file_type = determine_file_type(&quot;https://example.com/file.txt&quot;)</span>
-<span class="c1"># file_type = determine_file_type(&quot;/path/to/file.txt&quot;, is_url=False)</span>
+<span class="c1"># file_type = get_file_type(&quot;https://example.com/file.txt&quot;)</span>
+<span class="c1"># file_type = get_file_type(&quot;/path/to/file.txt&quot;, is_url=False)</span>
+<span class="c1"># file_type = get_file_type(base64_string)</span>
+<span class="c1"># file_type = get_file_type(byte_data, is_url=False)</span>
+<span class="c1"># file_type = get_file_type(BytesIO(byte_data), is_url=False)</span>
+<span class="c1"># file_type = get_file_type(streaming_body, is_url=False)</span>
+
 </pre></div>
 
            </div>

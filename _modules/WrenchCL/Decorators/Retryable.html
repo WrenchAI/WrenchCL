@@ -82,10 +82,9 @@
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">botocore.exceptions</span> <span class="kn">import</span> <span class="n">ClientError</span><span class="p">,</span> <span class="n">BotoCoreError</span>
 
-
 <div class="viewcode-block" id="Retryable">
 <a class="viewcode-back" href="../../../modules/WrenchCL.Decorators.html#WrenchCL.Decorators.Retryable.Retryable">[docs]</a>
-<span class="k">def</span> <span class="nf">Retryable</span><span class="p">(</span><span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">retry_on_exceptions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">logging_level</span><span class="o">=</span><span class="s2">&quot;WARNING&quot;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">Retryable</span><span class="p">(</span><span class="n">_func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">retry_on_exceptions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">logging_level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A decorator that retries a function call a specified number of times if it raises an exception or if the request status code is not 200.</span>
 
@@ -107,7 +106,7 @@
 <span class="sd">                      4 - Logs warnings and the state of the function for every warning.</span>
 <span class="sd">    :type verbosity: int</span>
 <span class="sd">    :param logging_level: The logging level to use. Can be &quot;DEBUG&quot;, &quot;INFO&quot;, &quot;WARNING&quot;, &quot;ERROR&quot;, or &quot;CRITICAL&quot;. Default is &quot;WARNING&quot;.</span>
-<span class="sd">    :type logging_level: str</span>
+<span class="sd">    :type logging_level: Optional str</span>
 
 <span class="sd">    :return: The result of the decorated function, if it succeeds within the allowed retries.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -126,7 +125,8 @@
         <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="k">async</span> <span class="k">def</span> <span class="nf">async_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="n">retry_count</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging_level</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">logging_level</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging_level</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
 
             <span class="k">while</span> <span class="n">retry_count</span> <span class="o">&lt;</span> <span class="n">max_retries</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
@@ -187,12 +187,14 @@
                             <span class="n">log_state</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                         <span class="n">logger</span><span class="o">.</span><span class="n">revertLoggingLevel</span><span class="p">()</span>
                         <span class="k">raise</span> <span class="n">e</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">revertLoggingLevel</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">logging_level</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">revertLoggingLevel</span><span class="p">()</span>
 
         <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">sync_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="n">retry_count</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging_level</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">logging_level</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging_level</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
 
             <span class="k">while</span> <span class="n">retry_count</span> <span class="o">&lt;</span> <span class="n">max_retries</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
@@ -253,14 +255,18 @@
                             <span class="n">log_state</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                         <span class="n">logger</span><span class="o">.</span><span class="n">revertLoggingLevel</span><span class="p">()</span>
                         <span class="k">raise</span> <span class="n">e</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">revertLoggingLevel</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">logging_level</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">revertLoggingLevel</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">iscoroutinefunction</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">async_wrapper</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">sync_wrapper</span>
 
-    <span class="k">return</span> <span class="n">decorator_retry</span></div>
+    <span class="k">if</span> <span class="n">_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">decorator_retry</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">decorator_retry</span><span class="p">(</span><span class="n">_func</span><span class="p">)</span></div>
 
 </pre></div>
 
