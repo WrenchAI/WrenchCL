@@ -96,7 +96,10 @@ class BaseLogger:
         self.force_stack_trace = setting
 
     def revertLoggingLevel(self):
-        self.logger.setLevel(self.previous_level)
+        if self.previous_level is None:
+            self.previous_level = self.INFO_lvl
+            print("No previous logging level saved, setting level to info")
+        self.logger.setLevel(self.INFO_lvl)
         if self.file_handler:
             self.file_handler.setLevel(self.previous_level)
         self.console_handler.setLevel(self.previous_level)
