@@ -17,8 +17,10 @@ import io
 import base64
 import mimetypes
 from pathlib import Path
-from typing import Union, IO
+from typing import Union, IO, Optional
 from io import BytesIO
+
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
 import warnings
@@ -39,12 +41,12 @@ class S3ServiceGateway:
     that a single instance is used throughout the application via the Singleton pattern.
     """
 
-    def __init__(self):
+    def __init__(self, config: Optional[Config]):
         """
         Initializes the S3ServiceGateway by setting up the S3 client using the AwsClientHub.
         """
         client_manager = AwsClientHub()
-        self.s3_client = client_manager.get_s3_client()
+        self.s3_client = client_manager.get_s3_client(config=config)
         logger.debug("S3ServiceGateway initialized with S3 client.")
 
     @staticmethod
@@ -65,8 +67,8 @@ class S3ServiceGateway:
         return object_key
 
     @Retryable()
-    def upload_file(self, file: Union[str, Path, bytes, BytesIO, StreamingBody],
-                    bucket_name: str, object_key: str, return_url: bool = False) -> Union[None, str]:
+    def upload_file(self, file: Union[str, Path, bytes, BytesIO, StreamingBody], bucket_name: str, object_key: str,
+            return_url: bool = False) -> Union[None, str]:
         """
         Uploads a file to S3. Handles file paths, bytes, file-like objects, and StreamingBody.
 
@@ -115,7 +117,6 @@ class S3ServiceGateway:
         if return_url:
             s3_url = f"https://{bucket_name}.s3.amazonaws.com/{object_key}"
             return s3_url
-
 
     @Retryable()
     def get_object(self, bucket_name: str, object_key: str) -> io.BytesIO:
@@ -311,11 +312,8 @@ class S3ServiceGateway:
         """
         logger.debug(f'Generating signed URL for bucket: {bucket_name}, key: {object_key}')
         try:
-            url = self.s3_client.generate_presigned_url(
-                'get_object',
-                Params={'Bucket': bucket_name, 'Key': object_key},
-                ExpiresIn=expiration_seconds
-            )
+            url = self.s3_client.generate_presigned_url('get_object', Params={'Bucket': bucket_name, 'Key': object_key},
+                ExpiresIn=expiration_seconds)
             if url:
                 logger.debug(f'Signed URL generated successfully: {url}')
                 return url
@@ -343,8 +341,7 @@ class S3ServiceGateway:
         """
         warnings.warn(
             "The 'upload_fileobj' method is deprecated and will be removed in a future release. Use 'upload_file' instead.",
-            DeprecationWarning
-        )
+            DeprecationWarning)
         return self.upload_file(file=file_path, bucket_name=bucket_name, object_key=object_key)
 
     def upload_object(self, obj: Union[str, bytes, IO[bytes], StreamingBody], bucket_name: str, object_key: str):
@@ -363,8 +360,7 @@ class S3ServiceGateway:
         """
         warnings.warn(
             "The 'upload_object' method is deprecated and will be removed in a future release. Use 'upload_file' instead.",
-            DeprecationWarning
-        )
+            DeprecationWarning)
         return self.upload_file(file=obj, bucket_name=bucket_name, object_key=object_key)
 
     def rename_object(self, bucket_name: str, src_object_key: str, dst_object_key: str):
@@ -383,6 +379,6 @@ class S3ServiceGateway:
         """
         warnings.warn(
             "The 'rename_object' method is deprecated and will be removed in a future release. Use 'move_object' instead.",
-            DeprecationWarning
-        )
-        return self.move_object(src_bucket_name=bucket_name, src_object_key=src_object_key, dst_bucket_name=bucket_name, dst_object_key=dst_object_key)
+            DeprecationWarning)
+        return self.move_object(src_bucket_name=bucket_name, src_object_key=src_object_key, dst_bucket_name=bucket_name,
+                                dst_object_key=dst_object_key)
