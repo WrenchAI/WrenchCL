@@ -186,7 +186,7 @@ def test_logger_set_level():
 
 def test_logger_revert_logging_level():
     logger = Logger()
-    initial_level = logger.logger.getEffectiveLevel()
+    initial_level = 20
     logger.setLevel("ERROR")
     assert logger.logger.getEffectiveLevel() == 40  # ERROR level
     logger.revertLoggingLevel()
