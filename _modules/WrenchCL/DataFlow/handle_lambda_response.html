@@ -155,8 +155,8 @@
             <span class="n">lambda_client</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lambda_client&#39;</span><span class="p">,</span> <span class="n">boto3client</span><span class="p">),</span>
             <span class="n">job_name</span><span class="o">=</span><span class="s1">&#39;Model Inference Service&#39;</span><span class="p">,</span>
             <span class="n">job_type</span><span class="o">=</span><span class="s1">&#39;Lambda&#39;</span><span class="p">,</span>
-            <span class="n">status_code</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">code</span><span class="p">),</span>
-            <span class="n">message</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="n">status_code</span><span class="o">=</span><span class="n">code</span><span class="p">,</span>
+            <span class="n">exception_msg</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to invoke dataflow metrics with error </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

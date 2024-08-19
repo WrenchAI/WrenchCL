@@ -187,7 +187,10 @@
 <div class="viewcode-block" id="BaseLogger.revertLoggingLevel">
 <a class="viewcode-back" href="../../../modules/WrenchCL.Tools.html#WrenchCL.Tools.WrenchLogger.BaseLogger.revertLoggingLevel">[docs]</a>
     <span class="k">def</span> <span class="nf">revertLoggingLevel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">previous_level</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">previous_level</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">previous_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">INFO_lvl</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No previous logging level saved, setting level to info&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">INFO_lvl</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_handler</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">file_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">previous_level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">console_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">previous_level</span><span class="p">)</span>
