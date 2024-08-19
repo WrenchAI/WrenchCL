@@ -72,8 +72,8 @@ def handle_lambda_response(code, message, params, response_body=None, client_id=
             lambda_client=params.get('lambda_client', boto3client),
             job_name='Model Inference Service',
             job_type='Lambda',
-            status_code=str(code),
-            message=str(message)
+            status_code=code,
+            exception_msg=str(message)
         )
     except Exception as e:
         logger.error(f"Failed to invoke dataflow metrics with error {e}")
