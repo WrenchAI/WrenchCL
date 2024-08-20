@@ -69,7 +69,7 @@ def handle_lambda_response(code, message, params, response_body=None, client_id=
         trigger_minimum_dataflow_metrics(
             event=params.get('event', {}),
             context=params.get('context', {}),
-            lambda_client=params.get('lambda_client', boto3client),
+            lambda_client=params.get('lambda_client', boto3client('lambda')),
             job_name='Model Inference Service',
             job_type='Lambda',
             status_code=code,

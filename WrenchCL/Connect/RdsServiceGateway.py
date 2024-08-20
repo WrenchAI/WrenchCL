@@ -163,21 +163,33 @@ class RdsServiceGateway:
                 if returning:
                     logger.error("Returning values not compatible with batch processing, please use dictionary input")
                     raise ValueError("Returning values not compatible with batch processing, please use dictionary input")
+                if not set(column_order).issubset(payload.columns):
+                    missing_columns = set(column_order) - set(payload.columns)
+                    raise ValueError(f"The following columns are missing from the payload: {missing_columns}")
+
                 try:
                     with conn.cursor() as cursor:
                         data_batch = []
                         batch_counter = 1
                         total_batches = math.ceil(len(payload) / self.config.db_batch_size)
-                        for index, row in payload.iterrows():
-                            data_batch.append(tuple(row[col] for col in column_order))
 
-                            if len(data_batch) == self.config.db_batch_size or index == len(payload) - 1:
+                        # Use itertuples with a valid name to return named tuples
+                        for i, row in enumerate(payload.itertuples(index=False, name='Row')):
+                            # row is now a named tuple, so we can use getattr to access by column name
+                            data_batch.append(tuple(getattr(row, col) for col in column_order))
+
+                            # Execute the batch when it reaches the batch size or it's the last row
+                            if len(data_batch) == self.config.db_batch_size or i == len(payload) - 1:
                                 psycopg2.extras.execute_values(cursor, query, data_batch, page_size=self.config.db_batch_size)
                                 data_batch = []
                                 logger.debug(f"Processed batch {batch_counter}/{total_batches} successfully")
                                 batch_counter += 1
 
+                        if batch_counter == 1:
+                            raise psycopg2.DataError("Nothing to commit")
+
                         conn.commit()
+
                 except Exception as e:
                     logger.error(f"Error processing batch: {str(e)}")
                     conn.rollback()

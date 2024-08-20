@@ -41,7 +41,7 @@ class S3ServiceGateway:
     that a single instance is used throughout the application via the Singleton pattern.
     """
 
-    def __init__(self, config: Optional[Config]):
+    def __init__(self, config: Optional[Config] = None):
         """
         Initializes the S3ServiceGateway by setting up the S3 client using the AwsClientHub.
         """
