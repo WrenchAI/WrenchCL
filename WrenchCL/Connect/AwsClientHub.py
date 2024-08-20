@@ -15,6 +15,7 @@
 
 
 import json
+import os
 from typing import Optional
 
 import boto3
@@ -225,9 +226,15 @@ class AwsClientHub:
         host, port = config['PGHOST'], config['PGPORT']
 
         if 'SSH_TUNNEL' in config:
-            self.ssh_manager = _SshTunnelManager(config)
-            host, port = self.ssh_manager.start_tunnel()
-            logger.debug("SSH Tunnel Connected")
+            try:
+                self.ssh_manager = _SshTunnelManager(config)
+                host, port = self.ssh_manager.start_tunnel()
+                logger.debug("SSH Tunnel Connected")
+            except ValueError:
+                if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:
+                    pass
+                else:
+                    raise
         logger.debug(f"Connecting to DB with {host}.{port} ")
 
         db_client = psycopg2.connect(host=host, port=port, database=config['PGDATABASE'], user=config['PGUSER'],
