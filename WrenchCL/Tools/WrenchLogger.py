@@ -233,7 +233,10 @@ class BaseLogger:
             prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
             formatted_text = data
         else:
-            prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
+            try:
+                prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
+            except TypeError:
+                prefix_str = f"DataType: {type(data).__name__}"
             formatted_text = json.dumps(serialize(data), indent=indent, default=self._custom_serializer)
 
         if not content:
