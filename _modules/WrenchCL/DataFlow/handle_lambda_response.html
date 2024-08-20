@@ -152,7 +152,7 @@
         <span class="n">trigger_minimum_dataflow_metrics</span><span class="p">(</span>
             <span class="n">event</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;event&#39;</span><span class="p">,</span> <span class="p">{}),</span>
             <span class="n">context</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;context&#39;</span><span class="p">,</span> <span class="p">{}),</span>
-            <span class="n">lambda_client</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lambda_client&#39;</span><span class="p">,</span> <span class="n">boto3client</span><span class="p">),</span>
+            <span class="n">lambda_client</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lambda_client&#39;</span><span class="p">,</span> <span class="n">boto3client</span><span class="p">(</span><span class="s1">&#39;lambda&#39;</span><span class="p">)),</span>
             <span class="n">job_name</span><span class="o">=</span><span class="s1">&#39;Model Inference Service&#39;</span><span class="p">,</span>
             <span class="n">job_type</span><span class="o">=</span><span class="s1">&#39;Lambda&#39;</span><span class="p">,</span>
             <span class="n">status_code</span><span class="o">=</span><span class="n">code</span><span class="p">,</span>
