@@ -133,8 +133,7 @@ def trigger_dataflow_metrics(
         )
         logger.info('Invoked dataflow-metrics lambda')
     except Exception as e:
-        logger.warning('Failed to invoke dataflow-metrics lambda')
-        logger.warning(e)
+        logger.error(f'Failed to invoke dataflow-metrics lambda {e}')
 
 
 def trigger_minimum_dataflow_metrics(event: Dict[str, Any], context: Any, lambda_client: Any, job_type: str,
