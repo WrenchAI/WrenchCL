@@ -51,12 +51,13 @@ class AwsClientHub:
 
     def __init__(self, env_path=None, **kwargs):
         """
-        Initializes the AwsClientHub by setting up the AWS profile and fetching necessary secrets for other
-        AWS service configurations.
+        Initializes the AwsClientHub by setting up the AWS session and fetching necessary secrets for configuring
+        other AWS services. Supports additional configuration via keyword arguments or environment variable overrides.
 
         :param env_path: The path to the environment configuration file.
         :type env_path: str, optional
         :param kwargs: Additional keyword arguments to pass to the configuration manager.
+                       These can override default configurations such as:
             - AWS_PROFILE (str): AWS profile name for creating sessions.
             - REGION_NAME (str): AWS region name.
             - SECRET_ARN (str): ARN of the AWS Secrets Manager secret.
@@ -68,6 +69,11 @@ class AwsClientHub:
             - PEM_PATH (str): Path to the PEM file for SSH authentication.
             - DB_BATCH_OVERRIDE (int): Batch size for database operations.
             - AWS_DEPLOYMENT (bool): Indicates if the deployment is on AWS, affecting SSH tunnel configuration.
+
+        Note:
+            The following environment variables can override the default configuration:
+            - `PGHOST_OVERRIDE`: Overrides the RDS host specified in the secret. Used to access existing Tunnels.
+            - `PGPORT_OVERRIDE`: Overrides the RDS port specified in the secret. Used to access existing Tunnels.
         """
         boto3.set_stream_logger(name='botocore.credentials', level=40)
         self.lambda_client = None
@@ -196,8 +202,13 @@ class AwsClientHub:
 
         :raises Exception: If there is an issue initializing the RDS client.
         """
+        pghost_env_override = os.getenv("PGHOST_OVERRIDE")
+        pgport_env_override = os.getenv("PGPORT_OVERRIDE")
+
+
         try:
-            config = dict(PGHOST=self.secret_string['host'], PGPORT=int(self.secret_string['port']),
+            config = dict(PGHOST=self.secret_string['host'] if pghost_env_override is None else pghost_env_override,
+                          PGPORT=int(self.secret_string['port']) if pgport_env_override is None else int(pgport_env_override),
                           PGDATABASE=self.secret_string['dbname'], PGUSER=self.secret_string['username'],
                           PGPASSWORD=self.secret_string['password'])
 
@@ -231,10 +242,9 @@ class AwsClientHub:
                 host, port = self.ssh_manager.start_tunnel()
                 logger.debug("SSH Tunnel Connected")
             except ValueError:
-                if 'AWS_LAMBDA_FUNCTION_NAME' in os.environ:
-                    pass
-                else:
-                    raise
+                pass
+            except Exception as e:
+                raise e
         logger.debug(f"Connecting to DB with {host}.{port} ")
 
         db_client = psycopg2.connect(host=host, port=port, database=config['PGDATABASE'], user=config['PGUSER'],
