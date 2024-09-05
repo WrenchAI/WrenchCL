@@ -146,7 +146,7 @@ class BaseLogger:
         prefix_style = Style.DIM
         text_style = Style.NORMAL
         style_reset = Style.RESET_ALL
-        if level == self.DATA_lvl:
+        if level == self.DATA_lvl and not self.running_on_lambda:
             header_style = Style.BRIGHT
             header_col = Color.LIGHTWHITE_EX
             text_col = Color.LIGHTWHITE_EX
