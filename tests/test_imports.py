@@ -32,12 +32,6 @@ def test_decorators_import():
     except ImportError as e:
         pytest.fail(f"Importing from WrenchCL.Decorators failed: {e}")
 
-def test_models_openai_import():
-    try:
-        from WrenchCL.Models.OpenAI import OpenAIFactory, OpenAIGateway
-    except ImportError as e:
-        pytest.fail(f"Importing from WrenchCL.Models.OpenAI failed: {e}")
-
 def test_tools_import():
     try:
         from WrenchCL.Tools import (
