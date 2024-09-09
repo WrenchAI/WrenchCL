@@ -569,12 +569,23 @@ class Logger(BaseLogger):
         :param size: The size of the header.
         :param newline: If True, adds a newline before the header.
         """
-        header = text if not colorama_imported else f"{Color.CYAN}{Style.BRIGHT}{text}{Style.RESET_ALL}"
-        self.console_handler.setFormatter(logging.Formatter(f'%(message)s'))
+        # Create the header text with optional color formatting
+        header_text = text if not colorama_imported else f"{Color.CYAN}{Style.BRIGHT}{text}{Style.RESET_ALL}"
+
+        # Save the current formatter to restore it later
+        original_formatter = self.console_handler.formatter
+        self.console_handler.setFormatter(logging.Formatter('%(message)s'))
+
+        # Add a newline before the header if specified
         if newline:
-            logging.info("\n")
-        logging.info(header.center(size, "-"))
-        self._handlerFormat()
+            self.logger.info("")  # Logging an empty string to create a newline
+
+        # Log the header message centered and surrounded by dashes
+        self.logger.info(header_text.center(size, "-"))
+
+        # Restore the original formatter
+        self.console_handler.setFormatter(original_formatter)
+
 
 
 # Provide backward compatibility
