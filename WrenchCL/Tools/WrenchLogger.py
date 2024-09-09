@@ -423,16 +423,17 @@ class Logger(BaseLogger):
 
     # Public Methods
 
-    def log_file(self, path: str) -> None:
+    def log_file(self, path: str, mode='a') -> None:
         """
         Configures logging to dump logs to the specified file while also logging to the console.
 
         :param path: The path to the file where logs should be saved.
+        :param mode: The file operation mode that should be used to log
         """
         if self.file_handler:
             self.release_log_file()
 
-        self.file_handler = logging.FileHandler(path, encoding='utf-8')
+        self.file_handler = logging.FileHandler(path, encoding='utf-8', mode=mode)
         self.file_handler.setLevel(self.logging_level)
         self.file_handler.setFormatter(self._get_base_format())
         self.logger.addHandler(self.file_handler)
