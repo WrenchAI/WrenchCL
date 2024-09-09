@@ -18,7 +18,7 @@ def check_import_usage():
         source_code = frame.code_context[0].strip() if frame.code_context else ""
 
         if "import logger" in source_code or "from WrenchCL import logger" in source_code:
-            warnings.warn("The pre-instantiated 'logger' object is deprecated and will be removed in a future release. "
+            warnings.warn("Using the pre-instantiated 'logger' object is not-recommended due to implied settings being used."
                           "Please use 'from WrenchCL.Tools import Logger' or from 'WrenchCL import Logger' instead and instantiate it using logger = Logger().",
                           DeprecationWarning, stacklevel=3)
 
