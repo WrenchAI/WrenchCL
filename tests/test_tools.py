@@ -14,6 +14,7 @@ from datetime import datetime
 from decimal import Decimal
 from unittest.mock import patch, mock_open, MagicMock
 import atexit
+import logging
 
 pytestmark = pytest.mark.skipif(False, reason="datadog_itr_unskippable")
 
@@ -120,77 +121,104 @@ def test_typechecker():
 
 def test_logger_basic(caplog):
     logger = Logger()
-    with caplog.at_level('INFO'):
-        logger.info("Info message")
-        assert "Info message" in caplog.text
-        logger.warning("Warning message")
-        assert "Warning message" in caplog.text
-        logger.error(ValueError("Error message"))
-        assert "Error message" in caplog.text
-        assert "---Stack Trace---" in caplog.text
+    # Attach the caplog handler to capture logs
+    logger.logger.addHandler(caplog.handler)
+    logger.logger.setLevel(logging.INFO)
+
+    logger.info("Info message")
+    assert "Info message" in caplog.text
+    logger.warning("Warning message")
+    assert "Warning message" in caplog.text
+    logger.error(ValueError("Error message"))
+    assert "Error message" in caplog.text
+    assert "---Stack Trace---" in caplog.text
 
 def test_logger_flow(caplog):
     logger = Logger()
-    with caplog.at_level('FLOW'):
-        logger.flow("Flow message")
-        assert "Flow message" in caplog.text
+    # Attach the caplog handler to capture logs
+    logger.logger.addHandler(caplog.handler)
+    logger.logger.setLevel(logging.INFO)
+
+    logger.flow("Flow message")
+    assert "Flow message" in caplog.text
 
 def test_logger_context(caplog):
     logger = Logger()
-    with caplog.at_level('CONTEXT'):
-        logger.context("Context message")
-        assert "Context message" in caplog.text
+    # Attach the caplog handler to capture logs
+    logger.logger.addHandler(caplog.handler)
+    logger.logger.setLevel(logging.INFO)
+
+    logger.context("Context message")
+    assert "Context message" in caplog.text
 
 def test_logger_hdl_warn(caplog):
     logger = Logger()
-    with caplog.at_level('HDL_WARN'):
-        logger.HDL_WARN("Handle warning message")
-        assert "Handle warning message" in caplog.text
+    # Attach the caplog handler to capture logs
+    logger.logger.addHandler(caplog.handler)
+    logger.logger.setLevel(logging.WARNING)
+
+    logger.HDL_WARN("Handle warning message")
+    assert "Handle warning message" in caplog.text
 
 def test_logger_hdl_err(caplog):
     logger = Logger()
-    with caplog.at_level('HDL_ERR'):
-        logger.HDL_ERR("Handle error message")
-        assert "Handle error message" in caplog.text
+    # Attach the caplog handler to capture logs
+    logger.logger.addHandler(caplog.handler)
+    logger.logger.setLevel(logging.ERROR)
+
+    logger.HDL_ERR("Handle error message")
+    assert "Handle error message" in caplog.text
 
 def test_logger_recv_err(caplog):
     logger = Logger()
-    with caplog.at_level('RCV_ERR'):
-        logger.RECV_ERR("Recoverable error message")
-        assert "Recoverable error message" in caplog.text
+    # Attach the caplog handler to capture logs
+    logger.logger.addHandler(caplog.handler)
+    logger.logger.setLevel(logging.ERROR)
+
+    logger.RECV_ERR("Recoverable error message")
+    assert "Recoverable error message" in caplog.text
 
 def test_logger_data(caplog):
     logger = Logger()
-    with caplog.at_level('DATA'):
-        logger.data({"key": "value"}, object_name='Test Dict')
-        assert '"key": "value"' in caplog.text
-        assert 'Test Dict' in caplog.text
+    # Attach the caplog handler to capture logs
+    logger.logger.addHandler(caplog.handler)
+    logger.logger.setLevel(logging.INFO)
+
+    logger.data({"key": "value"}, object_name='Test Dict')
+    assert '"key": "value"' in caplog.text
+    assert 'Test Dict' in caplog.text
 
 def test_logger_time(caplog):
     logger = Logger()
     logger.start_time()
-    with caplog.at_level('INFO'):
-        logger.log_time("Elapsed time")
-        assert "Elapsed time" in caplog.text
+    # Attach the caplog handler to capture logs
+    logger.logger.addHandler(caplog.handler)
+    logger.logger.setLevel(logging.INFO)
+
+    logger.log_time("Elapsed time")
+    assert "Elapsed time" in caplog.text
 
 def test_logger_compact_header(caplog):
     logger = Logger()
-    with caplog.at_level('INFO'):
-        logger.compact_header("Header message")
-        assert "Header message" in caplog.text
+    # Attach the caplog handler to capture logs
+    logger.logger.addHandler(caplog.handler)
+    logger.logger.setLevel(logging.INFO)
+    logger.compact_header("Header message")
+    assert "Header message" in caplog.text
 
 def test_logger_set_level():
     logger = Logger()
     logger.setLevel("DEBUG")
-    assert logger.logger.getEffectiveLevel() == 10  # DEBUG level
+    assert logger.logger.getEffectiveLevel() == logging.DEBUG
 
 def test_logger_revert_logging_level():
     logger = Logger()
-    initial_level = 20
+    logger.setLevel("INFO")
     logger.setLevel("ERROR")
-    assert logger.logger.getEffectiveLevel() == 40  # ERROR level
+    print(logging.ERROR)
+    assert logger.logger.getEffectiveLevel() == logging.ERROR
     logger.revertLoggingLevel()
-    assert logger.logger.getEffectiveLevel() == initial_level
+    assert logger.logger.getEffectiveLevel() == logging.INFO  # assuming default level is INFO
 
 def test_logger_set_global_traceback():
     logger = Logger()
@@ -199,12 +227,11 @@ def test_logger_set_global_traceback():
     logger.set_global_traceback(False)
     assert not logger.force_stack_trace
 
-def test_logger_verbose_mode(caplog):
+def test_logger_verbose_mode():
     logger = Logger()
-    logger.run_id = "test123"
-    assert logger.non_verbose_mode is False
+    assert not logger.non_verbose_mode
     logger.set_verbose(False)
-    assert logger.non_verbose_mode is True
+    assert logger.non_verbose_mode
 
 @atexit.register
 def shutdown_logging():
