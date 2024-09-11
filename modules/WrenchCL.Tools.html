@@ -564,20 +564,31 @@ If set to ‘coerce’, the function will attempt to coerce the value to the exp
 <dt class="sig sig-object py" id="WrenchCL.Tools.WrenchLogger.BaseLogger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WrenchCL.Tools.WrenchLogger.</span></span><span class="sig-name descname"><span class="pre">BaseLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'INFO'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/WrenchCL/Tools/WrenchLogger.html#BaseLogger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.BaseLogger" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for custom logging with support for colorized output and advanced log handling.</p>
+<p>Provides methods for initializing loggers, managing log levels, and formatting logs with stack traces or
+additional contextual information.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.WrenchLogger.BaseLogger.initiate_new_run">
-<span class="sig-name descname"><span class="pre">initiate_new_run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/WrenchCL/Tools/WrenchLogger.html#BaseLogger.initiate_new_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.initiate_new_run" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">initiate_new_run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/WrenchCL/Tools/WrenchLogger.html#BaseLogger.initiate_new_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.initiate_new_run" title="Link to this definition"></a></dt>
+<dd><p>Generates a new run ID for the current logger session.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.WrenchLogger.BaseLogger.overwrite_lambda_mode">
-<span class="sig-name descname"><span class="pre">overwrite_lambda_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setting</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/WrenchCL/Tools/WrenchLogger.html#BaseLogger.overwrite_lambda_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.overwrite_lambda_mode" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">overwrite_lambda_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setting</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/WrenchCL/Tools/WrenchLogger.html#BaseLogger.overwrite_lambda_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.overwrite_lambda_mode" title="Link to this definition"></a></dt>
+<dd><p>Sets the logger to operate as if running on AWS Lambda.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>setting</strong> – If True, enables AWS Lambda mode.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.WrenchLogger.BaseLogger.revertLoggingLevel">
-<span class="sig-name descname"><span class="pre">revertLoggingLevel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/WrenchCL/Tools/WrenchLogger.html#BaseLogger.revertLoggingLevel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.revertLoggingLevel" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">revertLoggingLevel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/WrenchCL/Tools/WrenchLogger.html#BaseLogger.revertLoggingLevel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.revertLoggingLevel" title="Link to this definition"></a></dt>
+<dd><p>Reverts the logger to the previous logging level before the last change.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.WrenchLogger.BaseLogger.setLevel">
@@ -585,20 +596,46 @@ If set to ‘coerce’, the function will attempt to coerce the value to the exp
 <dd><p>Change the reporting level of the logger.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>level</strong> (<em>str</em>) – The desired logging level as a string (e.g., ‘DEBUG’, ‘INFO’, ‘WARNING’, ‘ERROR’, ‘CRITICAL’).</p>
+<dd class="field-odd"><p><strong>level</strong> – The desired logging level as a string (e.g., ‘DEBUG’, ‘INFO’, ‘WARNING’, ‘ERROR’, ‘CRITICAL’).</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.WrenchLogger.BaseLogger.set_global_traceback">
-<span class="sig-name descname"><span class="pre">set_global_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setting</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/WrenchCL/Tools/WrenchLogger.html#BaseLogger.set_global_traceback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.set_global_traceback" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">set_global_traceback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">setting</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/WrenchCL/Tools/WrenchLogger.html#BaseLogger.set_global_traceback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.set_global_traceback" title="Link to this definition"></a></dt>
+<dd><p>Enables or disables forced stack trace inclusion in logs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>setting</strong> – If True, stack traces will be included in all logs.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="WrenchCL.Tools.WrenchLogger.BaseLogger.set_verbose">
-<span class="sig-name descname"><span class="pre">set_verbose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/WrenchCL/Tools/WrenchLogger.html#BaseLogger.set_verbose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.set_verbose" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">set_verbose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/WrenchCL/Tools/WrenchLogger.html#BaseLogger.set_verbose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.set_verbose" title="Link to this definition"></a></dt>
+<dd><p>Sets the logger to verbose or non-verbose mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbose</strong> – If True, enables verbose logging; otherwise, non-verbose logging is enabled.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="WrenchCL.Tools.WrenchLogger.BaseLogger.suppress_package_logger">
+<span class="sig-name descname"><span class="pre">suppress_package_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/WrenchCL/Tools/WrenchLogger.html#BaseLogger.suppress_package_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#WrenchCL.Tools.WrenchLogger.BaseLogger.suppress_package_logger" title="Link to this definition"></a></dt>
+<dd><p>Suppress logging for a specific package.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>package_name</strong> – The name of the package logger to suppress.</p></li>
+<li><p><strong>level</strong> – The logging level to set for the package logger. Defaults to CRITICAL.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
