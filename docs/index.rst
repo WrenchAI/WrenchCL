@@ -1,9 +1,5 @@
-WrenchCL documentation master file, created by sphinx-quickstart on Mon Jul  8 11:10:05 2024.
-You can adapt this file completely to your liking, but it should at least
-contain the root `toctree` directive.
-
 Wrench Code Library
-====================================
+===================
 
 .. raw:: html
 
@@ -24,30 +20,15 @@ Wrench Code Library
 WrenchCL is a comprehensive library designed to facilitate seamless interactions with AWS services, OpenAI models, and various utility tools. This package aims to streamline the development process by providing robust components for database interactions, cloud storage, and AI-powered functionalities.
 
 Table of Contents
-=======
+=================
 
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
 
+   modules/modules
    installation
    development
-
-Modules
-=======
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Modules:
-
-   WrenchCL
-   WrenchCL.Connect
-   WrenchCL.DataFlow
-   WrenchCL.Decorators
-   WrenchCL.Models
-   WrenchCL.Tools
-   WrenchCL._Internal
-   WrenchCL.scripts
 
 Indices and tables
 ==================
