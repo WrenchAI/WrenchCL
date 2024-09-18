@@ -91,10 +91,9 @@
 <span class="kn">from</span> <span class="nn">..Decorators</span> <span class="kn">import</span> <span class="n">SingletonClass</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">init</span>
+    <span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">reinit</span>
     <span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">Fore</span> <span class="k">as</span> <span class="n">Color</span>
     <span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">Style</span>
-
     <span class="n">colorama_imported</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">init</span> <span class="o">=</span> <span class="kc">None</span>
@@ -127,6 +126,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_run_id</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">running_on_lambda</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="s1">&#39;AWS_LAMBDA_FUNCTION_NAME&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">running_on_lambda</span> <span class="ow">and</span> <span class="n">colorama_imported</span><span class="p">:</span>
+            <span class="n">init</span><span class="p">(</span><span class="n">strip</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">colorama_imported</span><span class="p">:</span>
+            <span class="n">init</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">previous_level</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logging_level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_logging_level</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">force_stack_trace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
@@ -278,57 +283,62 @@
 
     <span class="k">def</span> <span class="nf">_log_with_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                         <span class="n">stack_info</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">compact</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Logs a message with color formatting for better readability in the console.&quot;&quot;&quot;</span>
-        <span class="n">indent_prefix</span> <span class="o">=</span> <span class="s1">&#39;: &#39;</span>
-        <span class="n">prefix_col</span> <span class="o">=</span> <span class="n">Color</span><span class="o">.</span><span class="n">WHITE</span>
-        <span class="n">prefix_style</span> <span class="o">=</span> <span class="n">Style</span><span class="o">.</span><span class="n">DIM</span>
-        <span class="n">text_style</span> <span class="o">=</span> <span class="n">Style</span><span class="o">.</span><span class="n">NORMAL</span>
-        <span class="n">style_reset</span> <span class="o">=</span> <span class="n">Style</span><span class="o">.</span><span class="n">RESET_ALL</span>
-        <span class="k">if</span> <span class="n">level</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">DATA_lvl</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">running_on_lambda</span><span class="p">:</span>
-            <span class="n">header_style</span> <span class="o">=</span> <span class="n">Style</span><span class="o">.</span><span class="n">BRIGHT</span>
-            <span class="n">header_col</span> <span class="o">=</span> <span class="n">Color</span><span class="o">.</span><span class="n">LIGHTWHITE_EX</span>
-            <span class="n">text_col</span> <span class="o">=</span> <span class="n">Color</span><span class="o">.</span><span class="n">LIGHTWHITE_EX</span>
-        <span class="k">elif</span> <span class="n">colorama_imported</span> <span class="ow">and</span> <span class="n">color</span><span class="p">:</span>
-            <span class="n">header_style</span> <span class="o">=</span> <span class="n">Style</span><span class="o">.</span><span class="n">BRIGHT</span>
-            <span class="n">header_col</span> <span class="o">=</span> <span class="n">Color</span><span class="o">.</span><span class="n">LIGHTWHITE_EX</span>
-            <span class="n">text_col</span> <span class="o">=</span> <span class="n">Color</span><span class="o">.</span><span class="n">WHITE</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">header_style</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="n">header_col</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="n">text_style</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="n">text_col</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="n">prefix_col</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="n">prefix_style</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="n">style_reset</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Logs a message with color formatting for better readability in the console.</span>
 
+<span class="sd">        The message is formatted with color codes if supported, and the ANSI codes are stripped if the</span>
+<span class="sd">        logger is running in AWS Lambda or other non-terminal environments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Default styles; apply color if running in a compatible environment</span>
+        <span class="n">header_style</span> <span class="o">=</span> <span class="n">Style</span><span class="o">.</span><span class="n">BRIGHT</span> <span class="k">if</span> <span class="n">colorama_imported</span> <span class="ow">and</span> <span class="n">color</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">header_col</span> <span class="o">=</span> <span class="n">Color</span><span class="o">.</span><span class="n">LIGHTWHITE_EX</span> <span class="k">if</span> <span class="n">colorama_imported</span> <span class="ow">and</span> <span class="n">color</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">text_style</span> <span class="o">=</span> <span class="n">Style</span><span class="o">.</span><span class="n">NORMAL</span> <span class="k">if</span> <span class="n">colorama_imported</span> <span class="ow">and</span> <span class="n">color</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">style_reset</span> <span class="o">=</span> <span class="n">Style</span><span class="o">.</span><span class="n">RESET_ALL</span> <span class="k">if</span> <span class="n">colorama_imported</span> <span class="ow">and</span> <span class="n">color</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="c1"># Prepare lines for the message with potential formatting</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
-        <span class="n">colored_lines</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">level</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DATA_lvl</span> <span class="k">else</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
+        <span class="n">colored_lines</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Determine how to format lines based on conditions</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">compact</span><span class="p">:</span>
-            <span class="n">colored_lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">header_col</span><span class="si">}{</span><span class="n">text_style</span><span class="si">}{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="si">}{</span><span class="n">style_reset</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+            <span class="n">colored_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">header_col</span><span class="si">}{</span><span class="n">text_style</span><span class="si">}{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="si">}{</span><span class="n">style_reset</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">colored_lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">header_col</span><span class="si">}{</span><span class="n">header_style</span><span class="si">}{</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
-            <span class="n">colored_lines</span> <span class="o">+=</span> <span class="p">[</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix_col</span><span class="si">}{</span><span class="n">prefix_style</span><span class="si">}{</span><span class="n">indent_prefix</span><span class="si">}{</span><span class="n">style_reset</span><span class="si">}{</span><span class="n">text_col</span><span class="si">}{</span><span class="n">text_style</span><span class="si">}{</span><span class="n">line</span><span class="si">}{</span><span class="n">style_reset</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span>
-                <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+            <span class="n">colored_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">header_col</span><span class="si">}{</span><span class="n">header_style</span><span class="si">}{</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">colored_lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">header_col</span><span class="si">}{</span><span class="n">text_style</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">line</span><span class="si">}{</span><span class="n">style_reset</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">colored_lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">header_col</span><span class="si">}{</span><span class="n">header_style</span><span class="si">}{</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
-            <span class="n">colored_lines</span> <span class="o">+=</span> <span class="p">[</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix_col</span><span class="si">}{</span><span class="n">prefix_style</span><span class="si">}{</span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">style_reset</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">text_col</span><span class="si">}{</span><span class="n">text_style</span><span class="si">}{</span><span class="n">line</span><span class="si">}{</span><span class="n">style_reset</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span>
-                <span class="n">idx</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:])]</span>
+            <span class="n">colored_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">header_col</span><span class="si">}{</span><span class="n">header_style</span><span class="si">}{</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">colored_lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">header_col</span><span class="si">}{</span><span class="n">text_style</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">line</span><span class="si">}{</span><span class="n">style_reset</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">level</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">DATA_lvl</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">colored_lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix_col</span><span class="si">}{</span><span class="n">prefix_style</span><span class="si">}</span><span class="s2">---End of File----</span><span class="si">{</span><span class="n">style_reset</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+        <span class="c1"># Join the lines into the final text</span>
+        <span class="n">formatted_text</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">colored_lines</span><span class="p">)</span>
 
-        <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">colored_lines</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">colorama_imported</span> <span class="ow">and</span> <span class="n">color</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">running_on_lambda</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_handlerFormat</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">running_on_lambda</span><span class="p">:</span>
-            <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_handlerFormat</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_handlerFormat</span><span class="p">()</span>
+        <span class="c1"># Strip ANSI escape codes if running in AWS Lambda or similar environments</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">running_on_lambda</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">colorama_imported</span><span class="p">:</span>
+            <span class="n">formatted_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strip_ansi</span><span class="p">(</span><span class="n">formatted_text</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">stack_info</span><span class="p">)</span>
+        <span class="c1"># Set the handler format accordingly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_handlerFormat</span><span class="p">(</span><span class="n">color</span> <span class="k">if</span> <span class="n">colorama_imported</span> <span class="ow">and</span> <span class="n">color</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Log the message with the internal logger</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="n">formatted_text</span><span class="p">,</span> <span class="n">stack_info</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_strip_ansi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Strips ANSI escape sequences from the log message text.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            text (str): The text from which to remove ANSI escape sequences.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Cleaned text without ANSI escape sequences.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">re</span>
+        <span class="n">ansi_escape</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\x1B[@-_][0-?]*[ -/]*[@-~]&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ansi_escape</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_format_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">object_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                      <span class="n">wrap_length</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_rows</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>

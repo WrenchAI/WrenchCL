@@ -87,6 +87,8 @@
 <span class="c1">#</span>
 <span class="c1">#  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).</span>
 <span class="c1">#</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
 <span class="kn">from</span> <span class="nn">boto3</span> <span class="kn">import</span> <span class="n">client</span> <span class="k">as</span> <span class="n">boto3client</span>
 
 <span class="kn">from</span> <span class="nn">..Tools.TypeChecker</span> <span class="kn">import</span> <span class="n">typechecker</span>  <span class="c1"># Update this to the correct import path</span>
@@ -149,12 +151,15 @@
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">typechecker</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">expected_types</span><span class="p">,</span> <span class="n">none_is_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lambda_client&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">params</span><span class="p">[</span><span class="s1">&#39;lambda_client&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">boto3client</span><span class="p">(</span><span class="s1">&#39;lambda&#39;</span><span class="p">)</span>
+
         <span class="n">trigger_minimum_dataflow_metrics</span><span class="p">(</span>
             <span class="n">event</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;event&#39;</span><span class="p">,</span> <span class="p">{}),</span>
             <span class="n">context</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;context&#39;</span><span class="p">,</span> <span class="p">{}),</span>
-            <span class="n">lambda_client</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lambda_client&#39;</span><span class="p">,</span> <span class="n">boto3client</span><span class="p">(</span><span class="s1">&#39;lambda&#39;</span><span class="p">)),</span>
-            <span class="n">job_name</span><span class="o">=</span><span class="s1">&#39;Model Inference Service&#39;</span><span class="p">,</span>
-            <span class="n">job_type</span><span class="o">=</span><span class="s1">&#39;Lambda&#39;</span><span class="p">,</span>
+            <span class="n">lambda_client</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lambda_client&#39;</span><span class="p">),</span>
+            <span class="n">job_name</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;AWS_FUNCTION_NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="n">job_type</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;AWS_JOB_TYPE&#39;</span><span class="p">,</span> <span class="s1">&#39;lambda&#39;</span><span class="p">),</span>
             <span class="n">status_code</span><span class="o">=</span><span class="n">code</span><span class="p">,</span>
             <span class="n">exception_msg</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
         <span class="p">)</span>
