@@ -16,10 +16,9 @@ from typing import Any, Optional, Union
 from ..Decorators import SingletonClass
 
 try:
-    from colorama import init
+    from colorama import init, reinit
     from colorama import Fore as Color
     from colorama import Style
-
     colorama_imported = True
 except ImportError:
     init = None
@@ -50,6 +49,12 @@ class BaseLogger:
         self._start_time: Optional[float] = None
         self.run_id: str = self._generate_run_id()
         self.running_on_lambda: bool = 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
+        if self.running_on_lambda and colorama_imported:
+            init(strip = True)
+        elif colorama_imported:
+            init()
+        else:
+            pass
         self.previous_level: Optional[int] = None
         self.logging_level: int = self._set_logging_level(level)
         self.force_stack_trace: bool = False
@@ -180,57 +185,62 @@ class BaseLogger:
 
     def _log_with_color(self, level: int, text: str, color: Optional[str] = None,
                         stack_info: Optional[bool] = False, compact: Optional[bool] = False) -> None:
-        """Logs a message with color formatting for better readability in the console."""
-        indent_prefix = ': '
-        prefix_col = Color.WHITE
-        prefix_style = Style.DIM
-        text_style = Style.NORMAL
-        style_reset = Style.RESET_ALL
-        if level == self.DATA_lvl and not self.running_on_lambda:
-            header_style = Style.BRIGHT
-            header_col = Color.LIGHTWHITE_EX
-            text_col = Color.LIGHTWHITE_EX
-        elif colorama_imported and color:
-            header_style = Style.BRIGHT
-            header_col = Color.LIGHTWHITE_EX
-            text_col = Color.WHITE
-        else:
-            header_style = ""
-            header_col = ""
-            text_style = ""
-            text_col = ""
-            prefix_col = ""
-            prefix_style = ""
-            style_reset = ""
+        """
+        Logs a message with color formatting for better readability in the console.
 
+        The message is formatted with color codes if supported, and the ANSI codes are stripped if the
+        logger is running in AWS Lambda or other non-terminal environments.
+        """
+        # Default styles; apply color if running in a compatible environment
+        header_style = Style.BRIGHT if colorama_imported and color else ""
+        header_col = Color.LIGHTWHITE_EX if colorama_imported and color else ""
+        text_style = Style.NORMAL if colorama_imported and color else ""
+        style_reset = Style.RESET_ALL if colorama_imported and color else ""
+
+        # Prepare lines for the message with potential formatting
         lines = text.splitlines()
-        colored_lines = [] if level != self.DATA_lvl else ['']
+        colored_lines = []
+
+        # Determine how to format lines based on conditions
         if len(lines) == 1 or compact:
-            colored_lines += [f"{header_col}{text_style}{' '.join(lines)}{style_reset}"]
+            colored_lines.append(f"{header_col}{text_style}{' '.join(lines)}{style_reset}")
         elif len(lines) <= 2:
-            colored_lines += [f"{header_col}{header_style}{lines[0]}"]
-            colored_lines += [
-                f"{prefix_col}{prefix_style}{indent_prefix}{style_reset}{text_col}{text_style}{line}{style_reset}" for
-                line in lines[1:]]
+            colored_lines.append(f"{header_col}{header_style}{lines[0]}")
+            colored_lines.extend(
+                f"{header_col}{text_style} : {line}{style_reset}" for line in lines[1:]
+            )
         else:
-            colored_lines += [f"{header_col}{header_style}{lines[0]}"]
-            colored_lines += [
-                f"{prefix_col}{prefix_style}{idx + 1}:{style_reset} {text_col}{text_style}{line}{style_reset}" for
-                idx, line in enumerate(lines[1:])]
+            colored_lines.append(f"{header_col}{header_style}{lines[0]}")
+            colored_lines.extend(
+                f"{header_col}{text_style} {idx + 1}: {line}{style_reset}" for idx, line in enumerate(lines[1:])
+            )
 
-        if level == self.DATA_lvl and len(lines) > 2:
-            colored_lines += [f"{prefix_col}{prefix_style}---End of File----{style_reset}"]
+        # Join the lines into the final text
+        formatted_text = '\n'.join(colored_lines)
 
-        text = '\n'.join(colored_lines)
-        if colorama_imported and color and not self.running_on_lambda:
-            self._handlerFormat(color)
-        elif self.running_on_lambda:
-            text = " ".join(text.split())
-            self._handlerFormat()
-        else:
-            self._handlerFormat()
+        # Strip ANSI escape codes if running in AWS Lambda or similar environments
+        if self.running_on_lambda or not colorama_imported:
+            formatted_text = self._strip_ansi(formatted_text)
 
-        self._log(level, text, stack_info)
+        # Set the handler format accordingly
+        self._handlerFormat(color if colorama_imported and color else "")
+
+        # Log the message with the internal logger
+        self._log(level, formatted_text, stack_info)
+
+    def _strip_ansi(self, text: str) -> str:
+        """
+        Strips ANSI escape sequences from the log message text.
+
+        Args:
+            text (str): The text from which to remove ANSI escape sequences.
+
+        Returns:
+            str: Cleaned text without ANSI escape sequences.
+        """
+        import re
+        ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+        return ansi_escape.sub('', text)
 
     def _format_data(self, data: Any, object_name: Optional[str] = None, content: bool = True,
                      wrap_length: Optional[int] = None, max_rows: Optional[int] = None, indent: int = 4) -> str:
