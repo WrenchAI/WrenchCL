@@ -12,4 +12,3 @@ sshtunnel~=0.4.0
 tenacity~=8.2.3
 pillow~=10.3.0
 filetype~=1.2.0
-ddtrace
