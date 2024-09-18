@@ -12,6 +12,8 @@
 #
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
+import os
+
 from boto3 import client as boto3client
 
 from ..Tools.TypeChecker import typechecker  # Update this to the correct import path
@@ -66,12 +68,15 @@ def handle_lambda_response(code, message, params, response_body=None, client_id=
 
     try:
         typechecker(params, expected_types, none_is_ok=True)
+        if params.get('lambda_client') is None:
+            params['lambda_client'] = boto3client('lambda')
+
         trigger_minimum_dataflow_metrics(
             event=params.get('event', {}),
             context=params.get('context', {}),
-            lambda_client=params.get('lambda_client', boto3client('lambda')),
-            job_name='Model Inference Service',
-            job_type='Lambda',
+            lambda_client=params.get('lambda_client'),
+            job_name=os.getenv('AWS_FUNCTION_NAME', ''),
+            job_type=os.getenv('AWS_JOB_TYPE', 'lambda'),
             status_code=code,
             exception_msg=str(message)
         )
