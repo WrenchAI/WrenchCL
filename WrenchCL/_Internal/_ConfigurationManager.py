@@ -89,11 +89,7 @@ class _ConfigurationManager:
         """
         if self.env_path:
             env_path = self._resolve_path(self.env_path)
-        else:
-            env_path = self._find_env_file()
-
-        logger.debug(f"Env file path: {env_path}")
-        load_dotenv(env_path)
+            load_dotenv(env_path, override=True)
 
     def _resolve_path(self, path):
         """
@@ -107,33 +103,6 @@ class _ConfigurationManager:
         if Path(path).is_absolute():
             return path
         return os.path.join(os.getcwd(), path)
-
-    def _find_env_file(self):
-        """
-        Searches for the .env file in several potential locations.
-
-        :returns: The path to the found .env file.
-        :rtype: str
-        :raises FileNotFoundError: If no .env file is found in the expected locations.
-        """
-        # Check different potential locations for the .env file
-        possible_paths = [Path(__file__).resolve().parent,  # Current directory
-                          Path(os.getcwd()),  # Working directory
-                          Path(os.getcwd()).joinpath('Resources', 'Secrets'),
-                          Path(os.getcwd()).joinpath('resources', 'secrets'),
-                          Path(os.getcwd()).parent.joinpath('Resources', 'Secrets'),
-                          Path(os.getcwd()).parent.joinpath('resources', 'secrets'),
-                          Path(os.getcwd()).parent.parent.joinpath('Resources', 'Secrets'),
-                          Path(os.getcwd()).parent.parent.joinpath('resources', 'secrets')]
-
-        for base_path in possible_paths:
-            if not str(base_path).endswith('.env'):
-                env_path = base_path.joinpath('.env')
-            else:
-                env_path = base_path
-            if env_path.exists():
-                return str(env_path)
-        raise FileNotFoundError("No .env file found in expected locations.")
 
     def _init_from_kwargs(self, kwargs):
         """

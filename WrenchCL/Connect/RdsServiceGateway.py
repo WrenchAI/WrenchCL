@@ -8,21 +8,19 @@ import psycopg2
 import psycopg2.extensions
 import psycopg2.extras
 from mypy_boto3_rds.client import RDSClient
-from pandas import DataFrame
 from psycopg2.pool import ThreadedConnectionPool
 from .AwsClientHub import AwsClientHub
 from ..Decorators.SingletonClass import SingletonClass
 from ..Tools.WrenchLogger import Logger
 
 logger = Logger()
-
 try:
     import pandas as pd
-
+    from pandas import DataFrame
     PANDAS_AVAILABLE = True
 except ImportError:
     PANDAS_AVAILABLE = False
-
+    DataFrame = object
 
 @SingletonClass
 class RdsServiceGateway:
@@ -110,7 +108,7 @@ class RdsServiceGateway:
         finally:
             self.release_connection(conn)
 
-    def update_database(self, query: str, payload: Union[tuple, list[tuple], 'pd.DataFrame'], returning: bool = False,
+    def update_database(self, query: str, payload: Union[tuple, list[tuple], DataFrame], returning: bool = False,
             column_order: Optional[List[str]] = None, raise_on_error: bool = True) -> Optional[List[tuple]]:
         """
         Updates the database by executing the given query with the provided payload.
@@ -130,7 +128,7 @@ class RdsServiceGateway:
                     return_value = cursor.fetchall() if returning else None
                     conn.commit()
                     return return_value
-            elif PANDAS_AVAILABLE and isinstance(payload, pd.DataFrame) and column_order:
+            elif PANDAS_AVAILABLE and isinstance(payload, DataFrame) and column_order:
                 if returning:
                     logger.error("Returning values not compatible with batch processing, please use dictionary input")
                     raise ValueError(
@@ -205,7 +203,7 @@ class RdsServiceGateway:
         :rtype: Tuple[Any, ...]
         """
         if PANDAS_AVAILABLE:
-            if isinstance(payload, pd.DataFrame):
+            if isinstance(payload, DataFrame):
                 return self._convert_dataframe_types(payload)
             else:
                 return tuple(self._convert_value(val) for val in payload)
@@ -213,7 +211,7 @@ class RdsServiceGateway:
             return tuple(self._convert_value(val) for val in payload)
 
     @staticmethod
-    def _convert_dataframe_types(df: pd.DataFrame) -> pd.DataFrame:
+    def _convert_dataframe_types(df: DataFrame) -> DataFrame:
         """
         Converts DataFrame columns to types compatible with psycopg2.
         """
