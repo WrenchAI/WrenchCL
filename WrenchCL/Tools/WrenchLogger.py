@@ -600,4 +600,4 @@ class Logger(BaseLogger):
 
 
 # Provide backward compatibility
-logger = Logger()
+
