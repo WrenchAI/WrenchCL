@@ -19,9 +19,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from ..Tools.WrenchLogger import Logger
-
-logger = Logger()
+from ..Tools import logger
 
 
 class _ConfigurationManager:
@@ -42,6 +40,8 @@ class _ConfigurationManager:
         ssh_password (str): SSH user password.
         pem_path (str): Path to the PEM file for SSH authentication.
         qa_host_check (str): Host check identifier for QA environment.
+        dev_host_check (str): Host check identifier for DEV environment.
+        prod_host_check (str): Host check identifier for PROD environment.
         db_batch_size (int): Batch size for database operations.
         aws_deployment (bool): Override for ssh tunnel on QA (when actively deployed on aws shh tunnel is off)
     """
@@ -68,13 +68,15 @@ class _ConfigurationManager:
         self.ssh_password = None
         self.pem_path = None
         self.qa_host_check = 'ce5sivkxtgbs'
+        self.dev_host_check = 'ced0khqdverl'
+        self.prod_host_check = 'c3zncwpdk0m7'
         self.db_batch_size = 10000
         self.aws_deployment = None
 
         try:
             self._initialize_env()
         except Exception as e:
-            logger.HDL_WARN(f"No env file found to load trying existing variables {e}")
+            logger.info(f"No env file found to load, using existing variables. Error: {e}")
         self._init_from_env()
         self._init_from_kwargs(kwargs)
 
@@ -82,6 +84,9 @@ class _ConfigurationManager:
             err_string = "Error in loading environment variables, Secret ARN is missing"
             logger.error(err_string)
             raise ValueError(err_string)
+
+        # Log configuration after initialization
+        logger.debug(self._log_safe_config())
 
     def _initialize_env(self):
         """
@@ -138,3 +143,30 @@ class _ConfigurationManager:
         self.pem_path = os.getenv('PEM_PATH', self.pem_path)
         self.db_batch_size = int(os.getenv('DB_BATCH_OVERRIDE', self.db_batch_size or 10000))
         self.aws_deployment = str(os.getenv('AWS_DEPLOYMENT', None)).lower() == 'true'
+
+    def _log_safe_config(self):
+        """
+        Returns a safely masked version of the configuration for logging, masking sensitive fields.
+
+        :returns: A dictionary of safely masked configuration values.
+        :rtype: dict
+        """
+        def mask_sensitive(value):
+            if value and isinstance(value, str) and len(value) > 6:
+                return f"{value[:3]}...{value[-3:]}"
+            return value
+
+        return {
+            'aws_profile': self.aws_profile,
+            'region_name': self.region_name,
+            'secret_arn': mask_sensitive(self.secret_arn),
+            'openai_api_key': mask_sensitive(self.openai_api_key),
+            'ssh_server': self.ssh_server,
+            'ssh_port': self.ssh_port,
+            'ssh_user': self.ssh_user,
+            'ssh_password': mask_sensitive(self.ssh_password),
+            'pem_path': mask_sensitive(self.pem_path),
+            'qa_host_check': self.qa_host_check,
+            'db_batch_size': self.db_batch_size,
+            'aws_deployment': self.aws_deployment
+        }
