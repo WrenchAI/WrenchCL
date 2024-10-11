@@ -45,8 +45,8 @@ def TimedMethod(func, level='DEBUG'):
         :param kwargs: Keyword arguments for the function.
         :returns: The result of the function call.
         """
-        from ..Tools.WrenchLogger import Logger
-        logger = Logger()
+        from ..Tools import logger
+        
         start = time.time()
         result = func(*args, **kwargs)
         elapsed = time.time() - start

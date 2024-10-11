@@ -28,10 +28,8 @@ import warnings
 # Assuming these are your custom modules
 from ..Decorators.Retryable import Retryable
 from ..Decorators.SingletonClass import SingletonClass
-from ..Tools.WrenchLogger import Logger
+from ..Tools import logger
 from .AwsClientHub import AwsClientHub
-
-logger = Logger()
 
 
 @SingletonClass

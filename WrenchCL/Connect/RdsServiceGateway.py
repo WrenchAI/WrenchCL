@@ -11,9 +11,8 @@ from mypy_boto3_rds.client import RDSClient
 from psycopg2.pool import ThreadedConnectionPool
 from .AwsClientHub import AwsClientHub
 from ..Decorators.SingletonClass import SingletonClass
-from ..Tools.WrenchLogger import Logger
+from ..Tools import logger
 
-logger = Logger()
 try:
     import pandas as pd
     from pandas import DataFrame
@@ -103,7 +102,7 @@ class RdsServiceGateway:
                 logger.error(f"Error executing query: {e}")
                 raise e
             else:
-                logger.warning(f"Query returned None: {e}")
+                logger.debug(f"Query returned None: {e}")
                 return None
         finally:
             self.release_connection(conn)
