@@ -23,9 +23,7 @@ import time
 import uuid
 from typing import Any, Dict, Optional
 
-from ..Tools.WrenchLogger import Logger
-
-logger = Logger()
+from ..Tools import logger
 
 
 def trigger_dataflow_metrics(

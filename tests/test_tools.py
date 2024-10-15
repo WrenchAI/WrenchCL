@@ -8,7 +8,7 @@ from WrenchCL.Tools import robust_serializer
 from WrenchCL.Tools import single_quote_decoder
 from WrenchCL.Tools import Maybe
 from WrenchCL.Tools import typechecker
-from WrenchCL.Tools import Logger
+from WrenchCL.Tools import logger
 import json
 from datetime import datetime
 from decimal import Decimal
@@ -120,7 +120,7 @@ def test_typechecker():
         typechecker(invalid_data, expected_types)
 
 def test_logger_basic(caplog):
-    logger = Logger()
+    
     # Attach the caplog handler to capture logs
     logger.logger.addHandler(caplog.handler)
     logger.logger.setLevel(logging.INFO)
@@ -134,7 +134,7 @@ def test_logger_basic(caplog):
     assert "---Stack Trace---" in caplog.text
 
 def test_logger_flow(caplog):
-    logger = Logger()
+    
     # Attach the caplog handler to capture logs
     logger.logger.addHandler(caplog.handler)
     logger.logger.setLevel(logging.INFO)
@@ -143,7 +143,7 @@ def test_logger_flow(caplog):
     assert "Flow message" in caplog.text
 
 def test_logger_context(caplog):
-    logger = Logger()
+    
     # Attach the caplog handler to capture logs
     logger.logger.addHandler(caplog.handler)
     logger.logger.setLevel(logging.INFO)
@@ -152,7 +152,7 @@ def test_logger_context(caplog):
     assert "Context message" in caplog.text
 
 def test_logger_hdl_warn(caplog):
-    logger = Logger()
+    
     # Attach the caplog handler to capture logs
     logger.logger.addHandler(caplog.handler)
     logger.logger.setLevel(logging.WARNING)
@@ -161,7 +161,7 @@ def test_logger_hdl_warn(caplog):
     assert "Handle warning message" in caplog.text
 
 def test_logger_hdl_err(caplog):
-    logger = Logger()
+    
     # Attach the caplog handler to capture logs
     logger.logger.addHandler(caplog.handler)
     logger.logger.setLevel(logging.ERROR)
@@ -170,7 +170,7 @@ def test_logger_hdl_err(caplog):
     assert "Handle error message" in caplog.text
 
 def test_logger_recv_err(caplog):
-    logger = Logger()
+    
     # Attach the caplog handler to capture logs
     logger.logger.addHandler(caplog.handler)
     logger.logger.setLevel(logging.ERROR)
@@ -179,7 +179,7 @@ def test_logger_recv_err(caplog):
     assert "Recoverable error message" in caplog.text
 
 def test_logger_data(caplog):
-    logger = Logger()
+    
     # Attach the caplog handler to capture logs
     logger.logger.addHandler(caplog.handler)
     logger.logger.setLevel(logging.INFO)
@@ -189,7 +189,7 @@ def test_logger_data(caplog):
     assert 'Test Dict' in caplog.text
 
 def test_logger_time(caplog):
-    logger = Logger()
+    
     logger.start_time()
     # Attach the caplog handler to capture logs
     logger.logger.addHandler(caplog.handler)
@@ -199,7 +199,7 @@ def test_logger_time(caplog):
     assert "Elapsed time" in caplog.text
 
 def test_logger_compact_header(caplog):
-    logger = Logger()
+    
     # Attach the caplog handler to capture logs
     logger.logger.addHandler(caplog.handler)
     logger.logger.setLevel(logging.INFO)
@@ -207,12 +207,12 @@ def test_logger_compact_header(caplog):
     assert "Header message" in caplog.text
 
 def test_logger_set_level():
-    logger = Logger()
+    
     logger.setLevel("DEBUG")
     assert logger.logger.getEffectiveLevel() == logging.DEBUG
 
 def test_logger_revert_logging_level():
-    logger = Logger()
+    
     logger.setLevel("INFO")
     logger.setLevel("ERROR")
     print(logging.ERROR)
@@ -221,14 +221,14 @@ def test_logger_revert_logging_level():
     assert logger.logger.getEffectiveLevel() == logging.INFO  # assuming default level is INFO
 
 def test_logger_set_global_traceback():
-    logger = Logger()
+    
     logger.set_global_traceback(True)
     assert logger.force_stack_trace
     logger.set_global_traceback(False)
     assert not logger.force_stack_trace
 
 def test_logger_verbose_mode():
-    logger = Logger()
+    
     assert not logger.non_verbose_mode
     logger.set_verbose(False)
     assert logger.non_verbose_mode

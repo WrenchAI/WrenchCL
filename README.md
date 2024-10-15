@@ -215,9 +215,6 @@ The `Logger` class extends `BaseLogger`, adding specialized methods for logging 
 ### Example Usage
 
 ```python
-# Initialize Logger
-logger = Logger()
-
 # Configure file logging
 logger.log_file('logs/application.log')
 

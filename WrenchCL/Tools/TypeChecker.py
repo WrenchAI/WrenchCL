@@ -15,9 +15,7 @@
 
 from typing import Any, Dict, List, Type, Union, Iterable
 
-from .WrenchLogger import Logger
-
-logger = Logger()
+from . import logger
 
 
 def typechecker(

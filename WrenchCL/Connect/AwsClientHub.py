@@ -13,21 +13,19 @@
 #  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
 #
 
-
 import json
 import os
-from typing import Optional
+from typing import Optional, Union
 
 import boto3
 import psycopg2
 from botocore.config import Config
 
 from ..Decorators.SingletonClass import SingletonClass
-from ..Tools.WrenchLogger import Logger
+from ..Tools import logger
 from .._Internal._ConfigurationManager import _ConfigurationManager
 from .._Internal._SshTunnelManager import _SshTunnelManager
 
-logger = Logger()
 from ..Tools.Coalesce import coalesce
 from mypy_boto3_s3.client import S3Client
 from mypy_boto3_rds.client import RDSClient
@@ -77,14 +75,14 @@ class AwsClientHub:
         """
         boto3.set_stream_logger(name='botocore.credentials', level=40)
         self.lambda_client = None
-        self.config = None
+        self.config: Union[None, _ConfigurationManager] = None
         self.aws_session_client = None
         self.db_client = None
         self.s3_client = None
         self.secret_client = None
         self.secret_string = None
         self.need_ssh_tunnel = False
-        self._kwargs = kwargs  # Store kwargs as an instance variable
+        self._kwargs = kwargs
         self.reload_config(env_path=env_path, **kwargs)
         self.get_secret()
         self._initialized = True
@@ -110,7 +108,7 @@ class AwsClientHub:
             config = client_manager.get_config()
         """
         if self.config is None:
-            self.reload_config(**self._kwargs)  # Use stored kwargs when reloading the config
+            self.reload_config(**self._kwargs)
         return self.config
 
     def get_db_uri(self) -> str:
@@ -127,6 +125,7 @@ class AwsClientHub:
         RDS_USERNAME = self.secret_string.get('username')
 
         RDS_URI = f"postgresql://{RDS_USERNAME}:{RDS_PASSWORD}@{RDS_ENDPOINT}:{RDS_PORT}/{RDS_DB_NAME}"
+        logger.debug(f"Constructed DB URI with endpoint: {RDS_ENDPOINT}, port: {RDS_PORT}, user: {RDS_USERNAME}")
         return RDS_URI
 
     def get_db_client(self) -> RDSClient:
@@ -161,7 +160,6 @@ class AwsClientHub:
         if self.s3_client is None or force_refresh:
             self._init_s3_client(config)
         return self.s3_client
-
 
     def get_secret_client(self):
         """
@@ -205,19 +203,34 @@ class AwsClientHub:
         pghost_env_override = os.getenv("PGHOST_OVERRIDE")
         pgport_env_override = os.getenv("PGPORT_OVERRIDE")
 
-
         try:
-            config = dict(PGHOST=self.secret_string['host'] if pghost_env_override is None else pghost_env_override,
-                          PGPORT=int(self.secret_string['port']) if pgport_env_override is None else int(pgport_env_override),
-                          PGDATABASE=self.secret_string['dbname'], PGUSER=self.secret_string['username'],
-                          PGPASSWORD=self.secret_string['password'])
+            config = dict(
+                PGHOST=self.secret_string['host'] if pghost_env_override is None else pghost_env_override,
+                PGPORT=int(self.secret_string['port']) if pgport_env_override is None else int(pgport_env_override),
+                PGDATABASE=self.secret_string['dbname'],
+                PGUSER=self.secret_string['username'],
+                PGPASSWORD=self.secret_string['password']
+            )
 
             if self.need_ssh_tunnel:
-                config['SSH_TUNNEL'] = dict(SSH_SERVER=coalesce(self.config.ssh_server, '34.201.30.245'),
-                                            SSH_PORT=coalesce(self.config.ssh_port, 22),
-                                            SSH_USER=coalesce(self.config.ssh_user, "ec2-user"),
-                                            SSH_PASSWORD=coalesce(self.config.ssh_password, None),
-                                            SSH_KEY_PATH=coalesce(self.config.pem_path, None))
+                if self.config.qa_host_check in self.secret_string['host']:
+                    config['SSH_TUNNEL'] = dict(SSH_SERVER=coalesce(self.config.ssh_server, '34.201.30.245'),
+                                                SSH_PORT=coalesce(self.config.ssh_port, 22),
+                                                SSH_USER=coalesce(self.config.ssh_user, "ec2-user"),
+                                                SSH_PASSWORD=coalesce(self.config.ssh_password, None),
+                                                SSH_KEY_PATH=coalesce(self.config.pem_path, None))
+                elif self.config.dev_host_check in self.secret_string['host']:
+                    config['SSH_TUNNEL'] = dict(SSH_SERVER=coalesce(self.config.ssh_server, '44.193.207.105'),
+                                                SSH_PORT=coalesce(self.config.ssh_port, 22),
+                                                SSH_USER=coalesce(self.config.ssh_user, "ec2-user"),
+                                                SSH_PASSWORD=coalesce(self.config.ssh_password, None),
+                                                SSH_KEY_PATH=coalesce(self.config.pem_path, None))
+                else:
+                    config['SSH_TUNNEL'] = dict(SSH_SERVER=self.config.ssh_server,
+                                                SSH_PORT=self.config.ssh_port,
+                                                SSH_USER=self.config.ssh_user,
+                                                SSH_PASSWORD=self.config.ssh_password,
+                                                SSH_KEY_PATH=self.config.pem_path)
 
             self.db_client = self._rds_handle_configuration(config)
         except Exception as e:
@@ -244,8 +257,8 @@ class AwsClientHub:
             except ValueError:
                 pass
             except Exception as e:
+                logger.error(f"SSH Tunnel failed: {e}")
                 raise e
-        logger.debug(f"Connecting to DB with {host}.{port} ")
 
         db_client = psycopg2.connect(host=host, port=port, database=config['PGDATABASE'], user=config['PGUSER'],
                                      password=config['PGPASSWORD'])
@@ -260,6 +273,7 @@ class AwsClientHub:
         """
         try:
             self.s3_client = self.aws_session_client.client('s3', region_name=self.config.region_name, config=config)
+            logger.debug(f"S3 client initialized with region: {self.config.region_name}")
         except Exception as e:
             logger.error(f"An exception occurred when initializing connection to S3: {e}")
             raise e
@@ -274,7 +288,9 @@ class AwsClientHub:
         :raises Exception: If there is an issue initializing the AWS service client.
         """
         try:
-            return self.aws_session_client.client(aws_service, region_name=self.config.region_name)
+            client = self.aws_session_client.client(aws_service, region_name=self.config.region_name)
+            logger.debug(f"{aws_service} client initialized with region: {self.config.region_name}")
+            return client
         except Exception as e:
             logger.error(f"An exception occurred when initializing connection to {aws_service}: {e}")
             raise e
@@ -306,9 +322,99 @@ class AwsClientHub:
             if secret_id is not None:
                 return self.secret_string
             else:
-                if self.config.qa_host_check in self.secret_string['host'] and not self.config.aws_deployment:
-                    self.need_ssh_tunnel = True
+                self._determine_need_for_tunnel()
 
         except Exception as e:
             logger.error(f"An exception occurred when getting credentials from AWS: {e}")
             raise e
+
+    def _determine_need_for_tunnel(self):
+        """
+        Determines whether an SSH tunnel is required based on various configuration checks.
+
+        The method performs the following checks in sequence to determine if an SSH tunnel should be established:
+
+        1. **Host Check (QA/Dev/Prod)**:
+           - If the host string from the secret matches `qa_host_check`, `dev_host_check`, or `prod_host_check` in the configuration:
+               - If `qa_host_check` is found, an SSH tunnel may be required.
+               - If `dev_host_check` is found, an SSH tunnel may be required.
+               - If `prod_host_check` is found, it indicates the program is running in production, and no SSH tunnel is required. The process stops here.
+           - If none of these checks pass the server passed is unknown and no assumption on ssh requirements can be made, the method continues with further checks.
+
+        2. **AWS Deployment Flag**:
+           - If the `aws_deployment` flag is `False`, it indicates a local or non-AWS environment, which may require an SSH tunnel.
+           - If the flag is `True`, no tunnel is required, and the process stops.
+
+        3. **PGHOST Override**:
+           - If the `PGHOST_OVERRIDE` environment variable is not set, the host specified in the secret is used.
+           - If `PGHOST_OVERRIDE` is set, no tunnel is required, and the process stops.
+
+        4. **SSH Tunnel Credentials**:
+           - The method checks for the presence of SSH credentials such as PEM path or SSH password.
+           - If neither is present, it logs an error and proceeds without creating an SSH tunnel.
+
+        The method sets `self.need_ssh_tunnel` to `True` if all the checks pass and credentials are provided. If any check fails, it stops further processing and logs that no SSH tunnel is required.
+
+        Raises:
+            - Logs errors and warnings as necessary based on the checks performed.
+        """
+        continue_flag = False
+
+        # host check
+        if self.config.qa_host_check in self.secret_string['host']:
+            logger.debug(f"QA host check passed: {self.config.qa_host_check} found in secret string host: {self.secret_string['host']}")
+        elif self.config.dev_host_check in self.secret_string['host']:
+            logger.debug(f"Dev host check passed: {self.config.dev_host_check} found in secret string host: {self.secret_string['host']}")
+        elif self.config.prod_host_check in self.secret_string['host']:
+            logger.debug(f"Running on Production: No SSH tunnel required, continuing.")
+            continue_flag = True
+        else:
+            pass
+
+        # AWS deployment flag check
+        if not continue_flag:
+            if not self.config.aws_deployment:
+                logger.debug("AWS deployment flag is false, indicating a local or non-AWS environment.")
+            else:
+                logger.debug("AWS deployment flag is true, indicating an AWS environment. No SSH tunnel required, continuing.")
+                continue_flag = True
+
+        # PGHOST_OVERRIDE check
+        if not continue_flag:
+            if os.getenv("PGHOST_OVERRIDE") is None:
+                logger.debug("No PGHOST_OVERRIDE environment variable detected, defaulting to using secret host.")
+            else:
+                logger.debug(f"PGHOST_OVERRIDE environment variable detected: {os.getenv('PGHOST_OVERRIDE')}. No SSH tunnel required, continuing.")
+                continue_flag = True
+
+        # SSH tunnel configuration check
+        if not continue_flag:
+            if self.config.pem_path is not None:
+                logger.debug(f"SSH PEM path is specified: {self.config.pem_path}")
+            elif self.config.ssh_password is not None:
+                logger.debug("SSH password is specified.")
+            elif self.config.ssh_server is not None:
+                logger.error("No SSH credentials (PEM path or SSH password) provided. SSH credentials should be given, but proceeding without creating a tunnel.")
+            else:
+                logger.debug("No SSH arguments given, proceeding without creating a tunnel.")
+                continue_flag = True
+
+        # Final check: if all checks pass but no credentials are provided
+        if not continue_flag:
+            logger.debug("All conditions met for SSH tunnel.")
+            self.need_ssh_tunnel = True
+        else:
+            logger.debug("Determined no need for SSH tunnel creation.")
+
+    def _mask_sensitive(self, value):
+        """
+        Masks sensitive information, showing only the first and last 3 characters.
+
+        :param value: The sensitive value to mask.
+        :type value: str
+        :returns: The masked value.
+        :rtype: str
+        """
+        if value and isinstance(value, str) and len(value) > 6:
+            return f"{value[:3]}...{value[-3:]}"
+        return value

@@ -6,9 +6,8 @@ from typing import List, Tuple, Optional
 from colorama import Fore, Style, init
 
 from ..Tools.MaybeMonad import Maybe
-from ..Tools.WrenchLogger import Logger
+from ..Tools import logger
 
-logger = Logger()
 init(autoreset=True)
 
 HEADER_MD = """\
