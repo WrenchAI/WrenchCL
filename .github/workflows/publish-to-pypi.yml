@@ -13,6 +13,10 @@ on:
         description: 'Type of version increment: major, minor, patch'
         required: true
         default: 'patch'
+      specifiedVersion:
+        description: 'Specify an exact version (e.g., 2.8.1) to override auto bumping'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -106,31 +110,42 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+        # Fetch the latest version tag
+        LATEST_TAG=$(git tag -l "v[0-9]*" --sort=-version:refname | head -n 1)
         if [[ -z "$LATEST_TAG" ]]; then
-          LATEST_TAG="0.0.0"
+          LATEST_TAG="v0.0.0"
         fi
         BASE_VERSION=$(echo "$LATEST_TAG" | cut -d 'v' -f 2)
-        MAJOR=$(echo "$BASE_VERSION" | cut -d '.' -f 1)
-        MINOR=$(echo "$BASE_VERSION" | cut -d '.' -f 2)
-        PATCH=$(echo "$BASE_VERSION" | cut -d '.' -f 3)
 
-        case ${{ github.event.inputs.versionIncrement }} in
-          major)
-            MAJOR=$((MAJOR+1))
-            MINOR=0
-            PATCH=0
-            ;;
-          minor)
-            MINOR=$((MINOR+1))
-            PATCH=0
-            ;;
-          patch)
-            PATCH=$((PATCH+1))
-            ;;
-        esac
+        # Check if a specific version is provided
+        if [[ -n "${{ github.event.inputs.specifiedVersion }}" ]]; then
+          NEW_VERSION="${{ github.event.inputs.specifiedVersion }}"
+          echo "Using manually specified version: $NEW_VERSION"
+        else
+          # Parse the base version
+          MAJOR=$(echo "$BASE_VERSION" | cut -d '.' -f 1)
+          MINOR=$(echo "$BASE_VERSION" | cut -d '.' -f 2)
+          PATCH=$(echo "$BASE_VERSION" | cut -d '.' -f 3)
 
-        NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+          # Determine the next version based on input increment
+          case ${{ github.event.inputs.versionIncrement }} in
+            major)
+              MAJOR=$((MAJOR+1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR+1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH+1))
+              ;;
+          esac
+          NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+          echo "Auto-bumped version to: $NEW_VERSION"
+        fi
+
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
         sed -i "s/version='.*'/version='$NEW_VERSION'/" setup.py
 
