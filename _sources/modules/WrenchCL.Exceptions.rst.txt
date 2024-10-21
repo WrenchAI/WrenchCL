@@ -1,0 +1,10 @@
+WrenchCL.Exceptions package
+===========================
+
+Module contents
+---------------
+
+.. automodule:: WrenchCL.Exceptions
+   :members:
+   :undoc-members:
+   :show-inheritance:

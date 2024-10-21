@@ -10,6 +10,7 @@ Subpackages
    WrenchCL.Connect
    WrenchCL.DataFlow
    WrenchCL.Decorators
+   WrenchCL.Exceptions
    WrenchCL.Tools
    WrenchCL.scripts
 
