@@ -116,17 +116,17 @@ jobs:
           LATEST_TAG="v0.0.0"
         fi
         BASE_VERSION=$(echo "$LATEST_TAG" | cut -d 'v' -f 2)
-
+    
         # Check if a specific version is provided
         if [[ -n "${{ github.event.inputs.specifiedVersion }}" ]]; then
-          NEW_VERSION="${{ github.event.inputs.specifiedVersion }}"
+          NEW_VERSION="v${{ github.event.inputs.specifiedVersion }}"
           echo "Using manually specified version: $NEW_VERSION"
         else
           # Parse the base version
           MAJOR=$(echo "$BASE_VERSION" | cut -d '.' -f 1)
           MINOR=$(echo "$BASE_VERSION" | cut -d '.' -f 2)
           PATCH=$(echo "$BASE_VERSION" | cut -d '.' -f 3)
-
+    
           # Determine the next version based on input increment
           case ${{ github.event.inputs.versionIncrement }} in
             major)
