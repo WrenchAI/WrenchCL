@@ -31,6 +31,6 @@ from .JsonSerializer import *  # Import all symbols from JsonSerializer
 from .MaybeMonad import *  # Import all symbols from MaybeMonad
 from .TypeChecker import *  # Import all symbols from TypeChecker
 from .StandardizeNone import standardize_none
-
+from .JsonParser import parse_json, safe_json_loader, list_loader
 __all__ = ['coalesce', 'get_file_type', 'image_to_base64', 'Maybe', 'logger',  # Ensure `logger` is included here
-           'Logger', 'typechecker', 'get_metadata', 'robust_serializer', 'validate_base64', 'single_quote_decoder']
+           'Logger', 'typechecker', 'get_metadata', 'robust_serializer', 'validate_base64', 'single_quote_decoder', 'parse_json', 'safe_json_loader', 'list_loader']
