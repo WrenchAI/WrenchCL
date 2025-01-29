@@ -20,6 +20,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write  # Required to comment on PRs
 
 jobs:
   run-pytest-tests:
@@ -46,26 +47,40 @@ jobs:
         python -m pip install --upgrade pip
         pip install -U ddtrace
         pip install -r requirements.txt
-        pip install pytest pytest-mock pandas
-        pip install coverage pytest-cov
+        pip install pytest pytest-mock pytest-md-report pandas
+        pip install coverage pytest-cov pytest-github-actions-annotate-failures
 
     # Install the package in editable mode
     - name: Install the package in editable mode
       run: pip install -e .
 
-    # Annotate Pytest Failures
-    - name: Install plugin
-      run: pip install pytest-github-actions-annotate-failures
-
-    # Run pytest with coverage
-    - name: Run pytest with coverage
+    # Run pytest with Markdown Report
+    - name: Run pytest with Markdown Report
       env:
+        REPORT_OUTPUT: md_report.md
         DD_ENV: prod
         DD_SERVICE: wrenchcl
         DD_TRACE_DEBUG: 'true'
       run: |
-        ddtrace-run pytest --cov=WrenchCL --cov-report=lcov:coverage/lcov.info ./tests -rs --ddtrace
+        echo "REPORT_FILE=${REPORT_OUTPUT}" >> "$GITHUB_ENV"
+        ddtrace-run pytest --cov=WrenchCL --cov-report=lcov:coverage/lcov.info --md-report --md-report-flavor gfm --md-report-output "$REPORT_OUTPUT" ./tests -rs --ddtrace
         coverage report
+
+    # Upload Markdown Report
+    - name: Upload Markdown Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: MarkdownTestReport
+        path: md_report.md
+
+    # Add Test Report as a PR Comment (only if tests fail)
+    - name: Add Test Report to PR
+      if: failure() && github.event_name == 'pull_request'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: "Test Report"
+        recreate: true
+        path: ${{ env.REPORT_FILE }}
 
     # Upload coverage report (optional)
     - name: Upload coverage report
@@ -73,6 +88,12 @@ jobs:
       with:
         name: coverage-report
         path: coverage/lcov.info
+
+    # Publish test report summary to GitHub Actions UI
+    - name: Publish Coverage in Build Summary
+      if: failure()
+      run: cat md_report.md >> $GITHUB_STEP_SUMMARY
+      shell: bash
 
     # Annotate if all tests pass
     - name: Annotate successful test completion
@@ -163,37 +184,6 @@ jobs:
             "name": "Release '"$NEW_VERSION"'",
             "body": "Auto-generated release for version '"$NEW_VERSION"'"
           }'
-
-    - name: Cleanup older tags and releases
-      run: |
-        get_recent_tags() {
-          echo "$(git tag -l | sort -V | tail -n 50)"
-        }
-
-        RECENT_TAGS=$(get_recent_tags)
-
-        if [ $(echo "$RECENT_TAGS" | wc -l) -gt 50 ]; then
-          OLDEST_TAGS=$(comm -23 <(git tag -l | sort -V) <(echo "$RECENT_TAGS"))
-
-          for TAG in $OLDEST_TAGS; do
-            git tag -d $TAG
-            git push --delete origin $TAG
-
-            RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-                             -H "Accept: application/vnd.github.v3+json" \
-                             https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$TAG \
-                             | jq '.id')
-            if [[ "$RELEASE_ID" != "null" ]]; then
-              curl -s -X DELETE \
-                -H "Authorization: token $GITHUB_TOKEN" \
-                -H "Accept: application/vnd.github.v3+json" \
-                https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID
-            fi
-          done
-        fi
-
-    - name: Echo NEW_VERSION
-      run: echo "New version is ${{ env.NEW_VERSION }}"
 
     # Build the package
     - name: Build the package
