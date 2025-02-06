@@ -165,6 +165,9 @@ class BaseLogger:
         :param setting: If True, enables AWS Lambda mode.
         """
         self.running_on_lambda = setting
+        if self.running_on_lambda and colorama_imported:
+            init(strip = True)
+
 
     # Non-Public Methods (Grouped Logically)
 

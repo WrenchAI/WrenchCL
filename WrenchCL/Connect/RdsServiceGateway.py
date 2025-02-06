@@ -104,7 +104,7 @@ class RdsServiceGateway:
         except Exception as e:
             conn.rollback()
             if raise_on_error:
-                logger.error(f"Error executing query: {e}")
+                logger.warning(f"Error executing query: {e}")
                 raise e
             else:
                 logger.debug(f"Query returned None: {e}")
@@ -215,11 +215,11 @@ class RdsServiceGateway:
             conn.rollback()
             if isinstance(e, IndexError):
                 try:
-                    logger.error(f"Error processing batch: IndexError | Got {query.count('%s')} placeholders and {len(payload)} values. {e}")
+                    logger.warning(f"Error processing batch: IndexError | Got {query.count('%s')} placeholders and {len(payload)} values. {e}")
                 except Exception as nested_exception:
-                    logger.error(f"Error processing batch: {str(e)}; Nested error: {str(nested_exception)}", stack_info=True)
+                    logger.warning(f"Error processing batch: {str(e)}; Nested error: {str(nested_exception)}", stack_info=True)
             else:
-                logger.error(f"Error processing batch: {str(e)}", stack_info=True)
+                logger.warning(f"Error processing batch: {str(e)}", stack_info=True)
             if raise_on_error:
                 raise e
         finally:
