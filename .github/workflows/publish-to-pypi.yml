@@ -67,9 +67,9 @@ jobs:
         ddtrace-run pytest --cov=WrenchCL --cov-report=lcov:coverage/lcov.info ./tests -rs --ddtrace
         coverage report
 
-    # Upload coverage report (optional)
+    # Upload coverage report using v4
     - name: Upload coverage report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: coverage/lcov.info
