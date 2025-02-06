@@ -21,6 +21,7 @@
 
 
 import json
+import warnings
 from typing import Any, Dict, Optional
 
 from ..Tools import robust_serializer
@@ -47,6 +48,7 @@ def build_return_json(
         dict: The full response object with headers, status code, and body.
     """
     # Default headers
+    warnings.warn("build_return_json is deprecated and will be removed in a future release, use please refrain from using", DeprecationWarning)
     default_headers = {
         'Content-Type': 'application/json; charset=utf-8',
         'strict-transport-security': 'max-age=63072000; includeSubdomains; preload',
