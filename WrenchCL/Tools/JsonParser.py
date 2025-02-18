@@ -1,24 +1,9 @@
-#  Copyright (c) $YEAR$. Copyright (c) $YEAR$ Wrench.AI., Willem van der Schans, Jeong Kim
-#
-#  MIT License
-#
-#  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-#
-#  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-#
-#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
-#  All works within the Software are owned by their respective creators and are distributed by Wrench.AI.
-#
-#  For inquiries, please contact Willem van der Schans through the official Wrench.AI channels or directly via GitHub at [Kydoimos97](https://github.com/Kydoimos97).
-#
-
 import json
 from typing import Union, Any
 from . import logger
 
 
-def parse_json(response: Union[str, dict], max_depth: int = 25, verbose = False) -> dict:
+def parse_json(response: Union[str, dict], max_depth: int = 25, verbose=False, print_tree=False) -> dict:
     """
     Entry point to parse a JSON response into a Python dictionary. Handles nested JSON structures
     and enforces a maximum recursion depth.
@@ -31,7 +16,8 @@ def parse_json(response: Union[str, dict], max_depth: int = 25, verbose = False)
         Maximum allowed recursion depth to prevent infinite loops (default is 25).
     verbose : bool, optional
         If True, logs information messages for key parsing. Otherwise, logs debug messages (default is False).
-
+    print_tree: bool, optional
+        If true, prints the parsed JSON tree (default is False).
     Returns
     -------
     dict
@@ -56,7 +42,10 @@ def parse_json(response: Union[str, dict], max_depth: int = 25, verbose = False)
     try:
         if verbose:
             logger.debug(f"Starting JSON parsing. Max depth: {max_depth}")
-        return recur_parse_json(response, max_depth=max_depth, verbose = verbose)
+        parsed_json = recur_parse_json(response, max_depth=max_depth, verbose = verbose)
+        if print_tree:
+            show_json_tree(parsed_json)
+        return parsed_json
     except RecursionError as e:
         logger.error(f"Recursion limit reached: {e}", stack_info=False)
         raise
@@ -66,6 +55,55 @@ def parse_json(response: Union[str, dict], max_depth: int = 25, verbose = False)
     except Exception as e:
         logger.error(f"Unexpected error in parse_json: {e}")
         raise
+
+
+def show_json_tree(d):
+    """
+    Builds a tree-like structure as a multiline string with only dictionary keys.
+
+    Parameters
+    ----------
+    d : dict
+        The dictionary to convert into a tree-like structure.
+
+    Returns
+    -------
+    str
+        The formatted tree as a multiline string.
+    """
+    if not isinstance(d, dict):  # Ensure input is a dictionary
+        return ""
+
+    tree_lines = []  # Persistent list to store the tree structure
+
+    def _build_tree(d, indent=0, prefix=""):
+        """Recursive helper function to traverse the dictionary and build the tree."""
+        for i, (k, v) in enumerate(d.items()):
+            is_last = i == len(d) - 1  # Check if it's the last item at this level
+            branch = "└── " if is_last else "├── "  # Use tree-like symbols
+
+            tree_lines.append(f"{prefix}{branch}{k}")  # Append key only
+
+            if isinstance(v, dict):
+                _build_tree(v, indent + 1, prefix + ("    " if is_last else "│   "))
+
+            elif isinstance(v, list):
+                for j, item in enumerate(v):
+                    is_last_item = j == len(v) - 1
+                    sub_branch = "└── " if is_last_item else "├── "
+                    if isinstance(item, dict):
+                        tree_lines.append(f"{prefix}│   {sub_branch}(dict)")
+                        _build_tree(item, indent + 1, prefix + ("    " if is_last else "│   "))
+                    else:
+                        tree_lines.append(f"{prefix}│   {sub_branch}{item}")
+
+    _build_tree(d)  # Start recursion
+
+    tree_str = "\n".join(tree_lines)
+    logger.data(tree_str, "Json Output Tree")  # Log only once at the top level
+    return tree_str  # Return tree as a string
+
+
 
 
 def recur_parse_json(d: Union[dict, str], depth: int = 0, max_depth: int = 25, verbose = False) -> dict:
@@ -240,13 +278,27 @@ def safe_json_loader(content: Any, raise_error=False, depth=0, verbose = False) 
                 return list_loader(parsed)
             return parsed
         except json.JSONDecodeError as e:
-            if verbose:
-                indent = "--" * (depth + 1)
-                if '{' in content or '}' in content:
+            if content.startswith('{') and content.endswith('}'):
+                if verbose:
+                    indent = "--" * (depth + 1)
                     logger.warning(f"{indent}>Malformed JSON in content: {content}")
-                logger.debug(f"{indent}>End of structure at depth: {depth + 1}")
-            if raise_error:
-                raise
+                    logger.debug(f"{indent}>End of structure at depth: {depth + 1}")
+                if raise_error:
+                    if depth == 0:
+                        raise
+                    else:
+                        if verbose:
+                            logger.warning(f"Failed to parse content at depth {depth + 1}, continuing with next branch: {content}")
+                        else:
+                            logger.debug(f"Failed to parse content at depth {depth + 1}, continuing with next branch")
+                        try:
+                            content = str(content)
+                        except Exception as e:
+                            logger.debug(f"Failed to convert content to string, returning as is: {e}")
+                            pass
+            else:
+                if verbose:
+                    logger.debug(f"String is not a JSON object, returning as is...")
             return content  # Leave malformed content as-is
 
     raise TypeError(f"safe_json_loader expected string or dict but got {type(content).__name__}")
