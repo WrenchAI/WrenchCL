@@ -54,7 +54,8 @@ def parse_json(response: Union[str, dict], max_depth: int = 25, verbose = False)
     to handle malformed JSON gracefully.
     """
     try:
-        logger.debug(f"Starting JSON parsing. Max depth: {max_depth}")
+        if verbose:
+            logger.debug(f"Starting JSON parsing. Max depth: {max_depth}")
         return recur_parse_json(response, max_depth=max_depth, verbose = verbose)
     except RecursionError as e:
         logger.error(f"Recursion limit reached: {e}", stack_info=False)
@@ -101,18 +102,18 @@ def recur_parse_json(d: Union[dict, str], depth: int = 0, max_depth: int = 25, v
     if depth > max_depth:
         raise RecursionError(f"Maximum recursion depth of {max_depth} exceeded")
 
-    d = safe_json_loader(d, raise_error=True)
+    d = safe_json_loader(d, raise_error=True, verbose = verbose)
 
     if not isinstance(d, dict):
         raise TypeError(f"Expected dictionary but got {type(d).__name__}")
 
     for k, v in d.items():
         if isinstance(v, dict):
-            d[k] = recur_parse_json(v, depth=depth + 1, max_depth=max_depth)
+            d[k] = recur_parse_json(v, depth=depth + 1, max_depth=max_depth, verbose = verbose)
         elif isinstance(v, str):
-            parsed = safe_json_loader(v, raise_error=False)
+            parsed = safe_json_loader(v, raise_error=False, verbose = verbose)
             if isinstance(parsed, dict):
-                d[k] = recur_parse_json(parsed, depth=depth + 1, max_depth=max_depth)
+                d[k] = recur_parse_json(parsed, depth=depth + 1, max_depth=max_depth, verbose = verbose)
             elif isinstance(parsed, list):
                 d[k] = list_loader(parsed, depth=depth + 1, max_depth=max_depth, verbose = verbose)
             else:
@@ -121,8 +122,6 @@ def recur_parse_json(d: Union[dict, str], depth: int = 0, max_depth: int = 25, v
             d[k] = list_loader(v, depth=depth + 1, max_depth=max_depth, verbose = verbose)
         indent = "--" * (depth + 1)
         if verbose:
-            logger.info(f"{indent}>Parsed key '{k}': to type {type(d[k]).__name__}")
-        else:
             logger.debug(f"{indent}>Parsed key '{k}': to type {type(d[k]).__name__}")
     return d
 
@@ -182,7 +181,7 @@ def list_loader(v: Any, depth: int = 0, max_depth: int = 25, verbose = False) ->
     return parsed_list
 
 
-def safe_json_loader(content: Any, raise_error=False, depth=0, silent = False) -> Union[dict, str, Any]:
+def safe_json_loader(content: Any, raise_error=False, depth=0, verbose = False) -> Union[dict, str, Any]:
     """
     Safely parses JSON strings into Python dictionaries or leaves them as-is if they are malformed.
 
@@ -194,8 +193,8 @@ def safe_json_loader(content: Any, raise_error=False, depth=0, silent = False) -
         If True, raises exceptions for JSON parsing errors. Otherwise, leaves malformed strings as-is (default is False).
     depth : int, optional
         Current recursion depth, used for logging indentation (default is 0).
-    silent : bool, optional
-        If True, suppresses warnings for malformed JSON (default is False).
+    verbose : bool, optional
+        If False, suppresses warnings for malformed JSON (default is False).
 
     Returns
     -------
@@ -225,19 +224,23 @@ def safe_json_loader(content: Any, raise_error=False, depth=0, silent = False) -
                 for key, value in parsed.items():
                     if isinstance(value, str):
                         try:
-                            parsed[key] = safe_json_loader(value, raise_error=True, depth=depth + 1, silent= True)
+                            parsed[key] = safe_json_loader(value, raise_error=True, depth=depth + 1, verbose = verbose)
                         except json.JSONDecodeError as e:
                             indent = "--" * (depth + 2)
                             if '{' in value or '}' in value:
-                                logger.warning(f"{indent}>Malformed JSON in key '{key}': {value}")
-                            logger.debug(f"{indent}>End of structure at key: {key}, value: {value}'")
+                                if verbose:
+                                    logger.warning(f"{indent}>Malformed JSON in key '{key}': {value}")
+                                else:
+                                    logger.debug(f"{indent}>Malformed JSON in key '{key}': {value}")
+                            if verbose:
+                                logger.debug(f"{indent}>End of structure at key: {key}, value: {value}'")
                             return parsed
                 return parsed
             elif isinstance(parsed, list):
                 return list_loader(parsed)
             return parsed
         except json.JSONDecodeError as e:
-            if not silent:
+            if verbose:
                 indent = "--" * (depth + 1)
                 if '{' in content or '}' in content:
                     logger.warning(f"{indent}>Malformed JSON in content: {content}")

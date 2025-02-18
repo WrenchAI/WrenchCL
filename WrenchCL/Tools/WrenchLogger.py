@@ -247,7 +247,7 @@ class BaseLogger:
         lines = text.splitlines()
         colored_lines = []
         # Determine how to format lines based on conditions
-        if len(lines) == 1 or compact:
+        if compact:
             lines = [line.strip() for line in lines]
             colored_lines.append(f"{text_full}{' | '.join(lines)}{style_reset}")
         else:
