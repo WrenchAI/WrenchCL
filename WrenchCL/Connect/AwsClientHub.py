@@ -157,10 +157,11 @@ class AwsClientHub:
         :rtype: str
         """
         RDS_DB_NAME = self.secret_string.get('dbname')
-        RDS_ENDPOINT = self.secret_string.get('host')
+        RDS_ENDPOINT = os.environ['PGHOST_OVERRIDE'] or self.secret_string.get('host')
         RDS_PASSWORD = self.secret_string.get('password')
-        RDS_PORT = int(self.secret_string.get('port', 0))
+        RDS_PORT = int(os.environ['PGPORT_OVERRIDE'], self.secret_string.get('port', 0))
         RDS_USERNAME = self.secret_string.get('username')
+
 
         RDS_URI = f"postgresql://{RDS_USERNAME}:{RDS_PASSWORD}@{RDS_ENDPOINT}:{RDS_PORT}/{RDS_DB_NAME}"
         logger.debug(f"Constructed DB URI with endpoint: {RDS_ENDPOINT}, port: {RDS_PORT}, user: {RDS_USERNAME}")
