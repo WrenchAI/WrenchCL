@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 project = 'WrenchCL'
-copyright = '2024, Willem van der Schans'
+copyright = '2025, Willem van der Schans'
 author = 'Willem van der Schans'
 release = '0.0.1.dev0'
 
