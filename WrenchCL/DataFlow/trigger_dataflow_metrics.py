@@ -1,5 +1,9 @@
 
 
+#  Copyright (c) 2024-2025.
+#  Author: Willem van der Schans.
+#  Licensed under the MIT License (https://opensource.org/license/mit).
+
 # Created by Jeong Kim
 # Github: https://github.com/dalmad2
 # Annotated and refactored by Willem van der Schans

@@ -1,4 +1,8 @@
 
+#  Copyright (c) 2024-2025.
+#  Author: Willem van der Schans.
+#  Licensed under the MIT License (https://opensource.org/license/mit).
+
 import json
 import re
 from datetime import datetime, date

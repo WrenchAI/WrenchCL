@@ -1,5 +1,9 @@
 
 
+#  Copyright (c) 2024-2025.
+#  Author: Willem van der Schans.
+#  Licensed under the MIT License (https://opensource.org/license/mit).
+
 import json
 import os
 from functools import wraps
@@ -157,9 +161,9 @@ class AwsClientHub:
         :rtype: str
         """
         RDS_DB_NAME = self.secret_string.get('dbname')
-        RDS_ENDPOINT = os.environ['PGHOST_OVERRIDE'] or self.secret_string.get('host')
+        RDS_ENDPOINT = os.getenv('PGHOST_OVERRIDE') or self.secret_string.get('host')
         RDS_PASSWORD = self.secret_string.get('password')
-        RDS_PORT = int(os.environ['PGPORT_OVERRIDE'], self.secret_string.get('port', 0))
+        RDS_PORT = int(os.getenv('PGPORT_OVERRIDE') or self.secret_string.get('port', 0))
         RDS_USERNAME = self.secret_string.get('username')
 
 
