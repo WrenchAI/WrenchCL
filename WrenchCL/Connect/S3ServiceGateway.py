@@ -331,7 +331,7 @@ class S3ServiceGateway:
         """
         Uploads a file-like object to S3.
 
-        This method is deprecated and will be removed in a future release.
+        This method is Deprecated and will be removed in a future release.
         Use 'upload_file' instead.
 
         :param file_path: The file-like object or path to be uploaded.
@@ -342,7 +342,7 @@ class S3ServiceGateway:
         :type object_key: str
         """
         warnings.warn(
-            "The 'upload_fileobj' method is deprecated and will be removed in a future release. Use 'upload_file' instead.",
+            "The 'upload_fileobj' method is Deprecated and will be removed in a future release. Use 'upload_file' instead.",
             DeprecationWarning)
         if not self.test_mode:
             return self.upload_file(file=file_path, bucket_name=bucket_name, object_key=object_key)
@@ -351,7 +351,7 @@ class S3ServiceGateway:
         """
         Uploads an object to S3.
 
-        This method is deprecated and will be removed in a future release.
+        This method is Deprecated and will be removed in a future release.
         Use 'upload_file' instead.
 
         :param obj: The bytes of the object to be uploaded.
@@ -362,7 +362,7 @@ class S3ServiceGateway:
         :type object_key: str
         """
         warnings.warn(
-            "The 'upload_object' method is deprecated and will be removed in a future release. Use 'upload_file' instead.",
+            "The 'upload_object' method is Deprecated and will be removed in a future release. Use 'upload_file' instead.",
             DeprecationWarning)
         if not self.test_mode:
             return self.upload_file(file=obj, bucket_name=bucket_name, object_key=object_key)
@@ -371,7 +371,7 @@ class S3ServiceGateway:
         """
         Renames an object within the same S3 bucket.
 
-        This method is deprecated and will be removed in a future release.
+        This method is Deprecated and will be removed in a future release.
         Use 'move_object' instead.
 
         :param bucket_name: The name of the S3 bucket.
@@ -382,7 +382,7 @@ class S3ServiceGateway:
         :type dst_object_key: str
         """
         warnings.warn(
-            "The 'rename_object' method is deprecated and will be removed in a future release. Use 'move_object' instead.",
+            "The 'rename_object' method is Deprecated and will be removed in a future release. Use 'move_object' instead.",
             DeprecationWarning)
         if not self.test_mode:
             return self.move_object(src_bucket_name=bucket_name, src_object_key=src_object_key, dst_bucket_name=bucket_name,
