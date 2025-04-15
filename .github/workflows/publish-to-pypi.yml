@@ -125,7 +125,16 @@ jobs:
       run: |
         VERSION_NO_V="${{ env.NEW_VERSION }}"
         VERSION_NO_V="${VERSION_NO_V#v}"
-        bump-my-version --new-version $VERSION_NO_V --parse pyproject.toml --serialize pyproject.toml
+        
+        bump-my-version replace \
+          --new-version "$VERSION_NO_V" \
+          --parse '(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)' \
+          --serialize '{major}.{minor}.{patch}' \
+          --search '{current_version}' \
+          --replace '{new_version}' \
+          --no-configured-files \
+          pyproject.toml
+        
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add pyproject.toml
