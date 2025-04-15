@@ -6,7 +6,7 @@
 
 from typing import Any, Dict, List, Type, Union, Iterable
 
-from . import logger
+from .WrenchLogger import _IntLogger
 
 
 def typechecker(
@@ -57,11 +57,11 @@ def typechecker(
     for item in data:
         # Check for incorrect types
         for param, expected in expected_types.items():
-            logger.debug(f"Checking param: {param}, expected type(s): {expected}")
+            _IntLogger().debug(f"Checking param: {param}, expected type(s): {expected}")
 
             if not isinstance(item, dict):
                 item = {param: item}
-                logger.debug(f"Converted item to dict: {item}")
+                _IntLogger().debug(f"Converted item to dict: {item}")
 
             if none_is_ok and item.get(param) is None:
                 continue
@@ -73,7 +73,7 @@ def typechecker(
                     if errors == 'raise':
                         raise TypeError(f"Incorrect param types: {error_message}")
                     elif errors == 'coerce':
-                        logger.warning(f"Invalid input found when checking input dictionary: {error_message}")
+                        _IntLogger().warning(f"Invalid input found when checking input dictionary: {error_message}")
                         return False
             else:
                 if not isinstance(item.get(param), expected):
@@ -81,7 +81,7 @@ def typechecker(
                     if errors == 'raise':
                         raise TypeError(f"Incorrect param types: {error_message}")
                     elif errors == 'coerce':
-                        logger.warning(f"Invalid input found when checking input dictionary: {error_message}")
+                        _IntLogger().warning(f"Invalid input found when checking input dictionary: {error_message}")
                         return False
 
     return True

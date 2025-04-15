@@ -8,7 +8,9 @@ import os
 from boto3 import client as boto3client
 
 from .trigger_dataflow_metrics import trigger_minimum_dataflow_metrics
-from ..Tools import logger, robust_serializer
+from ..Tools import robust_serializer
+from ..Tools.WrenchLogger import _IntLogger
+logger = _IntLogger()
 from ..Tools.TypeChecker import typechecker  # Update this to the correct import path
 
 lambda_response = None

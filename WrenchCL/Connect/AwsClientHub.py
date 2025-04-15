@@ -20,7 +20,8 @@ from mypy_boto3_secretsmanager.client import SecretsManagerClient
 from ..Decorators.SingletonClass import SingletonClass
 from ..Exceptions import IncompleteInitializationException
 from ..Exceptions import InvalidConfigurationException
-from ..Tools import logger
+from ..Tools.WrenchLogger import _IntLogger
+logger = _IntLogger()
 from ..Tools.Coalesce import coalesce
 from .._Internal._ConfigurationManager import _ConfigurationManager
 from .._Internal._SshTunnelManager import _SshTunnelManager

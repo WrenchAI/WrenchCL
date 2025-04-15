@@ -30,7 +30,8 @@ def Retryable(_func=None, *, max_retries=5, retry_on_exceptions=None, delay=2, v
 
     :return: The result of the decorated function, if it succeeds within the allowed retries.
     """
-    from ..Tools import logger
+    from ..Tools.WrenchLogger import _IntLogger
+    logger = _IntLogger()
 
     if retry_on_exceptions is None:
         retry_on_exceptions = (Exception,)
