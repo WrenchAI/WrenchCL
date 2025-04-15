@@ -90,7 +90,6 @@ class AwsClientHub:
         self.db_client = None
         self.s3_client = None
         self.secret_client = None
-        self.secret_string = None
         self.need_ssh_tunnel = False
         self._kwargs = kwargs
         self._initialized = False
@@ -160,16 +159,8 @@ class AwsClientHub:
         :returns: The database URI.
         :rtype: str
         """
-        RDS_DB_NAME = self.secret_string.get('dbname')
-        RDS_ENDPOINT = os.getenv('PGHOST_OVERRIDE') or self.secret_string.get('host')
-        RDS_PASSWORD = self.secret_string.get('password')
-        RDS_PORT = int(os.getenv('PGPORT_OVERRIDE') or self.secret_string.get('port', 0))
-        RDS_USERNAME = self.secret_string.get('username')
+        return self.config.construct_db_uri()
 
-
-        RDS_URI = f"postgresql://{RDS_USERNAME}:{RDS_PASSWORD}@{RDS_ENDPOINT}:{RDS_PORT}/{RDS_DB_NAME}"
-        logger.debug(f"Constructed DB URI with endpoint: {RDS_ENDPOINT}, port: {RDS_PORT}, user: {RDS_USERNAME}")
-        return RDS_URI
 
     @require_initialized
     def get_db_client(self) -> RDSClient:
@@ -249,37 +240,43 @@ class AwsClientHub:
 
         :raises Exception: If there is an issue initializing the RDS client.
         """
-        pghost_env_override = os.getenv("PGHOST_OVERRIDE")
-        pgport_env_override = os.getenv("PGPORT_OVERRIDE")
+        pghost_env_override = self.config.pghost_override
+        pgport_env_override = self.config.pgport_override
 
         try:
             config = dict(
-                PGHOST=self.secret_string['host'] if pghost_env_override is None else pghost_env_override,
-                PGPORT=int(self.secret_string['port']) if pgport_env_override is None else int(pgport_env_override),
-                PGDATABASE=self.secret_string['dbname'],
-                PGUSER=self.secret_string['username'],
-                PGPASSWORD=self.secret_string['password']
+                PGHOST=pghost_env_override or self.config.db_host,
+                PGPORT=int(pgport_env_override or self.config.db_port),
+                PGDATABASE=self.config.db_name,
+                PGUSER=self.config.db_user,
+                PGPASSWORD=self.config.db_pass
             )
 
             if self.need_ssh_tunnel:
-                if self.config.qa_host_check in self.secret_string['host']:
-                    config['SSH_TUNNEL'] = dict(SSH_SERVER=coalesce(self.config.ssh_server, '34.201.30.245'),
-                                                SSH_PORT=coalesce(self.config.ssh_port, 22),
-                                                SSH_USER=coalesce(self.config.ssh_user, "ec2-user"),
-                                                SSH_PASSWORD=coalesce(self.config.ssh_password, None),
-                                                SSH_KEY_PATH=coalesce(self.config.pem_path, None))
-                elif self.config.dev_host_check in self.secret_string['host']:
-                    config['SSH_TUNNEL'] = dict(SSH_SERVER=coalesce(self.config.ssh_server, '44.193.207.105'),
-                                                SSH_PORT=coalesce(self.config.ssh_port, 22),
-                                                SSH_USER=coalesce(self.config.ssh_user, "ec2-user"),
-                                                SSH_PASSWORD=coalesce(self.config.ssh_password, None),
-                                                SSH_KEY_PATH=coalesce(self.config.pem_path, None))
+                if self.config.qa_host_check in self.config.db_host:
+                    config['SSH_TUNNEL'] = dict(
+                        SSH_SERVER=coalesce(self.config.ssh_server, '34.201.30.245'),
+                        SSH_PORT=coalesce(self.config.ssh_port, 22),
+                        SSH_USER=coalesce(self.config.ssh_user, "ec2-user"),
+                        SSH_PASSWORD=coalesce(self.config.ssh_password, None),
+                        SSH_KEY_PATH=coalesce(self.config.pem_path, None)
+                    )
+                elif self.config.dev_host_check in self.config.db_host:
+                    config['SSH_TUNNEL'] = dict(
+                        SSH_SERVER=coalesce(self.config.ssh_server, '44.193.207.105'),
+                        SSH_PORT=coalesce(self.config.ssh_port, 22),
+                        SSH_USER=coalesce(self.config.ssh_user, "ec2-user"),
+                        SSH_PASSWORD=coalesce(self.config.ssh_password, None),
+                        SSH_KEY_PATH=coalesce(self.config.pem_path, None)
+                    )
                 else:
-                    config['SSH_TUNNEL'] = dict(SSH_SERVER=self.config.ssh_server,
-                                                SSH_PORT=self.config.ssh_port,
-                                                SSH_USER=self.config.ssh_user,
-                                                SSH_PASSWORD=self.config.ssh_password,
-                                                SSH_KEY_PATH=self.config.pem_path)
+                    config['SSH_TUNNEL'] = dict(
+                        SSH_SERVER=self.config.ssh_server,
+                        SSH_PORT=self.config.ssh_port,
+                        SSH_USER=self.config.ssh_user,
+                        SSH_PASSWORD=self.config.ssh_password,
+                        SSH_KEY_PATH=self.config.pem_path
+                    )
 
             self.db_client = self._rds_handle_configuration(config)
         except Exception as e:
@@ -370,18 +367,19 @@ class AwsClientHub:
             client_object = self.aws_session_client.client('secretsmanager', region_name=self.config.region_name)
             secret_data = client_object.get_secret_value(SecretId=sec_id)['SecretString']
             try:
-                self.secret_string = json.loads(secret_data)
+                secret_string = json.loads(secret_data)
             except json.JSONDecodeError:
-                self.secret_string = secret_data
+                secret_string = secret_data
 
-            if self.secret_string is None:
-                raise ValueError(f"Invalid secret string found {self.secret_string}")
+            if secret_string is None:
+                raise ValueError(f"Invalid secret string found {secret_string}")
+
+            self.config.load_rds_secret(secret_string)
 
             if secret_id is not None:
-                return self.secret_string
+                return secret_string
             else:
                 self._determine_need_for_tunnel()
-
         except Exception as e:
             logger.error(f"An exception occurred when getting credentials from AWS: {e}")
             raise e
@@ -450,11 +448,11 @@ class AwsClientHub:
         continue_flag = False
 
         # host check
-        if self.config.qa_host_check in self.secret_string['host']:
-            logger.debug(f"QA host check passed: {self.config.qa_host_check} found in secret string host: {self.secret_string['host']}")
-        elif self.config.dev_host_check in self.secret_string['host']:
-            logger.debug(f"Dev host check passed: {self.config.dev_host_check} found in secret string host: {self.secret_string['host']}")
-        elif self.config.prod_host_check in self.secret_string['host']:
+        if self.config.qa_host_check in self.config.db_host:
+            logger.debug(f"QA host check passed: {self.config.qa_host_check} found in secret string host: {self.config.db_host}")
+        elif self.config.dev_host_check in self.config.db_host:
+            logger.debug(f"Dev host check passed: {self.config.dev_host_check} found in secret string host: {self.config.db_host}")
+        elif self.config.prod_host_check in self.config.db_host:
             logger.debug(f"Running on Production: No SSH tunnel required, continuing.")
             continue_flag = True
         else:

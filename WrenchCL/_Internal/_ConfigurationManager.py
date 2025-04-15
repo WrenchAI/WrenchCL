@@ -94,21 +94,36 @@ class _ConfigurationManager:
         """
         self.env_path = env_path
 
-        # Initialize default values
+        # Core AWS / Secret config
         self.aws_profile = None
         self.region_name = None
         self.secret_arn = None
         self.openai_api_key = None
+        self.aws_deployment = None
+
+        # DB secret-based fields
+        self.db_user = None
+        self.db_pass = None
+        self.db_host = None
+        self.db_port = None
+        self.db_name = None
+
+        # SSH Tunnel fields
         self.ssh_server = None
         self.ssh_port = None
         self.ssh_user = None
         self.ssh_password = None
         self.pem_path = None
+
+        # Optional RDS tunnel overrides
+        self.pghost_override = None
+        self.pgport_override = None
+
+        # Misc operational config
         self.qa_host_check = 'ce5sivkxtgbs'
         self.dev_host_check = 'ced0khqdverl'
         self.prod_host_check = 'c3zncwpdk0m7'
         self.db_batch_size = 10000
-        self.aws_deployment = None
 
         try:
             self._initialize_env()
@@ -121,11 +136,8 @@ class _ConfigurationManager:
             raise InvalidConfigurationException(
                 config_name="Secret ARN",
                 reason="Missing environment variable or configuration.",
-                message=MISSING_KEYS_MESSAGE
             )
 
-
-        # Log configuration after initialization
         logger.debug(self._log_safe_config())
 
     def _initialize_env(self):
@@ -167,6 +179,8 @@ class _ConfigurationManager:
         self.pem_path = kwargs.get('PEM_PATH', self.pem_path)
         self.db_batch_size = int(kwargs.get('DB_BATCH_OVERRIDE', self.db_batch_size or 10000))
         self.aws_deployment = str(kwargs.get('AWS_DEPLOYMENT', self.aws_deployment)).lower() == 'true'
+        self.pghost_override = kwargs.get('PGHOST_OVERRIDE', self.pghost_override)
+        self.pgport_override = kwargs.get('PGPORT_OVERRIDE', self.pgport_override)
 
     def _init_from_env(self):
         """
@@ -182,7 +196,22 @@ class _ConfigurationManager:
         self.ssh_password = os.getenv('SSH_PASSWORD', self.ssh_password)
         self.pem_path = os.getenv('PEM_PATH', self.pem_path)
         self.db_batch_size = int(os.getenv('DB_BATCH_OVERRIDE', self.db_batch_size or 10000))
-        self.aws_deployment = str(os.getenv('AWS_DEPLOYMENT', None)).lower() == 'true'
+        self.aws_deployment = str(os.getenv('AWS_DEPLOYMENT', self.aws_deployment)).lower() == 'true'
+        self.pghost_override = os.getenv('PGHOST_OVERRIDE', self.pghost_override)
+        self.pgport_override = os.getenv('PGPORT_OVERRIDE', self.pgport_override)
+
+    def load_rds_secret(self, secret_dict: dict):
+        self.db_user = secret_dict.get('username')
+        self.db_pass = secret_dict.get('password')
+        self.db_name = secret_dict.get('dbname')
+        self.db_host = secret_dict.get('host')
+        self.db_port = int(secret_dict.get('port')) if secret_dict.get('port') else None
+
+    def construct_db_uri(self) -> str:
+        host = self.pghost_override or self.db_host
+        port = int(self.pgport_override or self.db_port or 5432)
+        return f"postgresql://{self.db_user}:{self.db_pass}@{host}:{port}/{self.db_name}"
+
 
     def _log_safe_config(self):
         """
@@ -191,7 +220,7 @@ class _ConfigurationManager:
         :returns: A dictionary of safely masked configuration values.
         :rtype: dict
         """
-        def mask_sensitive(value):
+        def mask(value):
             if value and isinstance(value, str) and len(value) > 6:
                 return f"{value[:3]}...{value[-3:]}"
             return value
@@ -199,14 +228,23 @@ class _ConfigurationManager:
         return {
             'aws_profile': self.aws_profile,
             'region_name': self.region_name,
-            'secret_arn': mask_sensitive(self.secret_arn),
-            'openai_api_key': mask_sensitive(self.openai_api_key),
+            'secret_arn': mask(self.secret_arn),
+            'openai_api_key': mask(self.openai_api_key),
             'ssh_server': self.ssh_server,
             'ssh_port': self.ssh_port,
             'ssh_user': self.ssh_user,
-            'ssh_password': mask_sensitive(self.ssh_password),
-            'pem_path': mask_sensitive(self.pem_path),
+            'ssh_password': mask(self.ssh_password),
+            'pem_path': mask(self.pem_path),
             'qa_host_check': self.qa_host_check,
+            'dev_host_check': self.dev_host_check,
+            'prod_host_check': self.prod_host_check,
             'db_batch_size': self.db_batch_size,
-            'aws_deployment': self.aws_deployment
+            'aws_deployment': self.aws_deployment,
+            'pghost_override': self.pghost_override,
+            'pgport_override': self.pgport_override,
+            'db_user': self.db_user,
+            'db_pass': mask(self.db_pass),
+            'db_host': self.db_host,
+            'db_port': self.db_port,
+            'db_name': self.db_name,
         }
