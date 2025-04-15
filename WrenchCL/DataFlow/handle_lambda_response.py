@@ -1,4 +1,4 @@
-
+import json
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
@@ -7,9 +7,8 @@ import os
 
 from boto3 import client as boto3client
 
-from .build_return_json import build_return_json
 from .trigger_dataflow_metrics import trigger_minimum_dataflow_metrics
-from ..Tools import logger
+from ..Tools import logger, robust_serializer
 from ..Tools.TypeChecker import typechecker  # Update this to the correct import path
 
 lambda_response = None
@@ -128,10 +127,17 @@ def handle_lambda_response(code, message, params, response_body=None, client_id=
             f"Custom Code = {code} | Unrecognized Error Code | [Client ID: {client_id}, Entity ID: {entity_id}] | Status Message: {message}"
         ,stack_info=True)
 
+    default_headers = {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Access-Control-Allow-Origin': '*'
+    }
+
     # Build the response
-    response = build_return_json(
-        code=api_code,
-        response_body=dict(Message=message) if response_body is None else response_body
-    )
+    response = {
+            'statusCode': api_code,
+            'headers': default_headers,
+            'body': json.dumps(dict(Message=message) if response_body is None else response_body, default=robust_serializer)
+        }
+
     logger.context(f"Built Lambda Response: {response}")
     raise GuardedResponseTrigger(response)
