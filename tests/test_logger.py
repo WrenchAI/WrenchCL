@@ -7,7 +7,7 @@ from io import StringIO
 import pytest
 from pydantic import BaseModel
 
-from WrenchCL.Tools.WrenchLogger import Logger
+from WrenchCL.Tools.WrenchLogger import _IntLogger
 
 
 class DummyPretty:
@@ -45,7 +45,7 @@ class DummyPydantic(BaseModel):
 @pytest.fixture
 def logger_stream():
     stream = StringIO()
-    logger = Logger()
+    logger = _IntLogger()
     memory_handler = logging.StreamHandler(stream)
     console_handler = logging.StreamHandler(sys.stdout)
     logger._logger_instance.handlers = [memory_handler, console_handler]
@@ -124,7 +124,7 @@ def test_log_time(logger_stream):
 
 def test_compact_mode():
     stream = StringIO()
-    logger = Logger()
+    logger = _IntLogger()
     logger.compact_mode = True
     handler = logging.StreamHandler(stream)
     handler.setFormatter(logger._get_formatter("INFO"))
@@ -199,7 +199,7 @@ def test_silence_logger(logger_stream):
 
 def test_silence_other_loggers():
     # Setup main logger
-    logger = Logger()
+    logger = _IntLogger()
 
     # Create several test loggers
     test_loggers = []
@@ -322,7 +322,7 @@ def test_set_level(logger_stream):
 #         logging.root.handlers = [handler]
 #         logging.root.setLevel(logging.INFO)
 #
-#         logger = Logger()
+#         logger = _IntLogger()
 #         logger.configure_global_stream(level="INFO")
 #
 #         logging.getLogger().info("Test logger message")  # root logger log
@@ -338,7 +338,7 @@ def test_set_level(logger_stream):
 #         logging.root.setLevel(original_level)
 
 # def test_force_color_enabled():
-#     logger = Logger()
+#     logger = _IntLogger()
 #     buf = io.StringIO()
 #     logger.force_color()
 #
@@ -355,7 +355,7 @@ def test_set_level(logger_stream):
 
 # Test for color presets - FIXED
 def test_color_presets():
-    logger = Logger()
+    logger = _IntLogger()
 
     # Check if color presets exist
     assert hasattr(logger, "color_presets") or hasattr(logger, "presets")
