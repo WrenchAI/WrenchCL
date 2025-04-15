@@ -33,7 +33,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
@@ -80,7 +80,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
@@ -126,14 +126,14 @@ jobs:
 
     - name: Update pyproject.toml version
       run: |
-        VERSION_NO_V=${{ env.NEW_VERSION#v }}
+        VERSION_NO_V="${{ env.NEW_VERSION }}"
+        VERSION_NO_V="${VERSION_NO_V#v}"
         bump-my-version --new-version $VERSION_NO_V --parse pyproject.toml --serialize pyproject.toml
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add pyproject.toml
         git commit -m "🔖 Version bump to $VERSION_NO_V"
         git push origin HEAD:v2
-    
 
     - name: Submit new version
       run: |
