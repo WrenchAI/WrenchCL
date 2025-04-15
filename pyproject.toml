@@ -33,8 +33,9 @@ dependencies = [
     "filetype>=1.2,<2.0"
 ]
 
-[tool.setuptools]
-packages = ["WrenchCL"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["WrenchCL*"]
 
 [tool.bumpversion]
 current_version = "0.0.0"
