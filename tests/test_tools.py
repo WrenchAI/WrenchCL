@@ -14,7 +14,7 @@ from datetime import datetime
 from decimal import Decimal
 from unittest.mock import patch, mock_open, MagicMock
 import atexit
-import logging
+
 
 pytestmark = pytest.mark.skipif(False, reason="datadog_itr_unskippable")
 

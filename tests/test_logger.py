@@ -1,11 +1,8 @@
-import io
 import logging
+import re
 import sys
 import time
-import re
-from contextlib import redirect_stdout
 from io import StringIO
-from unittest.mock import patch
 
 import pytest
 from pydantic import BaseModel
