@@ -1,630 +1,622 @@
-#  Copyright (c) 2024-2025.
-#  Author: Willem van der Schans.
-#  Licensed under the MIT License (https://opensource.org/license/mit).
-
-import io
-import json
+import importlib
+import inspect
 import logging
 import os
-import random
-import string
+import re
 import sys
 import time
-import traceback
-from datetime import datetime, timedelta, date
-from decimal import Decimal
-from inspect import currentframe
-from textwrap import fill
-from typing import Any, Optional, Union
+import json
+from datetime import datetime
+from types import TracebackType
+from typing import Any, Optional, Union, Literal, Type
+from difflib import get_close_matches
 
-from ..Decorators import SingletonClass
 from .._Internal._MockPandas import MockPandas
-
-try:
-    from colorama import init, reinit
-    from colorama import Fore as Color
-    from colorama import Style
-    colorama_imported = True
-except ImportError:
-    init = None
-    Color = None
-    Style = None
-    colorama_imported = False
-    logging.debug("colorama package not found. Colored logging is disabled.")
+from ..Decorators.Deprecated import Deprecated
+from ..Decorators.SingletonClass import SingletonClass
 
 try:
     import pandas as pd
 except ImportError:
     pd = MockPandas()
 
-_srcfile = os.path.normcase(__file__)
-_logging_src = os.path.normcase(logging.addLevelName.__code__.co_filename)
+
+class ExceptionSuggestor:
+    @staticmethod
+    def suggest_similar(error_msg: str, frame_depth=20, n_suggestions=1, cutoff=0.6) -> Optional[str]:
+        obj_match = re.search(r"'(\w+)' object has no attribute", error_msg)
+        key_match = re.search(r"has no attribute '(\w+)'", error_msg)
+        if not key_match:
+            return None
+
+        source_obj = obj_match.group(1) if obj_match else None
+        missing_attr = key_match.group(1)
+
+        for frame in reversed(inspect.stack()[:frame_depth]):
+            for var in frame.frame.f_locals.values():
+                if not hasattr(var, '__class__'):
+                    continue
+                if var.__class__.__name__ == source_obj:
+                    keys = [k for k in dir(var) if not k.startswith('__')]
+                    matches = get_close_matches(missing_attr, keys, n=n_suggestions, cutoff=cutoff)
+                    if matches:
+                        return f"Did you mean: {', '.join(matches)}?"
+        return None
+
+
+class MockColorama:
+    pass
+
+
+class ColorPresets:
+    """
+    Provides color presets for common log use-cases.
+    Falls back to mock colors if colorama isn't installed.
+    """
+    _color_class = MockColorama
+    _style_class = MockColorama
+    INFO = None
+    DEBUG = None
+    WARNING = None
+    ERROR = None
+    CRITICAL = None
+    HEADER = None
+    DATA = None
+    BRIGHT = None
+    NORMAL = None
+    RESET = None
+    _INTERNAL_DIM_COLOR = None
+    _INTERNAL_DIM_STYLE = None
+
+    def __init__(self, color, style):
+        super().__setattr__('_color_class', color)
+        super().__setattr__('_style_class', style)
+        super().__setattr__('INFO', getattr(self._color_class, 'GREEN', None))
+        super().__setattr__('DEBUG', getattr(self._color_class, 'WHITE', None))
+        super().__setattr__('WARNING', getattr(self._color_class, 'YELLOW', None))
+        super().__setattr__('ERROR', getattr(self._color_class, 'RED', None))
+        super().__setattr__('CRITICAL', getattr(self._color_class, 'MAGENTA', None))
+        super().__setattr__('HEADER', getattr(self._color_class, 'CYAN', None))
+        super().__setattr__("DATA", getattr(self._color_class, 'BLUE', None))
+
+        super().__setattr__('BRIGHT', getattr(self._style_class, 'BRIGHT', None))
+        super().__setattr__('NORMAL', getattr(self._style_class, 'NORMAL', None))
+        super().__setattr__('RESET', getattr(self._style_class, 'RESET_ALL', None))
+
+        super().__setattr__('_INTERNAL_DIM_COLOR', getattr(self._color_class, 'WHITE', None))
+        super().__setattr__('_INTERNAL_DIM_STYLE', getattr(self._style_class, 'DIM', None))
+
+    def __setattr__(self, name, value):
+        allowed_color_values = [val.lower() for val in self._color_class.__dict__.values() if val != 'RESET']
+        allowed_style_values = [val.lower() for val in self._style_class.__dict__.values() if val != 'RESET_ALL']
+        allowed_names = [val.lower() for val in self.__dict__.keys() if val != 'RESET']
+
+        if not name.lower() in allowed_names:
+            raise ValueError(f"Invalid name for '{name}': {name}. Allowed names: {allowed_names}")
+
+        if name.lower() in allowed_color_values:
+            value = getattr(self._color_class, value.upper())
+        elif name.lower() in allowed_style_values:
+            value = getattr(self._style_class, value.upper())
+        else:
+            raise ValueError(
+                f"Invalid value for '{name}': {value}. Allowed values: {allowed_color_values + allowed_style_values}")
+
+        name = name.upper()
+        super().__setattr__(name, value)
+
+    def get_color_by_level(self, level: Union[str, int]):
+        if isinstance(level, int):
+            str_name = logging.getLevelName(level)
+        else:
+            str_name = level.upper()
+        if str_name == 'INTERNAL':
+            return self._INTERNAL_DIM_COLOR
+        else:
+            return getattr(self, str_name, '')
+
+    def get_level_style(self, level: Union[str, int]):
+        if isinstance(level, int):
+            str_name = logging.getLevelName(level)
+        else:
+            str_name = level.upper()
+        if str_name in ['INFO', 'DEBUG']:
+            return self.NORMAL
+        elif str_name in ['WARNING', 'ERROR', 'CRITICAL', 'HEADER']:
+            return self.BRIGHT
+        elif str_name == 'INTERNAL':
+            return self._INTERNAL_DIM_STYLE
+        else:
+            return self.NORMAL
+
+    def get_message_color(self, level: Union[str, int]):
+        if isinstance(level, int):
+            str_name = logging.getLevelName(level)
+        else:
+            str_name = level.upper()
+        if str_name in ['CRITICAL', 'ERROR']:
+            return getattr(self, str_name, '')
+        else:
+            return ''
+
+
+    def update(self, **kwargs):
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+    def get_demo_string(self):
+        demo_string = ''
+        demo_string += f"    {self.DEBUG}{self.get_level_style('DEBUG')}Debug Message {self.RESET}Preset \n"
+        demo_string += f"    {self.INFO}{self.get_level_style('INFO')}Info Message {self.RESET}Preset \n"
+        demo_string += f"    {self.WARNING}{self.get_level_style('WARNING')}Warning Message {self.RESET}Preset \n"
+        demo_string += f"    {self.ERROR}{self.get_level_style('ERROR')}Error Message {self.RESET}Preset \n"
+        demo_string += f"    {self.CRITICAL}{self.get_level_style('CRITICAL')}Critical Message {self.RESET}Preset \n"
+        demo_string += f"    {self.HEADER}{self.get_level_style('HEADER')}Header Color {self.RESET}Preset \n"
+        demo_string += f"    {self.DATA}{self.get_level_style('DATA')}Data Print {self.RESET}Preset \n"
+        return demo_string
+
+
+class CustomFormatter(logging.Formatter):
+    def __init__(self, fmt: str, datefmt: Optional[str], presets: ColorPresets):
+        super().__init__(fmt, datefmt)
+        self.presets = presets
+
+    def formatStack(self, exc_info: str) -> str:
+        dim_color = self.presets._INTERNAL_DIM_COLOR or ''
+        dim_style = self.presets._INTERNAL_DIM_STYLE or ''
+        reset = self.presets.RESET or ''
+        return f"{dim_color}{dim_style}{exc_info}{reset}"
+
+    def formatException(self, ei) -> str:
+        original = super().formatException(ei)
+        dim_color = self.presets._INTERNAL_DIM_COLOR or ''
+        dim_style = self.presets._INTERNAL_DIM_STYLE or ''
+        reset = self.presets.RESET or ''
+        return f"{dim_color}{dim_style}{original}{reset}"
+
+
+_exc_info_type = None | bool | tuple[Type[BaseException], BaseException, TracebackType | None] | tuple[
+    None, None, None] | BaseException
 
 
 class BaseLogger:
-    """
-    Base class for custom logging with support for colorized output and advanced log handling.
-
-    Provides methods for initializing loggers, managing log levels, and formatting logs with stack traces or
-    additional contextual information.
-    """
-
     def __init__(self, level: str = 'INFO') -> None:
-        """
-        Initializes the BaseLogger with a specified logging level.
+        self.__global_stream_configured = False
+        self.run_id = self._generate_run_id()
+        self._compact_mode = False
+        self._verbose_mode = False
+        self._start_time = None
 
-        :param level: The desired logging level (e.g., 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
-        """
-        self.non_verbose_mode = False
-        self._start_time: Optional[float] = None
-        self.run_id: str = self._generate_run_id()
-        self.running_on_lambda: bool = 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
-        if self.running_on_lambda and colorama_imported:
-            init(strip = True)
-        elif colorama_imported:
-            init()
-        else:
-            pass
-        self.previous_level: Optional[int] = None
-        self.logging_level: int = self._set_logging_level(level)
-        self.force_stack_trace: bool = False
-        self.logger: Optional[logging.Logger] = None
-        self.console_handler: Optional[logging.Handler] = None
-        self.file_handler: Optional[logging.Handler] = None
+        self._logger_instance = logging.getLogger('WrenchCL')
+        self._running_on_lambda = 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
+        self._check_colorama()
+        self.presets = ColorPresets(self._Color, self._Style)
+        self._setup(level)
 
-        # Custom log levels
-        self.INFO_lvl = logging.INFO
-        self.WARNING_lvl = logging.WARNING
-        self.ERROR_lvl = logging.ERROR
-        self.DEBUG_lvl = logging.DEBUG
-        self.Critical_lvl = logging.CRITICAL
-        self.CONTEXT_lvl = 21
-        self.HDL_WARN_lvl = 31
-        self.DATA_lvl = 33
-        self.FLOW_lvl = 39
-        self.HDL_ERR_lvl = 42
-        self.RCV_ERR_lvl = 43
+    def update_color_presets(self, **kwargs) -> None:
+        self.presets.update(**kwargs)
 
-        # Adding custom levels
-        logging.addLevelName(self.CONTEXT_lvl, "CONTEXT")
-        logging.addLevelName(self.HDL_WARN_lvl, "HDL_WARN")
-        logging.addLevelName(self.DATA_lvl, "DATA")
-        logging.addLevelName(self.FLOW_lvl, "FLOW")
-        logging.addLevelName(self.HDL_ERR_lvl, "HDL_ERR")
-        logging.addLevelName(self.RCV_ERR_lvl, 'RCV_ERR')
-
-    # Public Methods
-
-    def suppress_package_logger(self, package_name: str, level: int = logging.CRITICAL) -> None:
-        """
-        Suppress logging for a specific package.
-
-        :param package_name: The name of the package logger to suppress.
-        :param level: The logging level to set for the package logger. Defaults to CRITICAL.
-        """
-        package_logger = logging.getLogger(package_name)
-        package_logger.setLevel(level)
-        package_logger.propagate = False
-
-        if package_logger.handlers:
-            for handler in package_logger.handlers:
-                package_logger.removeHandler(handler)
-
-        if not any(isinstance(handler, logging.NullHandler) for handler in package_logger.handlers):
-            package_logger.addHandler(logging.NullHandler())
-
-    def initiate_new_run(self) -> None:
-        """
-        Generates a new run ID for the current logger session.
-        """
+    def initiate_new_run(self):
         self.run_id = self._generate_run_id()
 
-    def set_verbose(self, verbose: bool) -> None:
-        """
-        Sets the logger to verbose or non-verbose mode.
+    def setLevel(self, level: Literal["DEBUG", "INFO", 'WARNING', 'ERROR', 'CRITICAL']) -> None:
+        self._logger_instance.setLevel(self._get_level(level))
 
-        :param verbose: If True, enables verbose logging; otherwise, non-verbose logging is enabled.
-        """
-        self.non_verbose_mode = not verbose
+    def info(self, *args, exc_info: _exc_info_type = None, stack_info: bool = False) -> None:
+        self._log(logging.INFO, *args, exc_info=exc_info, stack_info=stack_info)
 
-    def setLevel(self, level: str) -> None:
-        """
-        Change the reporting level of the logger.
+    def warning(self, *args, exc_info: _exc_info_type = None, stack_info: bool = False) -> None:
+        self._log(logging.WARNING, *args, exc_info=exc_info, stack_info=stack_info)
 
-        :param level: The desired logging level as a string (e.g., 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
-        """
-        self.previous_level = self.logger.getEffectiveLevel() if self.logger else None
-        numeric_level = self._set_logging_level(level)
-        self.logger.setLevel(numeric_level)
-        if self.file_handler:
-            self.file_handler.setLevel(numeric_level)
-        self.console_handler.setLevel(numeric_level)
-        self.logging_level = numeric_level
+    def error(self, *args, exc_info: _exc_info_type = None, stack_info: bool = True) -> None:
+        args = list(args)
+        suggestion = self._suggest_exception(args)
+        if suggestion:
+            args.append(suggestion)
+        self._log(logging.ERROR, *args, exc_info=exc_info, stack_info=stack_info)
 
-    def set_global_traceback(self, setting: bool) -> None:
-        """
-        Enables or disables forced stack trace inclusion in logs.
+    def critical(self, *args, exc_info: _exc_info_type = None, stack_info: bool = True) -> None:
+        args = list(args)
+        suggestion = self._suggest_exception(args)
+        if suggestion:
+            args.append(suggestion)
+        self._log(logging.CRITICAL, *args, exc_info=exc_info, stack_info=stack_info)
 
-        :param setting: If True, stack traces will be included in all logs.
-        """
-        self.force_stack_trace = setting
+    def debug(self, *args, exc_info: _exc_info_type = None, stack_info: bool = False) -> None:
+        self._log(logging.DEBUG, *args, exc_info=exc_info, stack_info=stack_info)
 
-    def revertLoggingLevel(self) -> None:
-        """
-        Reverts the logger to the previous logging level before the last change.
-        """
-        if self.previous_level is None:
-            self.previous_level = self.INFO_lvl
-            print("No previous logging level saved, setting level to INFO.")
-        self.logger.setLevel(self.previous_level)
-        if self.file_handler:
-            self.file_handler.setLevel(self.previous_level)
-        self.console_handler.setLevel(self.previous_level)
-        self.logging_level = self.previous_level
+    def _internal_log(self, *args, exc_info: _exc_info_type = None, stack_info: bool = False) -> None:
+        self._log(logging.INFO, *args, exc_info=exc_info, stack_info=stack_info, compact_mode=False,
+                  color_flag="INTERNAL")
 
-    def overwrite_lambda_mode(self, setting: bool) -> None:
-        """
-        Sets the logger to operate as if running on AWS Lambda.
+    def start_time(self) -> None:
+        self._start_time = time.time()
 
-        :param setting: If True, enables AWS Lambda mode.
-        """
-        self.running_on_lambda = setting
-        if self.running_on_lambda and colorama_imported:
-            init(strip = True)
+    def log_time(self, message="Elapsed time") -> None:
+        if self._start_time:
+            elapsed = time.time() - self._start_time
+            self.info(f"{message}: {elapsed:.2f}s")
 
-
-    # Non-Public Methods (Grouped Logically)
-
-    def _generate_run_id(self) -> str:
-        """Generates a unique run ID based on the current datetime."""
-        date_seed = datetime.now().strftime("%y%m%d")
-        random.seed(date_seed)
-        random_part_1 = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        now = datetime.now()
-        minute_second_seed = now.minute * 100 + now.second
-        random.seed(minute_second_seed)
-        random_part_2 = ''.join(random.choices(string.digits, k=4))
-        return f"R-{random_part_1}-{random_part_2}"
-
-    def _log(self, level: int, msg: str, stack_info: bool = False, color = None) -> None:
-        """Handles the internal logging of messages, including stack trace formatting."""
-        filepath_out, line_no_out, func_name_out, sinfo_out = self._findCaller(stack_info=stack_info)
-        sinfo = None
-        highlight_color = f'{Style.BRIGHT}{Color.RED}' if colorama_imported and color else ""
-        text_color = f'{Color.WHITE}{Style.BRIGHT}'
-        style_reset = f'{Style.RESET_ALL}{Color.RESET}' if colorama_imported and color else ""
-        if stack_info:
-           # Store traceback only once
-            tb_str = traceback.format_exc()
-            summarizer_txt = "ROOT CAUSE"
-            if tb_str == "NoneType: None\n":
-                tb_str = sinfo_out
-                summarizer_txt = None
-                highlight_color = f'{Style.BRIGHT}{Color.LIGHTMAGENTA_EX}' if colorama_imported and color else ""
-            tb_list = []
-            idx = 1
-            for line in tb_str.splitlines():
-                if line == tb_str.splitlines()[-1]:
-                    if summarizer_txt is not None:
-                        tb_list.append(f" {Style.BRIGHT}{summarizer_txt}:  {highlight_color}{line.strip()}{style_reset}")
-                    tb_list.append(f"{highlight_color}{''.join(['-'] * 22)}{style_reset}\n")
-                elif line.startswith('  File "'):
-                    tb_list.append(f" {highlight_color}{idx}{style_reset}: {line.strip()}")
-                    idx += 1  # Increment index after appending each line
-                elif '(most recent call last):' in line:
-                    tb_list.append(line)
-                else:
-                    tb_list.append(f"  {text_color}{line}{style_reset}")
-
-            trace_string = '\n'.join(tb_list)
-
-            sinfo = (
-                f"\n{highlight_color}------Exec Trace------{style_reset}\n{trace_string}"
-                if tb_str == sinfo_out
-                else f"\n{highlight_color}-----Python Trace-----{style_reset}\n{trace_string}"
-            )
-        record = self.logger.makeRecord(name=self.logger.name, level=level, fn=filepath_out, lno=line_no_out, msg=msg,
-                                        exc_info=None, func=func_name_out, sinfo=sinfo, args=())
-        self.logger.handle(record)
-
-    def _log_with_color(self, level: int, text: str, color: Optional[str] = None,
-                        stack_info: Optional[bool] = False, compact: Optional[bool] = False) -> None:
-        """
-        Logs a message with color formatting for better readability in the console.
-
-        The message is formatted with color codes if supported, and the ANSI codes are stripped if the
-        logger is running in AWS Lambda or other non-terminal environments.
-        """
-        # Default styles; apply color if running in a compatible environment
-        header_style = Style.BRIGHT if colorama_imported and color else ""
-        header_col = Color.LIGHTWHITE_EX if colorama_imported and color else ""
-        text_style = Style.NORMAL if colorama_imported and color else ""
-        style_reset = f'{Style.RESET_ALL}{Color.RESET}' if colorama_imported and color else ""
-        text_col = Color.LIGHTWHITE_EX if colorama_imported and color else ""
-        if color == Color.WHITE and text_col != "":
-            text_col = Color.WHITE
-
-        header_full = f'{style_reset}{header_style}{header_col}'
-        text_full = f'{style_reset}{text_style}{text_col}'
-        col_full = f'{style_reset}{text_style}{color}'
-        # Prepare lines for the message with potential formatting
-        lines = text.splitlines()
-        colored_lines = []
-        # Determine how to format lines based on conditions
+    def header(self, text: str, size=80, compact=False) -> None:
+        text = text.replace('_', ' ').replace('-', ' ').strip().capitalize()
         if compact:
-            lines = [line.strip() for line in lines]
-            colored_lines.append(f"{text_full}{' | '.join(lines)}{style_reset}")
+            size = 40
+            formatted = self._apply_color(text, self.presets.HEADER).center(size, "-")
         else:
-            colored_lines.append(f"{header_col}{header_style}{lines[0]}{style_reset}")
-            colored_lines.extend(
-                f"{col_full}{(str(idx + 1)).center(8)}: {style_reset}{text_full}{line}{style_reset}" for idx, line in enumerate(lines[1:])
-            )
+            size = 80
+            formatted = "\n\n" + self._apply_color(text, self.presets.HEADER).center(size, "-") + "\n"
+        self._logger_instance.info(formatted)
 
-
-        # Join the lines into the final text
-        formatted_text = '\n'.join(colored_lines)
-
-        # Strip ANSI escape codes if running in AWS Lambda or similar environments
-        if self.running_on_lambda or not colorama_imported:
-            formatted_text = self._strip_ansi(formatted_text)
-
-        # Set the handler format accordingly
-        self._handlerFormat(level, color if colorama_imported and color else "")
-        # Log the message with the internal logger
-        self._log(level, formatted_text, stack_info, color)
-
-    def _strip_ansi(self, text: str) -> str:
-        """
-        Strips ANSI escape sequences from the log message text.
-
-        Args:
-            text (str): The text from which to remove ANSI escape sequences.
-
-        Returns:
-            str: Cleaned text without ANSI escape sequences.
-        """
-        import re
-        ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
-        return ansi_escape.sub('', text)
-
-    def _format_data(self, data: Any, object_name: Optional[str] = None, content: bool = True,
-                     wrap_length: Optional[int] = None, max_rows: Optional[int] = None, indent: int = 4) -> str:
-        """Formats data for logging, applying wrapping and color formatting where applicable."""
-        def serialize(obj):
-            if isinstance(obj, dict):
-                return {key: serialize(value) for key, value in obj.items()}
-            elif isinstance(obj, list):
-                return [serialize(item) for item in obj]
-            elif isinstance(obj, tuple):
-                return tuple(serialize(item) for item in obj)
-            elif isinstance(obj, set):
-                return {serialize(item) for item in obj}
-            elif isinstance(obj, str):
-                return obj
-            else:
-                try:
-                    return json.loads(json.dumps(obj, default=self._custom_serializer, indent=2))
-                except TypeError:
-                    return str(obj)
-
-        if isinstance(data, dict):
-            prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
-            formatted_text = json.dumps(serialize(data), indent=indent, default=self._custom_serializer)
-        elif pd and isinstance(data, pd.DataFrame):
-            prefix_str = f"DataType: {type(data).__name__} | Shape: {data.shape[0]} rows | {data.shape[1]} columns"
-            pd.set_option(
-                'display.max_rows', max_rows,
-                'display.max_columns', None,
-                'display.width', None,           # Adjust width as needed
-                'display.max_colwidth', wrap_length or 50,
-                'display.colheader_justify', 'center'
-            )
-            formatted_text = str(data)
-        elif isinstance(data, (list, tuple, set)):
-            prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
-            formatted_text = json.dumps(serialize(data), indent=indent, default=self._custom_serializer)
-        elif isinstance(data, str):
-            prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
-            formatted_text = data
-        else:
-            try:
-                prefix_str = f"DataType: {type(data).__name__} | Length: {len(data)}"
-            except TypeError:
-                prefix_str = f"DataType: {type(data).__name__}"
-            formatted_text = json.dumps(serialize(data), indent=indent, default=self._custom_serializer)
-
-        if not content:
-            formatted_text = ""
-            wrapped_text = formatted_text
-        elif wrap_length and not self.running_on_lambda:
-            def wrap_with_indent(line, wrap_length):
-                leading_whitespace = len(line) - len(line.lstrip())
-                wrapped_lines = fill(line, width=wrap_length, subsequent_indent=' ' * leading_whitespace)
-                return wrapped_lines
-
-            wrapped_text = '\n'.join([wrap_with_indent(line, wrap_length) for line in formatted_text.splitlines()])
-        else:
-            wrapped_text = formatted_text
-
-        if object_name is not None:
-            final_text = f"--{object_name}--\n{wrapped_text}"
-        else:
-            final_text = wrapped_text
-
-        return final_text
-
-    def _is_internal_frame(self, frame) -> bool:
-        """Checks if a frame is internal to CPython or the logging module."""
-        filename = os.path.normcase(frame.f_code.co_filename)
-        return filename == _srcfile or (
-                "importlib" in filename and "_bootstrap" in filename) or filename == _logging_src
-
-    def _findCaller(self, stack_info: bool = False, stacklevel: int = 1) -> tuple:
-        """Finds the stack frame of the caller to extract file name, line number, and function name."""
-        f = currentframe()
-        if f is None:
-            return "(unknown file)", 0, "(unknown function)", None
-        orig_f = f
-        while stacklevel > 0:
-            next_f = f.f_back
-            if next_f is None:
-                break
-            f = next_f
-            if not self._is_internal_frame(f):
-                stacklevel -= 1
-        co = f.f_code
-        sinfo = None
-        if stack_info:
-            with io.StringIO() as sio:
-                sio.write("Stack (most recent call last):\n")
-                traceback.print_stack(orig_f, file=sio)
-                sinfo = sio.getvalue().strip()
-        return co.co_filename, f.f_lineno, co.co_name, sinfo
-
-    def _custom_serializer(self, obj: Any) -> str:
-        """Custom serializer for objects that cannot be serialized by default."""
+    def pretty_log(self, obj: Any, indent=2, **kwargs) -> None:
         try:
-            if isinstance(obj, (datetime, date)):
-                return obj.isoformat()
-            elif isinstance(obj, Exception):
-                return f"{type(obj).__name__}: {str(obj)}"
-            elif isinstance(obj, Decimal):
-                return float(obj)
-            elif isinstance(obj, bytes):
-                return obj.decode('utf-8')
+            if isinstance(obj, pd.DataFrame):
+                prefix_str = f"DataType: {type(obj).__name__} | Shape: {obj.shape[0]} rows | {obj.shape[1]} columns"
+                pd.set_option(
+                    'display.max_rows', 500,
+                    'display.max_columns', None,
+                    'display.width', None,           # Adjust width as needed
+                    'display.max_colwidth', 50,
+                    'display.colheader_justify', 'center'
+                )
+                output = str(obj)
+            if hasattr(obj, 'pretty_print'):
+                output = obj.pretty_print(**kwargs)
+            elif hasattr(obj, 'model_dump_json'):
+                output = obj.model_dump_json(indent=indent, **kwargs)
+            elif hasattr(obj, 'dump_json_schema'):
+                output = obj.dump_json_schema(indent=indent, **kwargs)
+            elif hasattr(obj, 'json'):
+                output = json.dumps(obj.json(), indent=indent, **kwargs)
             elif isinstance(obj, str):
-                return obj
+                try:
+                    output = json.dumps(json.loads(obj), indent=indent, **kwargs, default=str)
+                except Exception:
+                    output = str(obj)
             else:
-                return str(obj)
-        except:
-            return str(obj)
+                output = str(obj)
+        except Exception as e:
+            output = str(obj)
+        self._log(logging.INFO, output, exc_info=False, compact_mode=False, color_flag="DATA")
 
-    def _get_base_format(self) -> logging.Formatter:
-        """Gets the base log format based on verbosity settings."""
-        if not self.non_verbose_mode:
-            return logging.Formatter(f"%(levelname)-8s: [{self.run_id}]"
-                                     f"%(filename)s:%(funcName)s:%(lineno)d | "
-                                     f"%(asctime)s | "
-                                     f"%(message)s", datefmt='%Y-%m-%d %H:%M:%S')
-        else:
-            return logging.Formatter(f"%(levelname)-8s:"
-                                     f"%(asctime)s | "
-                                     f"%(message)s", datefmt='%Y-%m-%d %H:%M:%S')
+    # ---------------- Internals ---------------- #
+    def _log(self, level: Union[int, str], *args, exc_info: _exc_info_type = None, stack_info: bool = False,
+            compact_mode: bool = False, color_flag: Optional[Literal['INTERNAL', 'DATA']] = None) -> None:
+        msg = '\n'.join(str(arg) for arg in args)
+        if self.lambda_mode or self.compact_mode or compact_mode:
+            lines = msg.splitlines()
+            msg = ' '.join([line.strip() for line in lines if len(line.strip()) > 0])
+            msg = msg.replace('\n', ' ').replace('\r', '').strip()
 
-    def _handlerFormat(self, level: int, color: Optional[str] = None) -> None:
-        """Formats the handler with or without color based on settings."""
-        reset_var = Style.RESET_ALL
-        white_col = Color.LIGHTWHITE_EX
-        padding = '  ' if level <= 10 else ''
-        pad = 8 if level > 10 else 6
-        time_str = '[%(asctime)s]' if level > 10 else ''
-        path_str = ' %(filename)s:%(funcName)s:%(lineno)-4d'
+        if color_flag == 'INTERNAL':
+            level = "INTERNAL"
+        elif color_flag == 'DATA':
+            level = "DATA"
 
-        # Determine base format
-        base_format = f"{padding}%(levelname)-{pad}s: [{self.run_id}]{time_str}{path_str}| %(message)s"
-        if self.non_verbose_mode:
-            base_format = f"{padding}%(levelname)-{pad}s: [{self.run_id}]{time_str}{path_str}| %(message)s"
+        for handler in self._logger_instance.handlers:
+            handler.setFormatter(self._get_formatter(level))
 
-        # Apply color if needed
-        if colorama_imported and color:
-            format_str = f"{color}{base_format}{reset_var}" if self.non_verbose_mode else f"{color}{base_format}{white_col}{reset_var}"
-        else:
-            format_str = base_format
+        lines = msg.splitlines()
+        if len(lines) > 1:
+            msg = "\n    " + "\n    ".join(lines)
+        if exc_info:
+            msg = "\n".join(lines)
 
-        formatter = logging.Formatter(format_str, datefmt='%Y-%m-%d %H:%M:%S')
-
-        if self.console_handler:
-            self.console_handler.setFormatter(formatter)
-
-
-    def _set_logging_level(self, level: Union[str, int]) -> int:
-        """Sets the logging level based on a string or integer value."""
         if isinstance(level, str):
-            level = level.lower()
-            levels = {"debug": logging.DEBUG, "info": logging.INFO, "warning": logging.WARNING, "error": logging.ERROR,
-                      "critical": logging.CRITICAL}
-            if level not in levels:
-                raise ValueError(f"Invalid logging level: {level}")
-            return levels[level]
+            level = self._get_level(level)
+
+        self._logger_instance.log(level, msg, exc_info=exc_info, stack_info=stack_info, stacklevel=self._get_depth())
+
+    def _get_depth(self) -> int():
+        for i, frame in enumerate(inspect.stack()):
+            if frame.filename.endswith("WrenchLogger.py"):
+                continue
+            return i
+
+    def _suggest_exception(self, args) -> str | None:
+        suggestion = None
+        if args and isinstance(args[-1], Exception):
+            ex = args[-1]
+            if hasattr(ex, 'args') and ex.args and isinstance(ex.args[0], str):
+                suggestion = ExceptionSuggestor.suggest_similar(ex.args[0])
+        return suggestion
+
+    def _apply_color(self, text: str, color: Optional[str]) -> str:
+        return f"{color}{self.presets.BRIGHT}{text}{self.presets.RESET}" if color else text
+
+    def _log_setup_summary(self) -> None:
+        settings = self.logger_state
+        msg = 'Current Logging Settings:\n'
+        for key, value in settings.items():
+            if key == "Color Settings":
+                demo_string = self.presets.get_demo_string()
+                msg += f"  {key}:\n{demo_string}\n"
+                continue
+            if key == "Logging Modes":
+                msg += f"  {key}:\n"
+                for mode, enabled in value.items():
+                    state = "Enabled" if enabled else "Disabled"
+                    color = self.presets.INFO if enabled else self.presets.ERROR
+                    msg += f"      {mode}: {self._apply_color(state, color)}\n"
+            else:
+                msg += f"  {key}: {value}\n"
+        self._logger_instance.info(msg)
+
+    @staticmethod
+    def _generate_run_id() -> str:
+        now = datetime.now()
+        return f"R-{os.urandom(1).hex().upper()}{now.strftime('%m%d')}{os.urandom(1).hex().upper()}"
+
+    def _get_level(self, level: Union[str, int]) -> int:
+        if isinstance(level, str) and hasattr(logging, level.upper()):
+            return getattr(logging, level.upper())
         elif isinstance(level, int):
             return level
+        return logging.INFO
+
+    def _get_formatter(self, level: Union[str, int], no_format=False) -> logging.Formatter:
+        color = self.presets.get_color_by_level(level)
+        style = self.presets.get_level_style(level)
+        message_color = self.presets.get_message_color(level)
+        dimmed_color = self.presets.get_color_by_level('INTERNAL')
+        dimmed_style = self.presets.get_level_style('INTERNAL')
+
+        run_id_section = f"{self.run_id}|" if self.verbose_mode else ""
+        verbose_section = f"{dimmed_color}{dimmed_style}[%(asctime)s|{run_id_section}%(filename)s:%(funcName)s:%(lineno)d]{self.presets.RESET}"
+        level_name_section = f"{color}{style}%(levelname)-8s{self.presets.RESET}"
+        colored_dash_section = f"{color}{style} -- {self.presets.RESET}"
+        colored_arrow_section = f"{color}{style} -> {self.presets.RESET}"
+        message_section = f"{style}{message_color}%(message)s{self.presets.RESET}"
+
+        if level == "INTERNAL":
+            level_name_section = f"{color}{style}INTERNAL{self.presets.RESET}"
+        elif level == "DATA":
+            level_name_section = f"{color}{style}OUTPUT  {self.presets.RESET}"
+
+        if self.compact_mode:
+            fmt = f"{level_name_section}{colored_arrow_section}{message_section}"
+        elif no_format:
+            fmt = "%(message)s"
+        else:
+            fmt = f"{level_name_section}{verbose_section}{colored_arrow_section}{message_section}"
+
+        return CustomFormatter(fmt, datefmt='%H:%M:%S', presets=self.presets)
+
+    def _check_colorama(self) -> None:
+        if self._running_on_lambda:
+            self._Color = MockColorama
+            self._Style = MockColorama
+            self._colorama_imported = False
+        else:
+            try:
+                colorama = importlib.import_module("colorama")
+                self._Color = colorama.Fore
+                self._Style = colorama.Style
+                colorama.init(strip=self._running_on_lambda)
+                self._colorama_imported = True
+            except ImportError:
+                self._Color = MockColorama
+                self._Style = MockColorama
+                self._colorama_imported = False
+
+    def _setup(self, level: str) -> None:
+        self._logger_instance.setLevel(self._get_level(level))
+        handler = logging.StreamHandler(sys.stdout)
+        self._logger_instance.handlers = [handler]
+        self._logger_instance.propagate = False
+
+    # ---------------- Properties ---------------- #
+
+    @property
+    def logger_instance(self) -> logging.Logger:
+        return self._logger_instance
+
+    @property
+    def colorama_enabled(self) -> bool:
+        return self._colorama_imported
+
+    @property
+    def lambda_mode(self) -> bool:
+        return self._running_on_lambda
+
+    @lambda_mode.setter
+    def lambda_mode(self, val: bool) -> None:
+        self._running_on_lambda = val
+        self._check_colorama()
+
+    @property
+    def compact_mode(self) -> bool:
+        return self._compact_mode
+
+    @compact_mode.setter
+    def compact_mode(self, val: bool) -> None:
+        self._compact_mode = val
+
+    @property
+    def verbose_mode(self) -> bool:
+        return self._verbose_mode
+
+    @verbose_mode.setter
+    def verbose_mode(self, val: bool) -> None:
+        self._verbose_mode = val
+
+    @property
+    def logger_state(self) -> dict:
+        return {"Logging Level": self._logger_instance.level, "Run Id": self.run_id,
+                "Logging Modes": {"Global Streaming Mode": self.__global_stream_configured,
+                                  "Lambda mode": self.lambda_mode, "Color Mode": self.colorama_enabled,
+                                  "Compact Mode": self.compact_mode, "Verbose Mode": self.verbose_mode},
+                "Color Settings": self.presets.__dict__,
+
+                }
+
+    def display_logger_state(self) -> None:
+        self._log_setup_summary()
+
+    # Add this property for external access to presets
+    @property
+    def color_presets(self) -> ColorPresets:
+        return self.presets
+
+    # ---------------- Global Settings ---------------- #
+    def configure_global_stream(self, level: str = "INFO", silence_others: bool = False, stream = sys.stdout) -> None:
+
+        """
+            Overrides the global logging stream with this logger's handler and formatter.
+            Optionally silences other loggers to prevent duplicate or noisy logs.
+            """
+        root_logger = logging.getLogger()
+        root_logger.setLevel(self._get_level(level))
+
+        handler = logging.StreamHandler(stream)
+        handler.setFormatter(self._get_formatter(level))  # Use your formatter
+
+        root_logger.handlers = [handler]
+        root_logger.propagate = False
+
+        if silence_others:
+            self.silence_other_loggers()
+
+        self.__global_stream_configured = True
+        self._logger_instance.info("[Logger] Global stream configured successfully.")
+
+    def silence_logger(self, logger_name: str, level: Optional[int] = None) -> None:
+        """
+        Silences a specific logger by name by attaching a NullHandler and disabling propagation.
+        """
+        logger = logging.getLogger(logger_name)
+        logger.handlers = [logging.NullHandler()]
+        if not level:
+            logger.setLevel(logging.CRITICAL + 1)
+        else:
+            logger.setLevel(level)
+        logger.propagate = False
+
+    def silence_other_loggers(self, level: Optional[int] = None) -> None:
+        """
+        Silences all non-root, non-WrenchCL loggers.
+        """
+        for name in logging.root.manager.loggerDict:
+            if name != 'WrenchCL':
+                self.silence_logger(name, level)
+
+    def force_color(self) -> None:
+        """
+        Forces color output even if stdout is not a TTY.
+        Useful for environments like Docker or CI where ANSI detection fails.
+        """
+        try:
+            import colorama
+            colorama.init(strip=False, convert=False)
+            sys.stdout = colorama.AnsiToWin32(sys.stdout).stream
+            sys.stderr = colorama.AnsiToWin32(sys.stderr).stream
+            self._Color = colorama.Fore
+            self._Style = colorama.Style
+            self._colorama_imported = True
+
+            # Update color presets and reconfigure formatters
+            self.presets = ColorPresets(self._Color, self._Style)
+            for handler in self._logger_instance.handlers:
+                handler.setFormatter(self._get_formatter(self._logger_instance.level))
+
+            if self.__global_stream_configured:
+                root_logger = logging.getLogger()
+                for handler in root_logger.handlers:
+                    handler.setFormatter(self._get_formatter(root_logger.level))
+
+            self._logger_instance.info("[Logger] Forced color output enabled.")
+
+        except ImportError:
+            self._logger_instance.warning("Colorama is not installed; cannot force color output.")
+
+
+    # ---------------- Aliases ---------------- #
+    def data(self, data, **kwargs):
+        return self.pretty_log(data, **kwargs)
+
+    # ---------------- Deprecations ---------------- #
+    @Deprecated(message="Use silence_logger() instead")
+    def suppress_package_logger(self, package_name: str, level: int = logging.CRITICAL) -> None:
+        """Routes to the new equivalent method: silence_logger()"""
+        return self.silence_logger(package_name, level)
+
+    @Deprecated(message="Use setLevel() to reconfigure logger")
+    def revertLoggingLevel(self) -> None:
+        """Routes to the equivalent functionality in the new API"""
+        if hasattr(self, 'previous_level') and self.previous_level:
+            self.setLevel(self.previous_level)
+        else:
+            self.setLevel("INFO")
+
+    @Deprecated(message="Set force_stack_trace property directly")
+    def set_global_traceback(self, setting: bool) -> None:
+        """Routes to the equivalent property in the new API"""
+        self.force_stack_trace = setting
+
+    @Deprecated(message="Use header(compact=True) instead")
+    def compact_header(self, text: str, size=40) -> None:
+        """Maintains backward compatibility with old compact_header() method"""
+        self.header(text, size, compact=True)
+
+    @Deprecated(message="Use verbose_mode = True/False instead")
+    def set_verbose(self, verbose: bool) -> None:
+        """Maintains backward compatibility with old set_verbose() method"""
+        self.verbose_mode = verbose
+
+    @Deprecated(message="Use lambda_mode = True/False instead")
+    def overwrite_lambda_mode(self, setting: bool) -> None:
+        """Maintains backward compatibility with old overwrite_lambda_mode() method"""
+        self.lambda_mode = setting
+
+    @Deprecated(message="Use alternative file logging methods")
+    def log_file(self, path: str, mode='a') -> None:
+        """Deprecated method for backward compatibility"""
+        pass
+
+    @Deprecated(message="Use alternative file logging methods")
+    def release_log_file(self) -> None:
+        """Deprecated method for backward compatibility"""
+        pass
+
+    @Deprecated(message="Use info() instead")
+    def context(self, *args, **kwargs):
+        return self.info(*args, **kwargs)
+
+    @Deprecated(message="Use info() instead")
+    def flow(self, *args, **kwargs):
+        return self.info(*args, **kwargs)
+
+    @Deprecated(message="Use warning() instead")
+    def log_handled_warning(self, *args, **kwargs):
+        return self.warning(*args, **kwargs)
+
+    @Deprecated(message="Use warning() instead")
+    def log_hdl_warn(self, *args, **kwargs):
+        return self.warning(*args, **kwargs)
+
+    @Deprecated(message="Use error() instead")
+    def log_handled_error(self, *args, **kwargs):
+        return self.error(*args, **kwargs)
+
+    @Deprecated(message="Use error() instead")
+    def log_hdl_err(self, *args, **kwargs):
+        return self.error(*args, **kwargs)
+
+    @Deprecated(message="Use error() instead")
+    def log_recoverable_error(self, *args, **kwargs):
+        return self.error(*args, **kwargs)
+
+    @Deprecated(message="Use error() instead")
+    def log_recv_err(self, *args, **kwargs):
+        return self.error(*args, **kwargs)
+
+    @Deprecated(message="Use log_time() instead")
+    def TIME(self, *args, **kwargs):
+        return self.log_time(*args, **kwargs)
+
+
 
 
 @SingletonClass
 class Logger(BaseLogger):
-    """
-    Logger class that extends BaseLogger with specific configuration for WrenchCL.
-
-    Provides additional methods to configure log files and manages log handlers to avoid duplication.
-    """
-
-    def __init__(self, level: str = 'INFO') -> None:
-        """
-        Initializes the Logger with a specified logging level and configures console handler.
-
-        :param level: The desired logging level (e.g., 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
-        """
-        super().__init__(level)
-        self.logger = logging.getLogger('WrenchCL')
-        self.logger.setLevel(self.logging_level)
-        self.console_handler = self._configure_console_handler()
-        self.logger.handlers = []  # Clear existing handlers to avoid duplication
-        self.logger.addHandler(self.console_handler)
-        self.logger.propagate = False
-
-    # non Public methods
-    def _configure_console_handler(self) -> logging.StreamHandler:
-        """
-        Configures the console handler for logging to the stdout.
-
-        Returns:
-            logging.StreamHandler: Configured stream handler for console output.
-        """
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(self.logging_level)
-        handler.setFormatter(self._get_base_format())  # Use the base format depending on verbosity
-        return handler
-
-    # Public Methods
-
-    def log_file(self, path: str, mode='a') -> None:
-        """
-        Configures logging to dump logs to the specified file while also logging to the console.
-
-        :param path: The path to the file where logs should be saved.
-        :param mode: The file operation mode that should be used to log
-        """
-        if self.file_handler:
-            self.release_log_file()
-
-        self.file_handler = logging.FileHandler(path, encoding='utf-8', mode=mode)
-        self.file_handler.setLevel(self.logging_level)
-        self.file_handler.setFormatter(self._get_base_format())
-        self.logger.addHandler(self.file_handler)
-        self.logger.info(f"Logging to file: {os.path.abspath(path)}")
-
-    def release_log_file(self) -> None:
-        """
-        Releases file handler resources and stops logging to the file.
-        """
-        if self.file_handler:
-            self.file_handler.close()
-            self.logger.removeHandler(self.file_handler)
-            self.file_handler = None
-            self.logger.info("File logging stopped and resources released.")
-
-    def info(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = True) -> None:
-        """
-        Logs an informational message.
-
-        :param args: The message parts to log.
-        :param stack_info: If True, includes stack trace information.
-        :param compact: If True, condenses the message output.
-        """
-        serialized_args = [self._custom_serializer(arg) for arg in args]
-        text = ' '.join(serialized_args)
-        self._log_with_color(self.INFO_lvl, text, Color.GREEN if colorama_imported else None, stack_info, compact)
-
-    def warning(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = True) -> None:
-        """Logs a warning message."""
-        serialized_args = [self._custom_serializer(arg) for arg in args]
-        text = ' '.join(serialized_args)
-        self._log_with_color(self.WARNING_lvl, text, Color.YELLOW if colorama_imported else None, stack_info, compact)
-
-    def error(self, *args: Any, stack_info: Optional[bool] = True, compact: Optional[bool] = False) -> None:
-        """Logs an error message."""
-        serialized_args = [self._custom_serializer(arg) for arg in args]
-        text = ' '.join(serialized_args)
-        self._log_with_color(self.ERROR_lvl, text, Color.RED if colorama_imported else None, stack_info, compact)
-
-    def data(self, data: Any, object_name: Optional[str] = None, content: Optional[bool] = True, wrap_length: Optional[int] = None,
-             max_rows: Optional[int] = None, stack_info: Optional[bool] = False, indent: Optional[int] = 4, truncate_values = True) -> None:
-        """Logs a data message with optional formatting."""
-        option_bu = pd.options
-        object_name = object_name if object_name else f"Type: {type(data).__name__}"
-        formatted_data = self._format_data(data, object_name, content, wrap_length, max_rows, indent=indent)
-        self._log_with_color(self.DATA_lvl, formatted_data, Color.BLUE if colorama_imported else None, stack_info, False)
-        pd.options = option_bu
-
-    def critical(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = False) -> None:
-        """Logs a critical error message."""
-        serialized_args = [self._custom_serializer(arg) for arg in args]
-        text = ' '.join(serialized_args)
-        self._log_with_color(self.Critical_lvl, text, Color.RED if colorama_imported else None, stack_info, compact)
-
-    def debug(self, *args: Any, stack_info: Optional[bool] = False, compact: Optional[bool] = False) -> None:
-        """Logs a debug message."""
-        serialized_args = [self._custom_serializer(arg) for arg in args]
-        text = ' '.join(serialized_args)
-        self._log_with_color(self.DEBUG_lvl, text, Color.WHITE if colorama_imported else None, stack_info, compact)
-
-    # Aliases
-    log_info = INFO = info
-    log_warning = WARNING = warning
-    log_error = ERROR = error
-    log_data = print_data = DATA = data
-    log_critical = CRITICAL = critical
-    log_debug = DEBUG = debug
-
-
-    log_context = CONTEXT = context = info  # depreciated
-    log_flow = FLOW = flow = info   # depreciated
-    log_handled_warning = log_hdl_warn = HDL_WARN = warning    # depreciated
-    log_handled_error = log_hdl_err = HDL_ERR = error    # depreciated
-    log_recoverable_error = log_recv_err = RECV_ERR = error    # depreciated
-
-
-
-    def start_time(self) -> None:
-        """Starts a timer for measuring elapsed time in logging."""
-        self._start_time = time.time()
-
-    def log_time(self, message: str = "Elapsed time", format: str = "seconds", stack_info: Optional[bool] = False) -> None:
-        """
-        Logs the elapsed time since the timer was started.
-
-        :param message: Custom message for the elapsed time log.
-        :param format: Format of the time ('seconds' or 'formatted').
-        :param stack_info: If True, includes stack trace information.
-        """
-        if self._start_time is not None:
-            elapsed_time = time.time() - self._start_time
-            time_str = f"{elapsed_time:.2f} seconds" if format == "seconds" else str(timedelta(seconds=elapsed_time))
-            self.info(f"{message}: {time_str}", stack_info=stack_info)
-        else:
-            self.warning("Timer was not started with start_time() before calling log_time().")
-
-    TIME = log_time
-
-    def compact_header(self, text: str, size: int = 40) -> None:
-        """Logs a compact header message."""
-        self.header(text, size, False)
-
-    def header(self, text: str, size: int = 80, newline: bool = True) -> None:
-        """
-        Logs a header message with optional formatting.
-
-        :param text: The header text to log.
-        :param size: The size of the header.
-        :param newline: If True, adds a newline before the header.
-        """
-        # Create the header text with optional color formatting
-        header_text = text if not colorama_imported else f"{Color.CYAN}{Style.BRIGHT}{text}{Style.RESET_ALL}"
-
-        # Save the current formatter to restore it later
-        original_formatter = self.console_handler.formatter
-        self.console_handler.setFormatter(logging.Formatter('%(message)s'))
-
-        # Add a newline before the header if specified
-        if newline:
-            self.logger.info("")  # Logging an empty string to create a newline
-
-        # Log the header message centered and surrounded by dashes
-        self.logger.info(header_text.center(size, "-"))
-
-        # Restore the original formatter
-        self.console_handler.setFormatter(original_formatter)
-
-
-
-# Provide backward compatibility
+    pass

@@ -21,7 +21,7 @@ def check_import_usage():
                           DeprecationWarning, stacklevel=3)
 
 
-# Check for deprecated imports when the module is imported
+# Check for Deprecated imports when the module is imported
 # check_import_usage()
 
 # Create a new instance of Logger and assign it to `logger`
