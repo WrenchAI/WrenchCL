@@ -1,3 +1,7 @@
+#  Copyright (c) 2024-2025.
+#  Author: Willem van der Schans.
+#  Licensed under the MIT License (https://opensource.org/license/mit).
+
 import json
 from typing import Union, Any
 from . import logger
@@ -106,7 +110,7 @@ def show_json_tree(d):
 
 
 
-def recur_parse_json(d: Union[dict, str], depth: int = 0, max_depth: int = 25, verbose = False) -> dict:
+def recur_parse_json(d: Union[dict, str], depth: int = 0, max_depth: int = 25, verbose = False) -> Union[dict, str]:
     """
     Recursively parses nested JSON structures into a dictionary while enforcing a recursion depth limit.
 
@@ -142,26 +146,28 @@ def recur_parse_json(d: Union[dict, str], depth: int = 0, max_depth: int = 25, v
 
     d = safe_json_loader(d, raise_error=True, verbose = verbose)
 
-    if not isinstance(d, dict):
+    if not isinstance(d, dict) and depth == 0:
         raise TypeError(f"Expected dictionary but got {type(d).__name__}")
-
-    for k, v in d.items():
-        if isinstance(v, dict):
-            d[k] = recur_parse_json(v, depth=depth + 1, max_depth=max_depth, verbose = verbose)
-        elif isinstance(v, str):
-            parsed = safe_json_loader(v, raise_error=False, verbose = verbose)
-            if isinstance(parsed, dict):
-                d[k] = recur_parse_json(parsed, depth=depth + 1, max_depth=max_depth, verbose = verbose)
-            elif isinstance(parsed, list):
-                d[k] = list_loader(parsed, depth=depth + 1, max_depth=max_depth, verbose = verbose)
-            else:
-                d[k] = parsed
-        elif isinstance(v, list):
-            d[k] = list_loader(v, depth=depth + 1, max_depth=max_depth, verbose = verbose)
-        indent = "--" * (depth + 1)
-        if verbose:
-            logger.debug(f"{indent}>Parsed key '{k}': to type {type(d[k]).__name__}")
-    return d
+    elif not isinstance(d, dict) and depth != 0:
+        return d
+    else:
+        for k, v in d.items():
+            if isinstance(v, dict):
+                d[k] = recur_parse_json(v, depth=depth + 1, max_depth=max_depth, verbose = verbose)
+            elif isinstance(v, str):
+                parsed = safe_json_loader(v, raise_error=False, verbose = verbose)
+                if isinstance(parsed, dict):
+                    d[k] = recur_parse_json(parsed, depth=depth + 1, max_depth=max_depth, verbose = verbose)
+                elif isinstance(parsed, list):
+                    d[k] = list_loader(parsed, depth=depth + 1, max_depth=max_depth, verbose = verbose)
+                else:
+                    d[k] = parsed
+            elif isinstance(v, list):
+                d[k] = list_loader(v, depth=depth + 1, max_depth=max_depth, verbose = verbose)
+            indent = "--" * (depth + 1)
+            if verbose:
+                logger.debug(f"{indent}>Parsed key '{k}': to type {type(d[k]).__name__}")
+        return d
 
 
 def list_loader(v: Any, depth: int = 0, max_depth: int = 25, verbose = False) -> list:

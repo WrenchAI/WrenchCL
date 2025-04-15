@@ -1,3 +1,7 @@
+#  Copyright (c) 2024-2025.
+#  Author: Willem van der Schans.
+#  Licensed under the MIT License (https://opensource.org/license/mit).
+
 import inspect
 import warnings
 
@@ -17,7 +21,7 @@ def check_import_usage():
                           DeprecationWarning, stacklevel=3)
 
 
-# Check for deprecated imports when the module is imported
+# Check for Deprecated imports when the module is imported
 # check_import_usage()
 
 # Create a new instance of Logger and assign it to `logger`

@@ -17,7 +17,6 @@ def test_connect_import():
 def test_dataflow_import():
     try:
         from WrenchCL.DataFlow import (
-            build_return_json,
             handle_lambda_response,
             GuardedResponseTrigger,
             trigger_minimum_dataflow_metrics,

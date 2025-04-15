@@ -2,11 +2,9 @@ name: Test & Publish 🐍 to PyPI 📦
 
 on:
   push:
-    branches:
-      - v2
+    branches: [v2]
   pull_request:
-    branches:
-      - v2
+    branches: [v2]
   workflow_dispatch:
     inputs:
       versionIncrement:
@@ -35,29 +33,18 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # Setup Python
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
-    # Install dependencies
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -U ddtrace
-        pip install -r requirements.txt
-        pip install pytest pytest-mock pandas
-        pip install coverage pytest-cov
+        pip install -e .[dev]
 
-    # Install the package in editable mode
-    - name: Install the package in editable mode
-      run: pip install -e .
-
-    # Annotate Pytest Failures
     - name: Install plugin
       run: pip install pytest-github-actions-annotate-failures
 
-    # Run pytest with coverage
     - name: Run pytest with coverage
       env:
         DD_ENV: prod
@@ -67,19 +54,16 @@ jobs:
         ddtrace-run pytest --cov=WrenchCL --cov-report=lcov:coverage/lcov.info ./tests -rs --ddtrace
         coverage report
 
-    # Upload coverage report using v4
     - name: Upload coverage report
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: coverage/lcov.info
 
-    # Annotate if all tests pass
     - name: Annotate successful test completion
       if: success()
       run: echo "::notice ::All tests passed! ✔️"
 
-    # Inform about manual workflow dispatch
     - name: Manual workflow dispatch instruction
       if: success()
       run: echo "To publish your package, please invoke the 'build-n-publish' workflow manually."
@@ -87,68 +71,69 @@ jobs:
   build-n-publish:
     runs-on: ubuntu-latest
     needs: run-pytest-tests
-    if: ${{ github.event_name == 'workflow_dispatch'}}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     environment: pypi-deployment
+
     steps:
     - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
     - name: Fetch all tags
       run: git fetch --tags
 
-    - name: Install dependencies
+    - name: Install build tools
       run: |
-        pip install -r requirements.txt
-        pip install setuptools wheel pandas
+        pip install build pandas
         pip install -e .
 
-    # Auto bump version, push tag, and create release
-    - name: Auto bump version, push tag, and create release
+    - name: Auto bump version and tag
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # Fetch the latest version tag
         LATEST_TAG=$(git tag -l "v[0-9]*" --sort=-version:refname | head -n 1)
         if [[ -z "$LATEST_TAG" ]]; then
           LATEST_TAG="v0.0.0"
         fi
         BASE_VERSION=$(echo "$LATEST_TAG" | cut -d 'v' -f 2)
-    
-        # Check if a specific version is provided
+
         if [[ -n "${{ github.event.inputs.specifiedVersion }}" ]]; then
           NEW_VERSION="v${{ github.event.inputs.specifiedVersion }}"
-          echo "Using manually specified version: $NEW_VERSION"
         else
-          # Parse the base version
           MAJOR=$(echo "$BASE_VERSION" | cut -d '.' -f 1)
           MINOR=$(echo "$BASE_VERSION" | cut -d '.' -f 2)
           PATCH=$(echo "$BASE_VERSION" | cut -d '.' -f 3)
-    
-          # Determine the next version based on input increment
           case ${{ github.event.inputs.versionIncrement }} in
-            major)
-              MAJOR=$((MAJOR+1))
-              MINOR=0
-              PATCH=0
-              ;;
-            minor)
-              MINOR=$((MINOR+1))
-              PATCH=0
-              ;;
-            patch)
-              PATCH=$((PATCH+1))
-              ;;
+            major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR+1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH+1)) ;;
           esac
           NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
-          echo "Auto-bumped version to: $NEW_VERSION"
         fi
 
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-        sed -i "s/version='.*'/version='$NEW_VERSION'/" setup.py
 
+    - name: Echo NEW_VERSION
+      run: echo "New version is ${{ env.NEW_VERSION }}"
+
+    - name: Install version bumping tool
+      run: pip install bump-my-version
+
+    - name: Update pyproject.toml version
+      run: |
+        VERSION_NO_V="${{ env.NEW_VERSION }}"
+        VERSION_NO_V="${VERSION_NO_V#v}"
+        bump-my-version --new-version $VERSION_NO_V --parse pyproject.toml --serialize pyproject.toml
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add pyproject.toml
+        git commit -m "🔖 Version bump to $VERSION_NO_V"
+        git push origin HEAD:v2
+
+    - name: Submit new version
+      run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git tag $NEW_VERSION
@@ -171,14 +156,11 @@ jobs:
         }
 
         RECENT_TAGS=$(get_recent_tags)
-
         if [ $(echo "$RECENT_TAGS" | wc -l) -gt 50 ]; then
           OLDEST_TAGS=$(comm -23 <(git tag -l | sort -V) <(echo "$RECENT_TAGS"))
-
           for TAG in $OLDEST_TAGS; do
             git tag -d $TAG
             git push --delete origin $TAG
-
             RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
                              -H "Accept: application/vnd.github.v3+json" \
                              https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$TAG \
@@ -192,14 +174,9 @@ jobs:
           done
         fi
 
-    - name: Echo NEW_VERSION
-      run: echo "New version is ${{ env.NEW_VERSION }}"
-
-    # Build the package
     - name: Build the package
-      run: python setup.py sdist bdist_wheel
+      run: python -m build
 
-    # Publish to PyPI
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
