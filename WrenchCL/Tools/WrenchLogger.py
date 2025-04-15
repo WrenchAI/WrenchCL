@@ -618,5 +618,5 @@ class BaseLogger:
 
 
 @SingletonClass
-class Logger(BaseLogger):
+class _IntLogger(BaseLogger):
     pass
