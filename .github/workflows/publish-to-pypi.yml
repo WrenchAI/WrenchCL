@@ -124,13 +124,12 @@ jobs:
 
     - name: Update pyproject.toml version
       run: |
-        VERSION_NO_V="${{ env.NEW_VERSION }}"
+        VERSION_NEW="${{ env.NEW_VERSION }}"
         LAST_VERSION="${{ env.LATEST_TAG }}"
-        VERSION_NO_V="${VERSION_NO_V#v}"
         
         bump-my-version replace \
           --current-version "$LAST_VERSION" \
-          --new-version "$VERSION_NO_V" \
+          --new-version "$VERSION_NEW" \
           --parse 'v(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)' \
           --serialize 'v{major}.{minor}.{patch}' \
           --search 'version = "{current_version}"' \
@@ -141,8 +140,8 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add pyproject.toml
-        git commit -m "🔖 Version bump to $VERSION_NO_V"
-        git push origin HEAD:v2
+        git commit --allow-empty -m "🔖 Version bump to $VERSION_NEW" 
+        git push --force origin HEAD:v2
 
     - name: Submit new version
       run: |
