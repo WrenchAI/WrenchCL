@@ -38,7 +38,6 @@ def test_tools_import():
             get_file_type,
             image_to_base64,
             Maybe,
-            logger,
             get_metadata,
             robust_serializer,
             validate_base64,

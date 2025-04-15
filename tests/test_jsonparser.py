@@ -1,5 +1,7 @@
 import pytest
-from WrenchCL.Tools import parse_json, safe_json_loader, list_loader, logger
+
+from WrenchCL import logger
+from WrenchCL.Tools import parse_json, safe_json_loader, list_loader
 
 
 @pytest.fixture

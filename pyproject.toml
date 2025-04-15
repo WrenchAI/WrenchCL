@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "WrenchCL"
-version = "v2.12.3"
+version = "v2.13.0"
 description = "WrenchCL is a comprehensive library designed to facilitate seamless interactions with AWS services, OpenAI models, and various utility tools. This package aims to streamline the development process by providing robust components for database interactions, cloud storage, and AI-powered functionalities."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -33,8 +33,9 @@ dependencies = [
     "filetype>=1.2,<2.0"
 ]
 
-[tool.setuptools]
-packages = ["WrenchCL"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["WrenchCL*"]
 
 [tool.bumpversion]
 current_version = "0.0.0"

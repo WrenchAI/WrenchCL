@@ -1,6 +1,10 @@
-from .Tools.WrenchLogger import Logger
+from typing import Type
 
-# Assign the deprecated_logger to the name 'logger' for backward compatibility
-logger = Logger()
+from .Tools.WrenchLogger import _IntLogger
 
-__all__ = ['logger', 'Logger']
+
+logger: _IntLogger = _IntLogger()
+Logger: _IntLogger = _IntLogger()
+ext_logger: Type[_IntLogger] = _IntLogger
+
+__all__ = ['logger', 'Logger', 'ext_logger']

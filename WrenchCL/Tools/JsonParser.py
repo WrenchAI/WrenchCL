@@ -4,7 +4,7 @@
 
 import json
 from typing import Union, Any
-from . import logger
+from .WrenchLogger import _IntLogger
 
 
 def parse_json(response: Union[str, dict], max_depth: int = 25, verbose=False, print_tree=False) -> dict:
@@ -45,19 +45,19 @@ def parse_json(response: Union[str, dict], max_depth: int = 25, verbose=False, p
     """
     try:
         if verbose:
-            logger.debug(f"Starting JSON parsing. Max depth: {max_depth}")
+            _IntLogger().debug(f"Starting JSON parsing. Max depth: {max_depth}")
         parsed_json = recur_parse_json(response, max_depth=max_depth, verbose = verbose)
         if print_tree:
             show_json_tree(parsed_json)
         return parsed_json
     except RecursionError as e:
-        logger.error(f"Recursion limit reached: {e}", stack_info=False)
+        _IntLogger().error(f"Recursion limit reached: {e}", stack_info=False)
         raise
     except (TypeError, ValueError, json.JSONDecodeError) as e:
-        logger.error(f"Invalid input format: {e}")
+        _IntLogger().error(f"Invalid input format: {e}")
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in parse_json: {e}")
+        _IntLogger().error(f"Unexpected error in parse_json: {e}")
         raise
 
 
@@ -104,7 +104,7 @@ def show_json_tree(d):
     _build_tree(d)  # Start recursion
 
     tree_str = "\n".join(tree_lines)
-    logger.data(tree_str, "Json Output Tree")  # Log only once at the top level
+    _IntLogger().data(tree_str)  # Log only once at the top level
     return tree_str  # Return tree as a string
 
 
@@ -166,7 +166,7 @@ def recur_parse_json(d: Union[dict, str], depth: int = 0, max_depth: int = 25, v
                 d[k] = list_loader(v, depth=depth + 1, max_depth=max_depth, verbose = verbose)
             indent = "--" * (depth + 1)
             if verbose:
-                logger.debug(f"{indent}>Parsed key '{k}': to type {type(d[k]).__name__}")
+                _IntLogger().debug(f"{indent}>Parsed key '{k}': to type {type(d[k]).__name__}")
         return d
 
 
@@ -273,11 +273,11 @@ def safe_json_loader(content: Any, raise_error=False, depth=0, verbose = False) 
                             indent = "--" * (depth + 2)
                             if '{' in value or '}' in value:
                                 if verbose:
-                                    logger.warning(f"{indent}>Malformed JSON in key '{key}': {value}")
+                                    _IntLogger().warning(f"{indent}>Malformed JSON in key '{key}': {value}")
                                 else:
-                                    logger.debug(f"{indent}>Malformed JSON in key '{key}': {value}")
+                                    _IntLogger().debug(f"{indent}>Malformed JSON in key '{key}': {value}")
                             if verbose:
-                                logger.debug(f"{indent}>End of structure at key: {key}, value: {value}'")
+                                _IntLogger().debug(f"{indent}>End of structure at key: {key}, value: {value}'")
                             return parsed
                 return parsed
             elif isinstance(parsed, list):
@@ -287,24 +287,24 @@ def safe_json_loader(content: Any, raise_error=False, depth=0, verbose = False) 
             if content.startswith('{') and content.endswith('}'):
                 if verbose:
                     indent = "--" * (depth + 1)
-                    logger.warning(f"{indent}>Malformed JSON in content: {content}")
-                    logger.debug(f"{indent}>End of structure at depth: {depth + 1}")
+                    _IntLogger().warning(f"{indent}>Malformed JSON in content: {content}")
+                    _IntLogger().debug(f"{indent}>End of structure at depth: {depth + 1}")
                 if raise_error:
                     if depth == 0:
                         raise
                     else:
                         if verbose:
-                            logger.warning(f"Failed to parse content at depth {depth + 1}, continuing with next branch: {content}")
+                            _IntLogger().warning(f"Failed to parse content at depth {depth + 1}, continuing with next branch: {content}")
                         else:
-                            logger.debug(f"Failed to parse content at depth {depth + 1}, continuing with next branch")
+                            _IntLogger().debug(f"Failed to parse content at depth {depth + 1}, continuing with next branch")
                         try:
                             content = str(content)
                         except Exception as e:
-                            logger.debug(f"Failed to convert content to string, returning as is: {e}")
+                            _IntLogger().debug(f"Failed to convert content to string, returning as is: {e}")
                             pass
             else:
                 if verbose:
-                    logger.debug(f"String is not a JSON object, returning as is...")
+                    _IntLogger().debug(f"String is not a JSON object, returning as is...")
             return content  # Leave malformed content as-is
 
     raise TypeError(f"safe_json_loader expected string or dict but got {type(content).__name__}")

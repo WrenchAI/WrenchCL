@@ -8,7 +8,7 @@ from WrenchCL.Tools import robust_serializer
 from WrenchCL.Tools import single_quote_decoder
 from WrenchCL.Tools import Maybe
 from WrenchCL.Tools import typechecker
-from WrenchCL.Tools import logger
+from WrenchCL import logger
 import json
 from datetime import datetime
 from decimal import Decimal
