@@ -399,7 +399,7 @@ class BaseLogger:
 
     def _get_depth(self) -> int():
         for i, frame in enumerate(inspect.stack()):
-            if frame.filename.endswith("WrenchLogger.py"):
+            if frame.filename.endswith("WrenchLogger.py") or 'WrenchCL' in frame.filename or frame.filename == '<string>':
                 continue
             return i
 
@@ -460,7 +460,7 @@ class BaseLogger:
         if level == "INTERNAL":
             level_name_section = f"{color}{style}INTERNAL{self.presets.RESET}"
         elif level == "DATA":
-            level_name_section = f"{color}{style}OUTPUT  {self.presets.RESET}"
+            level_name_section = f"{color}{style}DATA    {self.presets.RESET}"
 
         if self.compact_mode:
             fmt = f"{level_name_section}{colored_arrow_section}{message_section}"
