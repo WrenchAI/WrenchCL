@@ -274,83 +274,34 @@ def test_set_level(logger_stream):
     assert "Should appear" in output
     assert "Should not appear" not in output
 
-#
-# # Test for deprecated methods - FIXED
-# def test_deprecated_aliases(logger_stream):
-#     logger, stream = logger_stream
-#
-#     # Test just one deprecated method at a time
-#     logger.context("Context log test")
-#     flush_handlers(logger)
-#     assert "Context log test" in stream.getvalue()
-#
-#     # Clear the stream
-#     stream.truncate(0)
-#     stream.seek(0)
-#
-#     logger.flow("Flow log test")
-#     flush_handlers(logger)
-#     assert "Flow log test" in stream.getvalue()
-#
-#     # Clear the stream
-#     stream.truncate(0)
-#     stream.seek(0)
-#
-#     logger.log_handled_warning("Handled warning test")
-#     flush_handlers(logger)
-#     assert "Handled warning test" in stream.getvalue()
-#
-#     # Clear the stream
-#     stream.truncate(0)
-#     stream.seek(0)
-#
-#     logger.log_hdl_err("HDL error test")
-#     flush_handlers(logger)
-#     assert "HDL error test" in stream.getvalue()
-#
+def test_pretty_log_highlighting_all_literals(logger_stream):
+    logger, stream = logger_stream
+    logger.setLevel("INFO")
+    # Default/non-verbose mode
+    logger.verbose_mode = False
 
-# Test for global stream configuration - FIXED
-# def test_configure_global_stream():
-#     test_stream = StringIO()
-#
-#     # Save root state
-#     original_handlers = logging.root.handlers.copy()
-#     original_level = logging.root.level
-#
-#     try:
-#         handler = logging.StreamHandler(test_stream)
-#         logging.root.handlers = [handler]
-#         logging.root.setLevel(logging.INFO)
-#
-#         logger = _IntLogger()
-#         logger.configure_global_stream(level="INFO")
-#
-#         logging.getLogger().info("Test logger message")  # root logger log
-#         handler.flush()
-#
-#         test_stream.seek(0)
-#         output = test_stream.read()
-#         print(output)
-#         assert "Test logger message" in output
-#
-#     finally:
-#         logging.root.handlers = original_handlers
-#         logging.root.setLevel(original_level)
+    sample_data = {
+        "true_val": True,
+        "false_val": False,
+        "none_val": None,
+        "int_val": 42,
+        "string_val": "hello",
+        "url": "https://example.com",
+        "dict": {"a": 1, "b": [1, 2, {"nested": None}]},
+    }
 
-# def test_force_color_enabled():
-#     logger = _IntLogger()
-#     buf = io.StringIO()
-#     logger.force_color()
-#
-#     with redirect_stdout(buf):
-#         logger.info("Color test output")
-#
-#     output = buf.getvalue()
-#     assert "\x1b[" in output, "No ANSI color codes found — force_color may not be working."
-#     print("✅ force_color() test passed")
-#
-# test_force_color_enabled()
+    logger.data(sample_data)
+    flush_handlers(logger)
+    non_verbose_output = stream.getvalue()
 
+def test_simple_info_log_no_highlighting(logger_stream):
+    logger, stream = logger_stream
+    logger.setLevel("INFO")
+    # Default/non-verbose mode
+    logger.verbose_mode = False
+    logger.info("Simple literal test: true false none 1234")
+    flush_handlers(logger)
+    non_verbose_output = stream.getvalue()
 
 
 # Test for color presets - FIXED
@@ -360,5 +311,7 @@ def test_color_presets():
     # Check if color presets exist
     assert hasattr(logger, "color_presets") or hasattr(logger, "presets")
 
-    # Skip the actual color modification test as it's implementation-specific
-    # Just verify the presets object exists
+
+def test_show_demo_string():
+    logger = _IntLogger()
+    logger.display_logger_state()

@@ -65,6 +65,21 @@ class ColorPresets:
     BRIGHT = None
     NORMAL = None
     RESET = None
+    COLOR_TRUE = None
+    COLOR_FALSE = None
+    COLOR_NONE = None
+    COLOR_KEY = None
+    COLOR_NUMBER = None
+
+    COLOR_BRACE_OPEN = None
+    COLOR_BRACE_CLOSE = None
+    COLOR_BRACKET_OPEN = None
+    COLOR_BRACKET_CLOSE = None
+    COLOR_PAREN_OPEN = None
+    COLOR_PAREN_CLOSE = None
+    COLOR_COLON = None
+    COLOR_COMMA = None
+
     _INTERNAL_DIM_COLOR = None
     _INTERNAL_DIM_STYLE = None
 
@@ -82,6 +97,23 @@ class ColorPresets:
         super().__setattr__('BRIGHT', getattr(self._style_class, 'BRIGHT', ''))
         super().__setattr__('NORMAL', getattr(self._style_class, 'NORMAL', ''))
         super().__setattr__('RESET', getattr(self._style_class, 'RESET_ALL', ''))
+
+        # Literal colors
+        super().__setattr__('COLOR_TRUE', getattr(self._color_class, 'GREEN', ''))
+        super().__setattr__('COLOR_FALSE', getattr(self._color_class, 'RED', ''))
+        super().__setattr__('COLOR_NONE', getattr(self._color_class, 'WHITE', ''))
+        super().__setattr__('COLOR_KEY', getattr(self._color_class, '', ''))
+        super().__setattr__('COLOR_NUMBER', getattr(self._color_class, 'YELLOW', ''))
+
+        # Syntax colors
+        super().__setattr__('COLOR_BRACE_OPEN', getattr(self._color_class, 'CYAN', ''))     # {
+        super().__setattr__('COLOR_BRACE_CLOSE', getattr(self._color_class, 'CYAN', ''))    # }
+        super().__setattr__('COLOR_BRACKET_OPEN', getattr(self._color_class, 'BLUE', ''))      # [
+        super().__setattr__('COLOR_BRACKET_CLOSE', getattr(self._color_class, 'BLUE', ''))     # ]
+        super().__setattr__('COLOR_PAREN_OPEN', getattr(self._color_class, 'BLUE', ''))        # (
+        super().__setattr__('COLOR_PAREN_CLOSE', getattr(self._color_class, 'BLUE', ''))       # )
+        super().__setattr__('COLOR_COLON', getattr(self._color_class, 'MAGENTA', ''))           # :
+        super().__setattr__('COLOR_COMMA', getattr(self._color_class, 'MAGENTA', ''))            # ,
 
         super().__setattr__('_INTERNAL_DIM_COLOR', getattr(self._color_class, 'WHITE', ''))
         super().__setattr__('_INTERNAL_DIM_STYLE', getattr(self._style_class, 'DIM', ''))
@@ -146,14 +178,26 @@ class ColorPresets:
                 setattr(self, key, value)
 
     def get_demo_string(self):
-        demo_string = ''
-        demo_string += f"    {self.DEBUG}{self.get_level_style('DEBUG')}Debug Message {self.RESET}Preset \n"
-        demo_string += f"    {self.INFO}{self.get_level_style('INFO')}Info Message {self.RESET}Preset \n"
-        demo_string += f"    {self.WARNING}{self.get_level_style('WARNING')}Warning Message {self.RESET}Preset \n"
-        demo_string += f"    {self.ERROR}{self.get_level_style('ERROR')}Error Message {self.RESET}Preset \n"
-        demo_string += f"    {self.CRITICAL}{self.get_level_style('CRITICAL')}Critical Message {self.RESET}Preset \n"
-        demo_string += f"    {self.HEADER}{self.get_level_style('HEADER')}Header Color {self.RESET}Preset \n"
-        demo_string += f"    {self.DATA}{self.get_level_style('DATA')}Data Print {self.RESET}Preset \n"
+        demo_string = "\n  • Log Level Color Preview:\n"
+        demo_string += f"    {self.DEBUG}{self.get_level_style('DEBUG')}[DEBUG] Debug message preview{self.RESET}\n"
+        demo_string += f"    {self.INFO}{self.get_level_style('INFO')}[INFO] Info message preview{self.RESET}\n"
+        demo_string += f"    {self.WARNING}{self.get_level_style('WARNING')}[WARNING] Warning message preview{self.RESET}\n"
+        demo_string += f"    {self.ERROR}{self.get_level_style('ERROR')}[ERROR] Error message preview{self.RESET}\n"
+        demo_string += f"    {self.CRITICAL}{self.get_level_style('CRITICAL')}[CRITICAL] Critical message preview{self.RESET}\n"
+        demo_string += f"    {self.HEADER}{self.get_level_style('HEADER')}[HEADER] Section header example{self.RESET}\n"
+        demo_string += f"    {self.DATA}{self.get_level_style('DATA')}[DATA] Structured data printout{self.RESET}\n"
+
+        demo_string += "  • Literal/Syntax Highlight Preview:\n"
+        demo_string += f"    - true → {self.COLOR_TRUE}{self.BRIGHT}true{self.RESET}\n"
+        demo_string += f"    - false → {self.COLOR_FALSE}{self.BRIGHT}false{self.RESET}\n"
+        demo_string += f"    - none → {self.COLOR_NONE}{self.BRIGHT}None{self.RESET}\n"
+        demo_string += f"    - \"key\": → {self.COLOR_KEY}{self.BRIGHT}\"key\"{self.RESET}{self.COLOR_COLON}:{self.RESET}\n"
+        demo_string += f"    - 123 → {self.COLOR_NUMBER}123{self.RESET}\n"
+        demo_string += f"    - {{ }} → {self.COLOR_BRACE_OPEN}{{{self.RESET} content {self.COLOR_BRACE_CLOSE}}}{self.RESET}\n"
+        demo_string += f"    - [ ] → {self.COLOR_BRACKET_OPEN}[{self.RESET} content {self.COLOR_BRACKET_CLOSE}]{self.RESET}\n"
+        demo_string += f"    - ( ) → {self.COLOR_PAREN_OPEN}({self.RESET} content {self.COLOR_PAREN_CLOSE}){self.RESET}\n"
+        demo_string += f"    - {self.COLOR_KEY}{self.BRIGHT}key{self.RESET}{self.COLOR_COLON}:{self.RESET}value{self.COLOR_COMMA},{self.RESET}\n"
+
         return demo_string
 
 
@@ -186,6 +230,7 @@ class BaseLogger:
         self.run_id = self._generate_run_id()
         self._compact_mode = False
         self._verbose_mode = False
+        self._highlight_syntax = True
         self._start_time = None
 
         self._logger_instance = logging.getLogger('WrenchCL')
@@ -248,7 +293,7 @@ class BaseLogger:
             formatted = "\n\n" + self._apply_color(text, self.presets.HEADER).center(size, "-") + "\n"
         self._logger_instance.info(formatted)
 
-    def pretty_log(self, obj: Any, indent=2, **kwargs) -> None:
+    def pretty_log(self, obj: Any, indent=4, **kwargs) -> None:
         try:
             if isinstance(obj, pd.DataFrame):
                 prefix_str = f"DataType: {type(obj).__name__} | Shape: {obj.shape[0]} rows | {obj.shape[1]} columns"
@@ -268,6 +313,8 @@ class BaseLogger:
                 output = obj.dump_json_schema(indent=indent, **kwargs)
             elif hasattr(obj, 'json'):
                 output = json.dumps(obj.json(), indent=indent, **kwargs)
+            elif isinstance(obj, dict):
+                output = json.dumps(obj, indent=indent, **kwargs)
             elif isinstance(obj, str):
                 try:
                     output = json.dumps(json.loads(obj), indent=indent, **kwargs, default=str)
@@ -283,6 +330,7 @@ class BaseLogger:
     def _log(self, level: Union[int, str], *args, exc_info: _exc_info_type = None, stack_info: bool = False,
             compact_mode: bool = False, color_flag: Optional[Literal['INTERNAL', 'DATA']] = None) -> None:
         msg = '\n'.join(str(arg) for arg in args)
+        msg = self._highlight_literals(msg, data=color_flag == 'DATA')
         if self.lambda_mode or self.compact_mode or compact_mode:
             lines = msg.splitlines()
             msg = ' '.join([line.strip() for line in lines if len(line.strip()) > 0])
@@ -307,6 +355,48 @@ class BaseLogger:
 
         self._logger_instance.log(level, msg, exc_info=exc_info, stack_info=stack_info, stacklevel=self._get_depth())
 
+    def _highlight_literals(self, msg: str, data: bool = False) -> str:
+        if not self.colorama_enabled or not self._highlight_syntax:
+            return msg
+
+        c = self.presets
+
+        # Boolean/None literals — match as full words
+        msg = re.sub(r'\btrue\b', lambda m: f"{c.COLOR_TRUE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
+        msg = re.sub(r'\bfalse\b', lambda m: f"{c.COLOR_FALSE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
+        msg = re.sub(r'\bnone\b', lambda m: f"{c.COLOR_NONE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
+        msg = re.sub(r'\bnull\b', lambda m: f"{c.COLOR_NONE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
+        msg = re.sub(r'\bnan\b', lambda m: f"{c.COLOR_NONE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
+
+        if data:
+            # Match string keys (only if followed by colon)
+            msg = re.sub(
+                r'(?P<key>"[^"]+?")(?P<colon>\s*:)',  # `"key":` only
+                lambda m: f"{c.COLOR_KEY}{c.BRIGHT}{m.group('key')}{c.RESET}{c.COLOR_COLON}{m.group('colon')}{c.RESET}",
+                msg
+            )
+
+            # Match standalone integers (not quoted, surrounded by whitespace or symbols)
+            msg = re.sub(
+                r'(?<=\s)(\d+)(?=\s|[,|\]])',  # match int if followed by space, comma, or ]
+                lambda m: f"{c.COLOR_NUMBER}{m.group(1)}{c.RESET}",
+                msg
+            )
+
+            # Brackets, braces, parens
+            msg = msg.replace('{', f"{c.COLOR_BRACE_OPEN}{{{c.RESET}")
+            msg = msg.replace('}', f"{c.COLOR_BRACE_CLOSE}}}{c.RESET}")
+            msg = msg.replace('(', f"{c.COLOR_PAREN_OPEN}({c.RESET}")
+            msg = msg.replace(')', f"{c.COLOR_PAREN_CLOSE}){c.RESET}")
+            msg = msg.replace(':', f"{c.COLOR_COLON}:{c.RESET}")
+            msg = msg.replace(',', f"{c.COLOR_COMMA},{c.RESET}")
+
+            # Brackets: only color when at line-start or line-end to avoid nested breakage
+            msg = re.sub(r'(?<=\n)(\s*)\[', lambda m: f"{m.group(1)}{c.COLOR_BRACKET_OPEN}[{c.RESET}", msg)
+            msg = re.sub(r'\](?=\n)', lambda m: f"{c.COLOR_BRACKET_CLOSE}]{c.RESET}", msg)
+
+        return msg
+
     def _get_depth(self) -> int():
         for i, frame in enumerate(inspect.stack()):
             if frame.filename.endswith("WrenchLogger.py"):
@@ -326,21 +416,20 @@ class BaseLogger:
 
     def _log_setup_summary(self) -> None:
         settings = self.logger_state
-        msg = 'Current Logging Settings:\n'
-        for key, value in settings.items():
-            if key == "Color Settings":
-                demo_string = self.presets.get_demo_string()
-                msg += f"  {key}:\n{demo_string}\n"
-                continue
-            if key == "Logging Modes":
-                msg += f"  {key}:\n"
-                for mode, enabled in value.items():
-                    state = "Enabled" if enabled else "Disabled"
-                    color = self.presets.INFO if enabled else self.presets.ERROR
-                    msg += f"      {mode}: {self._apply_color(state, color)}\n"
-            else:
-                msg += f"  {key}: {value}\n"
+        msg = '⚙️  Logger Configuration:\n'
+
+        msg += f"  • Logging Level: {self._apply_color(logging.getLevelName(settings['Logging Level']), self.presets.get_color_by_level(settings['Logging Level']))}\n"
+        msg += f"  • Run ID: {settings['Run Id']}\n"
+
+        msg += "  • Mode Flags:\n"
+        for mode, enabled in settings["Logging Modes"].items():
+            state = "✓ Enabled" if enabled else "✗ Disabled"
+            color = self.presets.INFO if enabled else self.presets.ERROR
+            msg += f"      - {mode:20s}: {self._apply_color(state, color)}\n"
+
+        msg += self.presets.get_demo_string()  # Use the actual instance, not the dict
         self._logger_instance.info(msg)
+
 
     @staticmethod
     def _generate_run_id() -> str:
@@ -446,7 +535,7 @@ class BaseLogger:
         return {"Logging Level": self._logger_instance.level, "Run Id": self.run_id,
                 "Logging Modes": {"Global Streaming Mode": self.__global_stream_configured,
                                   "Lambda mode": self.lambda_mode, "Color Mode": self.colorama_enabled,
-                                  "Compact Mode": self.compact_mode, "Verbose Mode": self.verbose_mode},
+                                  "Compact Mode": self.compact_mode, "Verbose Mode": self.verbose_mode, "Highlight Syntax": self._highlight_syntax},
                 "Color Settings": self.presets.__dict__,
 
                 }
@@ -458,6 +547,14 @@ class BaseLogger:
     @property
     def color_presets(self) -> ColorPresets:
         return self.presets
+
+    @property
+    def highlight_syntax(self) -> bool:
+        return self._highlight_syntax
+
+    @highlight_syntax.setter
+    def highlight_syntax(self, val: bool) -> None:
+        self._highlight_syntax = val
 
     # ---------------- Global Settings ---------------- #
     def configure_global_stream(self, level: str = "INFO", silence_others: bool = False, stream = sys.stdout) -> None:
