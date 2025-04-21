@@ -71,20 +71,20 @@ class ColorPresets:
     def __init__(self, color, style):
         super().__setattr__('_color_class', color)
         super().__setattr__('_style_class', style)
-        super().__setattr__('INFO', getattr(self._color_class, 'GREEN', None))
-        super().__setattr__('DEBUG', getattr(self._color_class, 'WHITE', None))
-        super().__setattr__('WARNING', getattr(self._color_class, 'YELLOW', None))
-        super().__setattr__('ERROR', getattr(self._color_class, 'RED', None))
-        super().__setattr__('CRITICAL', getattr(self._color_class, 'MAGENTA', None))
-        super().__setattr__('HEADER', getattr(self._color_class, 'CYAN', None))
-        super().__setattr__("DATA", getattr(self._color_class, 'BLUE', None))
+        super().__setattr__('INFO', getattr(self._color_class, 'GREEN', ''))
+        super().__setattr__('DEBUG', getattr(self._color_class, 'WHITE', ''))
+        super().__setattr__('WARNING', getattr(self._color_class, 'YELLOW', ''))
+        super().__setattr__('ERROR', getattr(self._color_class, 'RED', ''))
+        super().__setattr__('CRITICAL', getattr(self._color_class, 'MAGENTA', ''))
+        super().__setattr__('HEADER', getattr(self._color_class, 'CYAN', ''))
+        super().__setattr__("DATA", getattr(self._color_class, 'BLUE', ''))
 
-        super().__setattr__('BRIGHT', getattr(self._style_class, 'BRIGHT', None))
-        super().__setattr__('NORMAL', getattr(self._style_class, 'NORMAL', None))
-        super().__setattr__('RESET', getattr(self._style_class, 'RESET_ALL', None))
+        super().__setattr__('BRIGHT', getattr(self._style_class, 'BRIGHT', ''))
+        super().__setattr__('NORMAL', getattr(self._style_class, 'NORMAL', ''))
+        super().__setattr__('RESET', getattr(self._style_class, 'RESET_ALL', ''))
 
-        super().__setattr__('_INTERNAL_DIM_COLOR', getattr(self._color_class, 'WHITE', None))
-        super().__setattr__('_INTERNAL_DIM_STYLE', getattr(self._style_class, 'DIM', None))
+        super().__setattr__('_INTERNAL_DIM_COLOR', getattr(self._color_class, 'WHITE', ''))
+        super().__setattr__('_INTERNAL_DIM_STYLE', getattr(self._style_class, 'DIM', ''))
 
     def __setattr__(self, name, value):
         allowed_color_values = [val.lower() for val in self._color_class.__dict__.values() if val != 'RESET']
@@ -398,6 +398,7 @@ class BaseLogger:
                 self._Color = MockColorama
                 self._Style = MockColorama
                 self._colorama_imported = False
+                self._logger_instance.warning("[Logger] Colorama not available. Using plain formatting.")
 
     def _setup(self, level: str) -> None:
         self._logger_instance.setLevel(self._get_level(level))
