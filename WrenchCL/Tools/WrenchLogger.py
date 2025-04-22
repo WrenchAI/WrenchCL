@@ -487,7 +487,6 @@ class BaseLogger:
                 self._Color = MockColorama
                 self._Style = MockColorama
                 self._colorama_imported = False
-                self._logger_instance.warning("[Logger] Colorama not available. Using plain formatting.")
 
     def _setup(self, level: str) -> None:
         self._logger_instance.setLevel(self._get_level(level))

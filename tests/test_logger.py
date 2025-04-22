@@ -294,7 +294,7 @@ def test_pretty_log_highlighting_all_literals(logger_stream):
     flush_handlers(logger)
     non_verbose_output = stream.getvalue()
 
-def test_simple_info_log_no_highlighting(logger_stream):
+def test_simple_info_log_highlighting(logger_stream):
     logger, stream = logger_stream
     logger.setLevel("INFO")
     # Default/non-verbose mode
@@ -303,7 +303,16 @@ def test_simple_info_log_no_highlighting(logger_stream):
     flush_handlers(logger)
     non_verbose_output = stream.getvalue()
 
-
+def test_log_no_syntax_highlights(logger_stream):
+    logger, stream = logger_stream
+    logger.setLevel("INFO")
+    # Default/non-verbose mode
+    logger.verbose_mode = False
+    logger.highlight_syntax = False
+    logger.info("Simple literal test: true false none 1234")
+    logger.data("Simple literal test: true false none 1234")
+    flush_handlers(logger)
+    non_verbose_output = stream.getvalue()
 # Test for color presets - FIXED
 def test_color_presets():
     logger = _IntLogger()
