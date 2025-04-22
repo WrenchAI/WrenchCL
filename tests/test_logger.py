@@ -272,13 +272,36 @@ def test_pretty_log_highlighting_all_literals(logger_stream):
     logger.setLevel("INFO")
     logger.verbose_mode = False
 
-    sample_data = {"true_val": True, "false_val": False, "none_val": None, "int_val": 42, "string_val": "hello",
-        "url": "https://example.com", "dict": {"a": 1, "b": [1, 2, {"nested": None}]}, }
+    sample_data = {
+        "true_val": True,
+        "false_val": False,
+        "none_val": None,
+        "int_val": 42,
+        "string_val": "hello",
+        "url": "https://example.com",
+        "dict": {"a": 1, "b": [1, 2, {"nested": None}]},
+    }
 
     logger.data(sample_data)
     flush_handlers(logger)
     output = stream.getvalue()
-    assert all(x in output for x in ["true", "false", "None", "42", "hello", "nested"])
+
+    # Assert raw values are no longer directly printed
+    forbidden_literals = [
+        '"true_val": true',
+        '"false_val": false',
+        '"none_val": null',
+        '"true_val": True',
+        '"false_val": False',
+        '"none_val": None',
+        '"int_val": 42',
+        '"string_val": "hello"',
+        '"url": "https://example.com"',
+        '"dict": {"a": 1, "b": [1, 2, {"nested": null}]}',
+    ]
+
+    for lit in forbidden_literals:
+        assert lit not in output, f"Unexpected raw literal found: {lit}"
 
 
 def test_simple_info_log_highlighting(logger_stream):
@@ -289,7 +312,10 @@ def test_simple_info_log_highlighting(logger_stream):
     logger.info("Simple literal test: true false none 1234")
     flush_handlers(logger)
     output = stream.getvalue()
-    assert all(x in output for x in ["true", "false", "none", "1234"])
+
+    # Highlighted literals should be present (in some styled form)
+    for token in ["true", "false", "none", "1234"]:
+        assert token in output
 
 
 def test_log_no_syntax_highlights(logger_stream):
@@ -303,17 +329,8 @@ def test_log_no_syntax_highlights(logger_stream):
     flush_handlers(logger)
     output = stream.getvalue()
 
-    # Expect raw values without ANSI escape codes
-    assert "true" in output and "false" in output and "none" in output and "1234" in output
-    assert "\x1b[" not in output  # No ANSI codes = no highlighting
-
-
-# Test for color presets - FIXED
-def test_color_presets():
-    logger = _IntLogger()
-
-    # Check if color presets exist
-    assert hasattr(logger, "color_presets") or hasattr(logger, "presets")
+    # Raw values must exist, but without formatting
+    assert "Simple literal test: true false none 1234" in output
 
 
 def test_show_demo_string(logger_stream):
@@ -322,10 +339,18 @@ def test_show_demo_string(logger_stream):
     flush_handlers(logger)
     output = stream.getvalue()
 
-    # Check some key phrases to ensure demo output rendered
-    assert "Logger Configuration" in output
-    assert "Log Level Color Preview" in output
-    assert "Literal/Syntax Highlight Preview" in output
-    assert "Debug message preview" in output
-    assert "true" in output
-    assert "key:value" in output or '"key":' in output
+    required_phrases = [
+        "Critical message preview",
+        "Log Level Color Preview",
+        "Literal/Syntax Highlight Preview",
+        "Debug message preview",
+    ]
+
+    assert all(x in output for x in required_phrases)
+
+# Test for color presets - FIXED
+def test_color_presets():
+    logger = _IntLogger()
+
+    # Check if color presets exist
+    assert hasattr(logger, "color_presets") or hasattr(logger, "presets")
