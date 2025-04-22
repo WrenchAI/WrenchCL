@@ -17,19 +17,10 @@ class DummyPretty:
 
 class DummyJSON:
     def json(self):
-        return {
-          "meta_data": {
-            "integration_test": True
-          },
-          "targets": {
-            "likes": 3091
-          },
-          "post_url": "https://picsum.photos/455",
-          "file_type": "video",
-          "spirra_media_id": "4e05cc02-d0e1-4db7-86bc-4267642b2c3c",
-          "spirra_influencer_id": "7076e470-9809-45a6-8e04-74db55b8ab83",
-          "social_media_platform": "facebook"
-        }
+        return {"meta_data": {"integration_test": True}, "targets": {"likes": 3091},
+            "post_url": "https://picsum.photos/455", "file_type": "video",
+            "spirra_media_id": "4e05cc02-d0e1-4db7-86bc-4267642b2c3c",
+            "spirra_influencer_id": "7076e470-9809-45a6-8e04-74db55b8ab83", "social_media_platform": "facebook"}
 
 
 class SuggestionTarget:
@@ -95,7 +86,8 @@ def test_pretty_log_with_json(logger_stream):
     logger, stream = logger_stream
     logger.pretty_log(DummyJSON())
     flush_handlers(logger)
-    assert "json" in stream.getvalue()
+    assert "social_media_platform" in stream.getvalue()
+    assert "3091" in stream.getvalue()
 
 
 def test_pretty_log_with_fallback(logger_stream):
@@ -274,45 +266,48 @@ def test_set_level(logger_stream):
     assert "Should appear" in output
     assert "Should not appear" not in output
 
+
 def test_pretty_log_highlighting_all_literals(logger_stream):
     logger, stream = logger_stream
     logger.setLevel("INFO")
-    # Default/non-verbose mode
     logger.verbose_mode = False
 
-    sample_data = {
-        "true_val": True,
-        "false_val": False,
-        "none_val": None,
-        "int_val": 42,
-        "string_val": "hello",
-        "url": "https://example.com",
-        "dict": {"a": 1, "b": [1, 2, {"nested": None}]},
-    }
+    sample_data = {"true_val": True, "false_val": False, "none_val": None, "int_val": 42, "string_val": "hello",
+        "url": "https://example.com", "dict": {"a": 1, "b": [1, 2, {"nested": None}]}, }
 
     logger.data(sample_data)
     flush_handlers(logger)
-    non_verbose_output = stream.getvalue()
+    output = stream.getvalue()
+    assert all(x in output for x in ["true", "false", "None", "42", "hello", "nested"])
+
 
 def test_simple_info_log_highlighting(logger_stream):
     logger, stream = logger_stream
     logger.setLevel("INFO")
-    # Default/non-verbose mode
     logger.verbose_mode = False
+
     logger.info("Simple literal test: true false none 1234")
     flush_handlers(logger)
-    non_verbose_output = stream.getvalue()
+    output = stream.getvalue()
+    assert all(x in output for x in ["true", "false", "none", "1234"])
+
 
 def test_log_no_syntax_highlights(logger_stream):
     logger, stream = logger_stream
     logger.setLevel("INFO")
-    # Default/non-verbose mode
     logger.verbose_mode = False
     logger.highlight_syntax = False
+
     logger.info("Simple literal test: true false none 1234")
     logger.data("Simple literal test: true false none 1234")
     flush_handlers(logger)
-    non_verbose_output = stream.getvalue()
+    output = stream.getvalue()
+
+    # Expect raw values without ANSI escape codes
+    assert "true" in output and "false" in output and "none" in output and "1234" in output
+    assert "\x1b[" not in output  # No ANSI codes = no highlighting
+
+
 # Test for color presets - FIXED
 def test_color_presets():
     logger = _IntLogger()
@@ -321,6 +316,16 @@ def test_color_presets():
     assert hasattr(logger, "color_presets") or hasattr(logger, "presets")
 
 
-def test_show_demo_string():
-    logger = _IntLogger()
+def test_show_demo_string(logger_stream):
+    logger, stream = logger_stream
     logger.display_logger_state()
+    flush_handlers(logger)
+    output = stream.getvalue()
+
+    # Check some key phrases to ensure demo output rendered
+    assert "Logger Configuration" in output
+    assert "Log Level Color Preview" in output
+    assert "Literal/Syntax Highlight Preview" in output
+    assert "Debug message preview" in output
+    assert "true" in output
+    assert "key:value" in output or '"key":' in output
