@@ -17,19 +17,10 @@ class DummyPretty:
 
 class DummyJSON:
     def json(self):
-        return {
-          "meta_data": {
-            "integration_test": True
-          },
-          "targets": {
-            "likes": 3091
-          },
-          "post_url": "https://picsum.photos/455",
-          "file_type": "video",
-          "spirra_media_id": "4e05cc02-d0e1-4db7-86bc-4267642b2c3c",
-          "spirra_influencer_id": "7076e470-9809-45a6-8e04-74db55b8ab83",
-          "social_media_platform": "facebook"
-        }
+        return {"meta_data": {"integration_test": True}, "targets": {"likes": 3091},
+            "post_url": "https://picsum.photos/455", "file_type": "video",
+            "spirra_media_id": "4e05cc02-d0e1-4db7-86bc-4267642b2c3c",
+            "spirra_influencer_id": "7076e470-9809-45a6-8e04-74db55b8ab83", "social_media_platform": "facebook"}
 
 
 class SuggestionTarget:
@@ -95,7 +86,8 @@ def test_pretty_log_with_json(logger_stream):
     logger, stream = logger_stream
     logger.pretty_log(DummyJSON())
     flush_handlers(logger)
-    assert "json" in stream.getvalue()
+    assert "social_media_platform" in stream.getvalue()
+    assert "3091" in stream.getvalue()
 
 
 def test_pretty_log_with_fallback(logger_stream):
@@ -274,84 +266,87 @@ def test_set_level(logger_stream):
     assert "Should appear" in output
     assert "Should not appear" not in output
 
-#
-# # Test for deprecated methods - FIXED
-# def test_deprecated_aliases(logger_stream):
-#     logger, stream = logger_stream
-#
-#     # Test just one deprecated method at a time
-#     logger.context("Context log test")
-#     flush_handlers(logger)
-#     assert "Context log test" in stream.getvalue()
-#
-#     # Clear the stream
-#     stream.truncate(0)
-#     stream.seek(0)
-#
-#     logger.flow("Flow log test")
-#     flush_handlers(logger)
-#     assert "Flow log test" in stream.getvalue()
-#
-#     # Clear the stream
-#     stream.truncate(0)
-#     stream.seek(0)
-#
-#     logger.log_handled_warning("Handled warning test")
-#     flush_handlers(logger)
-#     assert "Handled warning test" in stream.getvalue()
-#
-#     # Clear the stream
-#     stream.truncate(0)
-#     stream.seek(0)
-#
-#     logger.log_hdl_err("HDL error test")
-#     flush_handlers(logger)
-#     assert "HDL error test" in stream.getvalue()
-#
 
-# Test for global stream configuration - FIXED
-# def test_configure_global_stream():
-#     test_stream = StringIO()
-#
-#     # Save root state
-#     original_handlers = logging.root.handlers.copy()
-#     original_level = logging.root.level
-#
-#     try:
-#         handler = logging.StreamHandler(test_stream)
-#         logging.root.handlers = [handler]
-#         logging.root.setLevel(logging.INFO)
-#
-#         logger = _IntLogger()
-#         logger.configure_global_stream(level="INFO")
-#
-#         logging.getLogger().info("Test logger message")  # root logger log
-#         handler.flush()
-#
-#         test_stream.seek(0)
-#         output = test_stream.read()
-#         print(output)
-#         assert "Test logger message" in output
-#
-#     finally:
-#         logging.root.handlers = original_handlers
-#         logging.root.setLevel(original_level)
+def test_pretty_log_highlighting_all_literals(logger_stream):
+    logger, stream = logger_stream
+    logger.setLevel("INFO")
+    logger.verbose_mode = False
 
-# def test_force_color_enabled():
-#     logger = _IntLogger()
-#     buf = io.StringIO()
-#     logger.force_color()
-#
-#     with redirect_stdout(buf):
-#         logger.info("Color test output")
-#
-#     output = buf.getvalue()
-#     assert "\x1b[" in output, "No ANSI color codes found — force_color may not be working."
-#     print("✅ force_color() test passed")
-#
-# test_force_color_enabled()
+    sample_data = {
+        "true_val": True,
+        "false_val": False,
+        "none_val": None,
+        "int_val": 42,
+        "string_val": "hello",
+        "url": "https://example.com",
+        "dict": {"a": 1, "b": [1, 2, {"nested": None}]},
+    }
+
+    logger.data(sample_data)
+    flush_handlers(logger)
+    output = stream.getvalue()
+
+    # Assert raw values are no longer directly printed
+    forbidden_literals = [
+        '"true_val": true',
+        '"false_val": false',
+        '"none_val": null',
+        '"true_val": True',
+        '"false_val": False',
+        '"none_val": None',
+        '"int_val": 42',
+        '"string_val": "hello"',
+        '"url": "https://example.com"',
+        '"dict": {"a": 1, "b": [1, 2, {"nested": null}]}',
+    ]
+
+    for lit in forbidden_literals:
+        assert lit not in output, f"Unexpected raw literal found: {lit}"
 
 
+def test_simple_info_log_highlighting(logger_stream):
+    logger, stream = logger_stream
+    logger.setLevel("INFO")
+    logger.verbose_mode = False
+
+    logger.info("Simple literal test: true false none 1234")
+    flush_handlers(logger)
+    output = stream.getvalue()
+
+    # Highlighted literals should be present (in some styled form)
+    for token in ["true", "false", "none", "1234"]:
+        assert token in output
+
+
+def test_log_no_syntax_highlights(logger_stream):
+    logger, stream = logger_stream
+    logger.setLevel("INFO")
+    logger.verbose_mode = False
+    logger.highlight_syntax = False
+
+    logger.info("Simple literal test: true false none 1234")
+    logger.data("Simple literal test: true false none 1234")
+    flush_handlers(logger)
+    output = stream.getvalue()
+
+    # Raw values must exist, but without formatting
+    assert "Simple literal test: true false none 1234" in output
+
+
+def test_show_demo_string(logger_stream):
+    logger, stream = logger_stream
+    logger.display_logger_state()
+    flush_handlers(logger)
+    output = stream.getvalue()
+
+    required_phrases = [
+        "Critical message preview",
+        "Log Level Color Preview",
+        "Literal/Syntax Highlight Preview",
+        "Debug message preview",
+    ]
+
+    assert all(x in output for x in required_phrases)
 
 # Test for color presets - FIXED
 def test_color_presets():
@@ -359,6 +354,3 @@ def test_color_presets():
 
     # Check if color presets exist
     assert hasattr(logger, "color_presets") or hasattr(logger, "presets")
-
-    # Skip the actual color modification test as it's implementation-specific
-    # Just verify the presets object exists
