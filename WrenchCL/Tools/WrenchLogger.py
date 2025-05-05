@@ -226,18 +226,19 @@ _exc_info_type = None | bool | tuple[Type[BaseException], BaseException, Traceba
 
 class BaseLogger:
     def __init__(self, level: str = 'INFO') -> None:
+        self._color_mode = None
         self.__global_stream_configured = False
         self.run_id = self._generate_run_id()
         self._compact_mode = False
         self._verbose_mode = False
         self._highlight_syntax = True
         self._start_time = None
-
+        self._deployed = False
+        self.level = level
+        self._check_deployment()
         self._logger_instance = logging.getLogger('WrenchCL')
-        self._running_on_lambda = 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
-        self._check_colorama()
-        self.presets = ColorPresets(self._Color, self._Style)
-        self._setup(level)
+
+        self._check_color()
 
     def update_color_presets(self, **kwargs) -> None:
         self.presets.update(**kwargs)
@@ -274,6 +275,15 @@ class BaseLogger:
     def _internal_log(self, *args, exc_info: _exc_info_type = None, stack_info: bool = False) -> None:
         self._log(logging.INFO, *args, exc_info=exc_info, stack_info=stack_info, compact_mode=False,
                   color_flag="INTERNAL")
+
+    def _check_deployment(self):
+        if os.environ.get("AWS_LAMBDA_FUNCTION_NAME") is not None:
+            self._color_mode = False
+            self._deployed = True
+            return
+        if os.environ.get("AWS_EXECUTION_ENV") is not None:
+            self._color_mode = False
+            self._deployed = True
 
     def start_time(self) -> None:
         self._start_time = time.time()
@@ -356,7 +366,7 @@ class BaseLogger:
         self._logger_instance.log(level, msg, exc_info=exc_info, stack_info=stack_info, stacklevel=self._get_depth())
 
     def _highlight_literals(self, msg: str, data: bool = False) -> str:
-        if not self.colorama_enabled or not self._highlight_syntax:
+        if not self.color or not self._highlight_syntax:
             return msg
 
         c = self.presets
@@ -471,28 +481,45 @@ class BaseLogger:
 
         return CustomFormatter(fmt, datefmt='%H:%M:%S', presets=self.presets)
 
-    def _check_colorama(self) -> None:
-        if self._running_on_lambda:
-            self._Color = MockColorama
-            self._Style = MockColorama
-            self._colorama_imported = False
-        else:
+    def _check_color(self) -> None:
+        if self._color_mode:
             try:
-                colorama = importlib.import_module("colorama")
-                self._Color = colorama.Fore
-                self._Style = colorama.Style
-                colorama.init(strip=self._running_on_lambda)
-                self._colorama_imported = True
+                self._enable_color()
             except ImportError:
-                self._Color = MockColorama
-                self._Style = MockColorama
-                self._colorama_imported = False
+                pass
+        self._disable_color()
 
-    def _setup(self, level: str) -> None:
-        self._logger_instance.setLevel(self._get_level(level))
+    def _setup(self) -> None:
+        self._logger_instance.setLevel(self._get_level(self.level))
         handler = logging.StreamHandler(sys.stdout)
         self._logger_instance.handlers = [handler]
         self._logger_instance.propagate = False
+
+    def _disable_color(self):
+        self._Color = MockColorama
+        self._Style = MockColorama
+        self._color_mode = False
+        self.highlight_syntax = False
+        try:
+            colorama = importlib.import_module("colorama")
+            colorama.deinit()
+        except ImportError:
+            pass
+        self.presets = ColorPresets(self._Color, self._Style)
+        self._setup()
+        self._internal_log("Color output disabled.")
+
+    def _enable_color(self):
+        self._color_mode = True
+        self.highlight_syntax = True
+        colorama = importlib.import_module("colorama")
+        self._Color = colorama.Fore
+        self._Style = colorama.Style
+        self.presets = ColorPresets(self._Color, self._Style)
+        colorama.deinit()
+        colorama.init(strip=False, autoreset=True)
+        self._setup()
+        self._internal_log("Color output enabled.")
 
     # ---------------- Properties ---------------- #
 
@@ -501,17 +528,30 @@ class BaseLogger:
         return self._logger_instance
 
     @property
-    def colorama_enabled(self) -> bool:
-        return self._colorama_imported
+    def color(self) -> bool:
+        return self._color_mode
+
+    @color.setter
+    def color(self, val: bool) -> None:
+        self._color_mode = val
+        self._check_deployment()
+        self._internal_log(f"Color output set to {val} and deployed instances are {self._deployed}.")
+        if self._deployed:
+            self._internal_log(f"Color output cannot enabled for deployed instances")
+            self._color_mode = False
+            self._disable_color()
+        elif not self._color_mode:
+            self._disable_color()
+        else:
+            self._enable_color()
 
     @property
     def lambda_mode(self) -> bool:
-        return self._running_on_lambda
+        return not self._color_mode
 
     @lambda_mode.setter
     def lambda_mode(self, val: bool) -> None:
-        self._running_on_lambda = val
-        self._check_colorama()
+        self.color = not val
 
     @property
     def compact_mode(self) -> bool:
@@ -533,7 +573,7 @@ class BaseLogger:
     def logger_state(self) -> dict:
         return {"Logging Level": self._logger_instance.level, "Run Id": self.run_id,
                 "Logging Modes": {"Global Streaming Mode": self.__global_stream_configured,
-                                  "Lambda mode": self.lambda_mode, "Color Mode": self.colorama_enabled,
+                                  "Lambda mode": self.lambda_mode, "Color Mode": self.color,
                                   "Compact Mode": self.compact_mode, "Verbose Mode": self.verbose_mode, "Highlight Syntax": self._highlight_syntax},
                 "Color Settings": self.presets.__dict__,
 
@@ -609,7 +649,7 @@ class BaseLogger:
             sys.stderr = colorama.AnsiToWin32(sys.stderr).stream
             self._Color = colorama.Fore
             self._Style = colorama.Style
-            self._colorama_imported = True
+            self._color_mode = True
 
             # Update color presets and reconfigure formatters
             self.presets = ColorPresets(self._Color, self._Style)

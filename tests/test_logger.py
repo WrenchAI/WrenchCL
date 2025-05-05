@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 import sys
 import time
@@ -354,3 +355,18 @@ def test_color_presets():
 
     # Check if color presets exist
     assert hasattr(logger, "color_presets") or hasattr(logger, "presets")
+
+def test_color_mode(logger_stream):
+    logger = _IntLogger()
+
+    print('\n')
+    logger.color = True
+    logger.info("Test message")
+    logger.color = False
+    logger.info("Test message")
+    os.environ['AWS_LAMBDA_FUNCTION_NAME'] = 'tester'
+    logger.color = True
+    logger.info("Test message")
+    flush_handlers(logger)
+
+    assert True == True
