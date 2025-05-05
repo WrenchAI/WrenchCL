@@ -144,8 +144,8 @@ class ColorPresets:
             str_name = level.upper()
         if str_name == 'INTERNAL':
             return self._INTERNAL_DIM_COLOR
-        else:
-            return getattr(self, str_name, '')
+        return getattr(self, str_name, '')
+
 
     def get_level_style(self, level: Union[str, int]):
         if isinstance(level, int):
@@ -257,17 +257,9 @@ class BaseLogger:
         self._log(logging.WARNING, *args, exc_info=exc_info, **kwargs)
 
     def error(self, *args, exc_info: _exc_info_type = True, **kwargs) -> None:
-        args = list(args)
-        suggestion = self._suggest_exception(args)
-        if suggestion:
-            args.append(suggestion)
         self._log(logging.ERROR, *args, exc_info=exc_info, **kwargs)
 
     def critical(self, *args, exc_info: _exc_info_type = None, **kwargs) -> None:
-        args = list(args)
-        suggestion = self._suggest_exception(args)
-        if suggestion:
-            args.append(suggestion)
         self._log(logging.CRITICAL, *args, exc_info=exc_info, **kwargs)
 
     def debug(self, *args, exc_info: _exc_info_type = None, **kwargs) -> None:
@@ -352,6 +344,19 @@ class BaseLogger:
     # ---------------- Internals ---------------- #
     def _log(self, level: Union[int, str], *args, exc_info: _exc_info_type = None,
             compact_mode: bool = False, color_flag: Optional[Literal['INTERNAL', 'DATA']] = None, **kwargs) -> None:
+
+        args = list(args)
+
+        for idx, a in enumerate(args):
+            if isinstance(a, Exception) or isinstance(a, BaseException):
+                exc_info = args.pop(idx)
+        suggestion = self._suggest_exception(exc_info)
+        if suggestion:
+            args.append(suggestion)
+
+        args = tuple(args)
+
+
         msg = '\n'.join(str(arg) for arg in args)
         msg = self._highlight_literals(msg, data=color_flag == 'DATA')
         if self.lambda_mode or self.compact_mode or compact_mode:
@@ -428,10 +433,14 @@ class BaseLogger:
 
     def _suggest_exception(self, args) -> str | None:
         suggestion = None
-        if args and isinstance(args[-1], Exception):
-            ex = args[-1]
-            if hasattr(ex, 'args') and ex.args and isinstance(ex.args[0], str):
-                suggestion = ExceptionSuggestor.suggest_similar(ex.args[0])
+        if not hasattr(args, '__iter__'):
+            return suggestion
+        for a in args:
+            if isinstance(a, Exception) or isinstance(a, BaseException):
+                ex = a
+                if hasattr(ex, 'args') and ex.args and isinstance(ex.args[0], str):
+                    suggestion = ExceptionSuggestor.suggest_similar(ex.args[0])
+                break
         return suggestion
 
     def _apply_color(self, text: str, color: Optional[str]) -> str:
@@ -472,7 +481,15 @@ class BaseLogger:
         color = self.presets.get_color_by_level(level)
         style = self.presets.get_level_style(level)
         message_color = self.presets.get_message_color(level)
-        dimmed_color = self.presets.get_color_by_level('INTERNAL')
+
+        if isinstance(level, int):
+            str_name = logging.getLevelName(level)
+        else:
+            str_name = level.upper()
+        if str_name in ['ERROR', 'CRITICAL', 'WARNING']:
+            dimmed_color = self.presets.get_color_by_level(level)
+        else:
+            dimmed_color = self.presets.get_color_by_level('INTERNAL')
         dimmed_style = self.presets.get_level_style('INTERNAL')
 
         run_id_section = f"{self.run_id}|" if self.verbose_mode else ""
