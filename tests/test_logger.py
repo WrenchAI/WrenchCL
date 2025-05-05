@@ -41,6 +41,7 @@ def logger_stream():
     memory_handler = logging.StreamHandler(stream)
     console_handler = logging.StreamHandler(sys.stdout)
     logger._logger_instance.handlers = [memory_handler, console_handler]
+    logger.display_logger_state()
     return logger, stream
 
 
@@ -301,8 +302,12 @@ def test_pretty_log_highlighting_all_literals(logger_stream):
         '"dict": {"a": 1, "b": [1, 2, {"nested": null}]}',
     ]
 
+    lit_flag = False
     for lit in forbidden_literals:
-        assert lit not in output, f"Unexpected raw literal found: {lit}"
+        if lit in output:
+            lit_flag = True
+            logger.info(f"Literal {lit} found in output")
+    assert not lit_flag, "Found forbidden literals in output"
 
 
 def test_simple_info_log_highlighting(logger_stream):
@@ -360,12 +365,17 @@ def test_color_mode(logger_stream):
     logger = _IntLogger()
 
     print('\n')
-    logger.color = True
+    logger.color_mode = True
     logger.info("Test message")
-    logger.color = False
+    logger.color_mode = False
     logger.info("Test message")
     os.environ['AWS_LAMBDA_FUNCTION_NAME'] = 'tester'
-    logger.color = True
+    logger.color_mode = True
+    logger.info("Test message")
+    os.environ.pop('AWS_LAMBDA_FUNCTION_NAME')
+    logger.color_mode = True
+    logger.info("Test message")
+    logger.compact_mode = True
     logger.info("Test message")
     flush_handlers(logger)
 
