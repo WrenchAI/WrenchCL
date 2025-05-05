@@ -512,7 +512,6 @@ class BaseLogger:
     def _enable_color(self):
         try:
             colorama = importlib.import_module("colorama")
-
         except ImportError:
             self._internal_log("Colorama not installed. Cannot enable color output. You can install colorama with `pip install WrenchCL[color]`")
             self._disable_color()
