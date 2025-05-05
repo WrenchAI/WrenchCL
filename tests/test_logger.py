@@ -40,7 +40,7 @@ def logger_stream():
     logger = _IntLogger()
     memory_handler = logging.StreamHandler(stream)
     console_handler = logging.StreamHandler(sys.stdout)
-    logger._logger_instance.handlers = [memory_handler, console_handler]
+    logger._BaseLogger__logger_instance.handlers = [memory_handler, console_handler]
     return logger, stream
 
 
@@ -107,7 +107,7 @@ def test_header_output(logger_stream):
 
 def test_log_time(logger_stream):
     logger, stream = logger_stream
-    logger._start_time = time.time() - 1.23  # simulate elapsed
+    logger._BaseLogger__start_time = time.time() - 1.23  # simulate elapsed
     logger.log_time("Step Done")
     flush_handlers(logger)
     out = stream.getvalue()
@@ -116,15 +116,24 @@ def test_log_time(logger_stream):
 
 
 def test_compact_mode():
+    from io import StringIO
     stream = StringIO()
     logger = _IntLogger()
     logger.compact_mode = True
+
+    # Inject handler without setting formatter manually
     handler = logging.StreamHandler(stream)
-    handler.setFormatter(logger._get_formatter("INFO"))
     logger.logger_instance.handlers = [handler]
+
     logger.info("Compact Test")
     flush_handlers(logger)
-    assert "Compact Test" in stream.getvalue()
+
+    output = stream.getvalue()
+
+    # Compact mode should not include newlines, timestamps, or verbose metadata
+    assert "Compact Test" in output
+    assert "\n" not in output.strip(), "Compact output should be single-line"
+    assert "->" in output, "Expected arrow in compact log"
 
 
 def test_pretty_log_with_pydantic_model(logger_stream):
