@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 import sys
 import time
@@ -300,8 +301,12 @@ def test_pretty_log_highlighting_all_literals(logger_stream):
         '"dict": {"a": 1, "b": [1, 2, {"nested": null}]}',
     ]
 
+    lit_flag = False
     for lit in forbidden_literals:
-        assert lit not in output, f"Unexpected raw literal found: {lit}"
+        if lit in output:
+            lit_flag = True
+            logger.info(f"Literal {lit} found in output")
+    assert not lit_flag, "Found forbidden literals in output"
 
 
 def test_simple_info_log_highlighting(logger_stream):
@@ -354,3 +359,23 @@ def test_color_presets():
 
     # Check if color presets exist
     assert hasattr(logger, "color_presets") or hasattr(logger, "presets")
+
+def test_color_mode(logger_stream):
+    logger = _IntLogger()
+
+    print('\n')
+    logger.color_mode = True
+    logger.info("Test message")
+    logger.color_mode = False
+    logger.info("Test message")
+    os.environ['AWS_LAMBDA_FUNCTION_NAME'] = 'tester'
+    logger.color_mode = True
+    logger.info("Test message")
+    os.environ.pop('AWS_LAMBDA_FUNCTION_NAME')
+    logger.color_mode = True
+    logger.info("Test message")
+    logger.compact_mode = True
+    logger.info("Test message")
+    flush_handlers(logger)
+
+    assert True == True

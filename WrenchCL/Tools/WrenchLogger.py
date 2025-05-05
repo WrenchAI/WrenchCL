@@ -23,11 +23,21 @@ except ImportError:
 
 class ExceptionSuggestor:
     @staticmethod
-    def suggest_similar(error_msg: str, frame_depth=20, n_suggestions=1, cutoff=0.6) -> Optional[str]:
+    def suggest_similar(error: BaseException, frame_depth=20, n_suggestions=1, cutoff=0.6) -> Optional[str]:
+
+        if not isinstance(error, BaseException):
+            return None
+        error_msg = error.args[0]
+        if not error.__class__.__name__.lower() in error_msg.lower():
+            error_msg = f"  {error.__class__.__name__}: {error_msg}"
+        else:
+            error_msg = f"  {error_msg}"
+
         obj_match = re.search(r"'(\w+)' object has no attribute", error_msg)
         key_match = re.search(r"has no attribute '(\w+)'", error_msg)
+
         if not key_match:
-            return None
+            return error_msg
 
         source_obj = obj_match.group(1) if obj_match else None
         missing_attr = key_match.group(1)
@@ -40,8 +50,8 @@ class ExceptionSuggestor:
                     keys = [k for k in dir(var) if not k.startswith('__')]
                     matches = get_close_matches(missing_attr, keys, n=n_suggestions, cutoff=cutoff)
                     if matches:
-                        return f"Did you mean: {', '.join(matches)}?"
-        return None
+                        return f"{error_msg}\n    Did you mean: {', '.join(matches)}?\n\n"
+        return error_msg
 
 
 class MockColorama:
@@ -144,8 +154,8 @@ class ColorPresets:
             str_name = level.upper()
         if str_name == 'INTERNAL':
             return self._INTERNAL_DIM_COLOR
-        else:
-            return getattr(self, str_name, '')
+        return getattr(self, str_name, '')
+
 
     def get_level_style(self, level: Union[str, int]):
         if isinstance(level, int):
@@ -230,14 +240,16 @@ class BaseLogger:
         self.run_id = self._generate_run_id()
         self._compact_mode = False
         self._verbose_mode = False
-        self._highlight_syntax = True
         self._start_time = None
 
+        self._highlight_syntax = True
+        self.presets = ColorPresets(None, None)
+        self._color_mode = True
+        self._deployed = False
+        self.level = level
         self._logger_instance = logging.getLogger('WrenchCL')
-        self._running_on_lambda = 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
-        self._check_colorama()
-        self.presets = ColorPresets(self._Color, self._Style)
-        self._setup(level)
+        self._check_deployment()
+        self._check_color()
 
     def update_color_presets(self, **kwargs) -> None:
         self.presets.update(**kwargs)
@@ -248,32 +260,45 @@ class BaseLogger:
     def setLevel(self, level: Literal["DEBUG", "INFO", 'WARNING', 'ERROR', 'CRITICAL']) -> None:
         self._logger_instance.setLevel(self._get_level(level))
 
-    def info(self, *args, exc_info: _exc_info_type = None, stack_info: bool = False) -> None:
-        self._log(logging.INFO, *args, exc_info=exc_info, stack_info=stack_info)
+    def info(self, *args, exc_info: _exc_info_type = None, **kwargs) -> None:
+        self._log(logging.INFO, *args, exc_info=exc_info, **kwargs)
 
-    def warning(self, *args, exc_info: _exc_info_type = None, stack_info: bool = False) -> None:
-        self._log(logging.WARNING, *args, exc_info=exc_info, stack_info=stack_info)
+    def warning(self, *args, exc_info: _exc_info_type = None, **kwargs) -> None:
+        self._log(logging.WARNING, *args, exc_info=exc_info, **kwargs)
 
-    def error(self, *args, exc_info: _exc_info_type = None, stack_info: bool = True) -> None:
-        args = list(args)
-        suggestion = self._suggest_exception(args)
-        if suggestion:
-            args.append(suggestion)
-        self._log(logging.ERROR, *args, exc_info=exc_info, stack_info=stack_info)
+    def error(self, *args, exc_info: _exc_info_type = True, **kwargs) -> None:
+        self._log(logging.ERROR, *args, exc_info=exc_info, **kwargs)
 
-    def critical(self, *args, exc_info: _exc_info_type = None, stack_info: bool = True) -> None:
-        args = list(args)
-        suggestion = self._suggest_exception(args)
-        if suggestion:
-            args.append(suggestion)
-        self._log(logging.CRITICAL, *args, exc_info=exc_info, stack_info=stack_info)
+    def critical(self, *args, exc_info: _exc_info_type = None, **kwargs) -> None:
+        self._log(logging.CRITICAL, *args, exc_info=exc_info, **kwargs)
 
-    def debug(self, *args, exc_info: _exc_info_type = None, stack_info: bool = False) -> None:
-        self._log(logging.DEBUG, *args, exc_info=exc_info, stack_info=stack_info)
+    def debug(self, *args, exc_info: _exc_info_type = None, **kwargs) -> None:
+        self._log(logging.DEBUG, *args, exc_info=exc_info, **kwargs)
 
-    def _internal_log(self, *args, exc_info: _exc_info_type = None, stack_info: bool = False) -> None:
-        self._log(logging.INFO, *args, exc_info=exc_info, stack_info=stack_info, compact_mode=False,
+    def _internal_log(self, *args, exc_info: _exc_info_type = None, level: str | int = None) -> None:
+        if level:
+            level = self._get_level(level)
+        if not level:
+            level = logging.DEBUG
+        self._log(level, *args, exc_info=exc_info, compact_mode=False,
                   color_flag="INTERNAL")
+
+    def _check_deployment(self):
+        if os.environ.get("AWS_LAMBDA_FUNCTION_NAME") is not None:
+            self._internal_log("Detected Lambda deployment. Setting color mode to False.")
+            self._color_mode = False
+            self._deployed = True
+        if os.environ.get("AWS_EXECUTION_ENV") is not None:
+            self._internal_log("Detected AWS deployment. Setting color mode to False.")
+            self._color_mode = False
+            self._deployed = True
+        if os.environ.get("ENABLE_COLOR") is not None:
+            if os.environ.get("ENABLE_COLOR").lower() == "false":
+                self._internal_log("Detected ENABLE_COLOR Setting color mode to false.")
+                self._color_mode = False
+            else:
+                self._internal_log("Detected ENABLE_COLOR Setting color mode to True.")
+                self._color_mode = True
 
     def start_time(self) -> None:
         self._start_time = time.time()
@@ -327,8 +352,22 @@ class BaseLogger:
         self._log(logging.INFO, output, exc_info=False, compact_mode=False, color_flag="DATA")
 
     # ---------------- Internals ---------------- #
-    def _log(self, level: Union[int, str], *args, exc_info: _exc_info_type = None, stack_info: bool = False,
-            compact_mode: bool = False, color_flag: Optional[Literal['INTERNAL', 'DATA']] = None) -> None:
+    def _log(self, level: Union[int, str], *args, exc_info: _exc_info_type = None,
+            compact_mode: bool = False, color_flag: Optional[Literal['INTERNAL', 'DATA']] = None, **kwargs) -> None:
+
+        args = list(args)
+
+        for idx, a in enumerate(args):
+            if isinstance(a, Exception) or isinstance(a, BaseException):
+                exc_info = args.pop(idx)
+        suggestion = self._suggest_exception(exc_info)
+
+        if suggestion:
+            suggestion = f"{self.presets.ERROR}{suggestion}{self.presets.RESET}"
+            args.append(suggestion)
+
+        args = tuple(args)
+
         msg = '\n'.join(str(arg) for arg in args)
         msg = self._highlight_literals(msg, data=color_flag == 'DATA')
         if self.lambda_mode or self.compact_mode or compact_mode:
@@ -353,10 +392,10 @@ class BaseLogger:
         if isinstance(level, str):
             level = self._get_level(level)
 
-        self._logger_instance.log(level, msg, exc_info=exc_info, stack_info=stack_info, stacklevel=self._get_depth())
+        self._logger_instance.log(level, msg, exc_info=exc_info, stack_info=kwargs.get('stack_info', False), stacklevel=self._get_depth())
 
     def _highlight_literals(self, msg: str, data: bool = False) -> str:
-        if not self.colorama_enabled or not self._highlight_syntax:
+        if not self.color_mode or not self._highlight_syntax:
             return msg
 
         c = self.presets
@@ -405,10 +444,16 @@ class BaseLogger:
 
     def _suggest_exception(self, args) -> str | None:
         suggestion = None
-        if args and isinstance(args[-1], Exception):
-            ex = args[-1]
-            if hasattr(ex, 'args') and ex.args and isinstance(ex.args[0], str):
-                suggestion = ExceptionSuggestor.suggest_similar(ex.args[0])
+        if not hasattr(args, '__iter__') and args is not None:
+            args = [args]
+        else:
+            return suggestion
+        for a in args:
+            if isinstance(a, Exception) or isinstance(a, BaseException):
+                ex = a
+                if hasattr(ex, 'args') and ex.args and isinstance(ex.args[0], str):
+                    suggestion = ExceptionSuggestor.suggest_similar(ex)
+                break
         return suggestion
 
     def _apply_color(self, text: str, color: Optional[str]) -> str:
@@ -441,29 +486,40 @@ class BaseLogger:
             return getattr(logging, level.upper())
         elif isinstance(level, int):
             return level
+        elif level == 'INTERNAL':
+            return logging.DEBUG
         return logging.INFO
 
     def _get_formatter(self, level: Union[str, int], no_format=False) -> logging.Formatter:
         color = self.presets.get_color_by_level(level)
         style = self.presets.get_level_style(level)
         message_color = self.presets.get_message_color(level)
-        dimmed_color = self.presets.get_color_by_level('INTERNAL')
+
+        if isinstance(level, int):
+            str_name = logging.getLevelName(level)
+        else:
+            str_name = level.upper()
+        if str_name in ['ERROR', 'CRITICAL', 'WARNING']:
+            dimmed_color = self.presets.get_color_by_level(level)
+        else:
+            dimmed_color = self.presets.get_color_by_level('INTERNAL')
         dimmed_style = self.presets.get_level_style('INTERNAL')
 
         run_id_section = f"{self.run_id}|" if self.verbose_mode else ""
-        verbose_section = f"{dimmed_color}{dimmed_style}[%(asctime)s|{run_id_section}%(filename)s:%(funcName)s:%(lineno)d]{self.presets.RESET}"
+        file_section = f"{dimmed_color}{dimmed_style}%(filename)s:%(funcName)s:%(lineno)d]{self.presets.RESET}"
+        verbose_section = f"{dimmed_color}{dimmed_style}[%(asctime)s|{run_id_section}{file_section}{self.presets.RESET}"
         level_name_section = f"{color}{style}%(levelname)-8s{self.presets.RESET}"
         colored_dash_section = f"{color}{style} -- {self.presets.RESET}"
         colored_arrow_section = f"{color}{style} -> {self.presets.RESET}"
         message_section = f"{style}{message_color}%(message)s{self.presets.RESET}"
 
         if level == "INTERNAL":
-            level_name_section = f"{color}{style}INTERNAL{self.presets.RESET}"
+            level_name_section = f"{color}{style}WRENCHCL{self.presets.RESET}"
         elif level == "DATA":
             level_name_section = f"{color}{style}DATA    {self.presets.RESET}"
 
         if self.compact_mode:
-            fmt = f"{level_name_section}{colored_arrow_section}{message_section}"
+            fmt = f"{level_name_section}{file_section}{colored_arrow_section}{message_section}"
         elif no_format:
             fmt = "%(message)s"
         else:
@@ -471,28 +527,50 @@ class BaseLogger:
 
         return CustomFormatter(fmt, datefmt='%H:%M:%S', presets=self.presets)
 
-    def _check_colorama(self) -> None:
-        if self._running_on_lambda:
-            self._Color = MockColorama
-            self._Style = MockColorama
-            self._colorama_imported = False
-        else:
+    def _check_color(self) -> None:
+        if self._color_mode:
             try:
-                colorama = importlib.import_module("colorama")
-                self._Color = colorama.Fore
-                self._Style = colorama.Style
-                colorama.init(strip=self._running_on_lambda)
-                self._colorama_imported = True
-            except ImportError:
-                self._Color = MockColorama
-                self._Style = MockColorama
-                self._colorama_imported = False
+                self._enable_color()
+                return
+            except ImportError as e:
+                self._disable_color()
 
-    def _setup(self, level: str) -> None:
-        self._logger_instance.setLevel(self._get_level(level))
+    def _setup(self) -> None:
+        self._logger_instance.setLevel(self._get_level(self.level))
         handler = logging.StreamHandler(sys.stdout)
         self._logger_instance.handlers = [handler]
         self._logger_instance.propagate = False
+
+    def _disable_color(self):
+        self._Color = MockColorama
+        self._Style = MockColorama
+        self._color_mode = False
+        self.highlight_syntax = False
+        try:
+            colorama = importlib.import_module("colorama")
+            colorama.deinit()
+        except ImportError:
+            pass
+        self.presets = ColorPresets(self._Color, self._Style)
+        self._setup()
+        self._internal_log("Color output disabled.")
+
+    def _enable_color(self):
+        try:
+            colorama = importlib.import_module("colorama")
+        except ImportError:
+            self._internal_log("Colorama not installed. Cannot enable color output. You can install colorama with `pip install WrenchCL[color]`", level = logging.WARNING)
+            self._disable_color()
+            return
+        self._color_mode = True
+        self._highlight_syntax = True
+        self._Color = colorama.Fore
+        self._Style = colorama.Style
+        self.presets = ColorPresets(self._Color, self._Style)
+        colorama.deinit()
+        colorama.init(strip=False, autoreset=False)
+        self._setup()
+        self._internal_log("Color output enabled.")
 
     # ---------------- Properties ---------------- #
 
@@ -501,17 +579,27 @@ class BaseLogger:
         return self._logger_instance
 
     @property
-    def colorama_enabled(self) -> bool:
-        return self._colorama_imported
+    def color_mode(self) -> bool:
+        return self._color_mode
+
+    @color_mode.setter
+    def color_mode(self, val: bool) -> None:
+        if self._color_mode == val:
+            return
+        self._color_mode = val
+        self._check_deployment()
+        if not self._color_mode:
+            self._disable_color()
+        else:
+            self._enable_color()
 
     @property
     def lambda_mode(self) -> bool:
-        return self._running_on_lambda
+        return not self._color_mode
 
     @lambda_mode.setter
     def lambda_mode(self, val: bool) -> None:
-        self._running_on_lambda = val
-        self._check_colorama()
+        self.color_mode = not val
 
     @property
     def compact_mode(self) -> bool:
@@ -533,8 +621,8 @@ class BaseLogger:
     def logger_state(self) -> dict:
         return {"Logging Level": self._logger_instance.level, "Run Id": self.run_id,
                 "Logging Modes": {"Global Streaming Mode": self.__global_stream_configured,
-                                  "Lambda mode": self.lambda_mode, "Color Mode": self.colorama_enabled,
-                                  "Compact Mode": self.compact_mode, "Verbose Mode": self.verbose_mode, "Highlight Syntax": self._highlight_syntax},
+                                  "Color Mode": self.color_mode, "Highlight Syntax": self._highlight_syntax, "Deployment mode": self._deployed,
+                                  "Compact Mode": self.compact_mode, "Verbose Mode": self.verbose_mode},
                 "Color Settings": self.presets.__dict__,
 
                 }
@@ -609,8 +697,7 @@ class BaseLogger:
             sys.stderr = colorama.AnsiToWin32(sys.stderr).stream
             self._Color = colorama.Fore
             self._Style = colorama.Style
-            self._colorama_imported = True
-
+            self._color_mode = True
             # Update color presets and reconfigure formatters
             self.presets = ColorPresets(self._Color, self._Style)
             for handler in self._logger_instance.handlers:
