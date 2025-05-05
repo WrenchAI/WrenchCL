@@ -368,7 +368,6 @@ class BaseLogger:
 
         args = tuple(args)
 
-
         msg = '\n'.join(str(arg) for arg in args)
         msg = self._highlight_literals(msg, data=color_flag == 'DATA')
         if self.lambda_mode or self.compact_mode or compact_mode:
