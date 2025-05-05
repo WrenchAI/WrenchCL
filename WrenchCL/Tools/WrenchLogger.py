@@ -23,11 +23,21 @@ except ImportError:
 
 class ExceptionSuggestor:
     @staticmethod
-    def suggest_similar(error_msg: str, frame_depth=20, n_suggestions=1, cutoff=0.6) -> Optional[str]:
+    def suggest_similar(error: BaseException, frame_depth=20, n_suggestions=1, cutoff=0.6) -> Optional[str]:
+
+        if not isinstance(error, BaseException):
+            return None
+        error_msg = error.args[0]
+        if not error.__class__.__name__.lower() in error_msg.lower():
+            error_msg = f"  {error.__class__.__name__}: {error_msg}"
+        else:
+            error_msg = f"  {error_msg}"
+
         obj_match = re.search(r"'(\w+)' object has no attribute", error_msg)
         key_match = re.search(r"has no attribute '(\w+)'", error_msg)
+
         if not key_match:
-            return None
+            return error_msg
 
         source_obj = obj_match.group(1) if obj_match else None
         missing_attr = key_match.group(1)
@@ -40,8 +50,8 @@ class ExceptionSuggestor:
                     keys = [k for k in dir(var) if not k.startswith('__')]
                     matches = get_close_matches(missing_attr, keys, n=n_suggestions, cutoff=cutoff)
                     if matches:
-                        return f"Did you mean: {', '.join(matches)}?"
-        return None
+                        return f"{error_msg}\n    Did you mean: {', '.join(matches)}?\n\n"
+        return error_msg
 
 
 class MockColorama:
@@ -351,7 +361,9 @@ class BaseLogger:
             if isinstance(a, Exception) or isinstance(a, BaseException):
                 exc_info = args.pop(idx)
         suggestion = self._suggest_exception(exc_info)
+
         if suggestion:
+            suggestion = f"{self.presets.ERROR}{suggestion}{self.presets.RESET}"
             args.append(suggestion)
 
         args = tuple(args)
@@ -433,13 +445,15 @@ class BaseLogger:
 
     def _suggest_exception(self, args) -> str | None:
         suggestion = None
-        if not hasattr(args, '__iter__'):
+        if not hasattr(args, '__iter__') and args is not None:
+            args = [args]
+        else:
             return suggestion
         for a in args:
             if isinstance(a, Exception) or isinstance(a, BaseException):
                 ex = a
                 if hasattr(ex, 'args') and ex.args and isinstance(ex.args[0], str):
-                    suggestion = ExceptionSuggestor.suggest_similar(ex.args[0])
+                    suggestion = ExceptionSuggestor.suggest_similar(ex)
                 break
         return suggestion
 
@@ -555,7 +569,7 @@ class BaseLogger:
         self._Style = colorama.Style
         self.presets = ColorPresets(self._Color, self._Style)
         colorama.deinit()
-        colorama.init(strip=False, autoreset=True)
+        colorama.init(strip=False, autoreset=False)
         self._setup()
         self._internal_log("Color output enabled.")
 

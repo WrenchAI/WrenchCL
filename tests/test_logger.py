@@ -41,7 +41,6 @@ def logger_stream():
     memory_handler = logging.StreamHandler(stream)
     console_handler = logging.StreamHandler(sys.stdout)
     logger._logger_instance.handlers = [memory_handler, console_handler]
-    logger.display_logger_state()
     return logger, stream
 
 

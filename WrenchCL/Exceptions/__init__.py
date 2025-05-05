@@ -14,7 +14,8 @@ class IncompleteInitializationException(Exception):
     :param message: Custom error message to override the default.
     """
     def __init__(self, message: Optional[str] = None) -> None:
-        super().__init__(message or "Class is not initialized, please call initialization function first!")
+        msg = message or "Class is not initialized, please call initialization function first!"
+        super().__init__(msg)
 
 
 class InitializationException(Exception):
@@ -24,7 +25,8 @@ class InitializationException(Exception):
     :param message: Custom error message to override the default.
     """
     def __init__(self, message: Optional[str] = None) -> None:
-        super().__init__(message or "Class could not be initialized!")
+        msg = message or "Class could not be initialized!"
+        super().__init__(msg)
 
 
 class ArgumentTypeException(Exception):
@@ -34,7 +36,8 @@ class ArgumentTypeException(Exception):
     :param message: Custom error message to override the default.
     """
     def __init__(self, message: Optional[str] = None) -> None:
-        super().__init__(message or "Invalid Argument Type passed")
+        msg = message or "Invalid Argument Type passed"
+        super().__init__(msg)
 
 
 class ArgumentValueException(Exception):
@@ -44,7 +47,8 @@ class ArgumentValueException(Exception):
     :param message: Custom error message to override the default.
     """
     def __init__(self, message: Optional[str] = None) -> None:
-        super().__init__(message or "Invalid Argument Value passed")
+        msg = message or "Invalid Argument Value passed"
+        super().__init__(msg)
 
 
 class ReferenceNotFoundException(Exception):
@@ -55,7 +59,8 @@ class ReferenceNotFoundException(Exception):
     :param message: Custom error message to override the default.
     """
     def __init__(self, variable_name: Optional[str] = None, message: Optional[str] = None) -> None:
-        super().__init__(message or f"The variable or value '{variable_name}' was not found.")
+        msg = message or f"The variable or value '{variable_name}' was not found."
+        super().__init__(msg)
 
 
 class InvalidConfigurationException(Exception):
@@ -67,7 +72,8 @@ class InvalidConfigurationException(Exception):
     :param message: Custom error message to override the default.
     """
     def __init__(self, config_name: Optional[str] = None, reason: Optional[str] = None, message: Optional[str] = None) -> None:
-        super().__init__(message or f"Configuration '{config_name}' is invalid. Reason: {reason or 'Unknown'}")
+        msg = message or f"Configuration '{config_name}' is invalid. Reason: {reason or 'Unknown'}"
+        super().__init__(msg)
 
 
 class ValidationTypeException(Exception):
@@ -86,10 +92,11 @@ class ValidationTypeException(Exception):
         actual: Optional[str] = None,
         message: Optional[str] = None
     ) -> None:
-        super().__init__(message or (
+        msg = message or (
             f"Validation failed for field '{field}'. Expected: {expected}. Actual: {actual}."
             if field else "Validation failed."
-        ))
+        )
+        super().__init__(msg)
 
 
 class InvalidPayloadException(Exception):
@@ -100,10 +107,11 @@ class InvalidPayloadException(Exception):
     :param message: Custom error message to override the default.
     """
     def __init__(self, missing_fields: Optional[List[str]] = None, message: Optional[str] = None) -> None:
-        super().__init__(message or (
+        msg = message or (
             f"Payload is invalid. Missing required fields: {', '.join(missing_fields)}."
             if missing_fields else "Payload is invalid."
-        ))
+        )
+        super().__init__(msg)
 
 
 class SecurityViolationException(Exception):
@@ -113,7 +121,8 @@ class SecurityViolationException(Exception):
     :param message: Custom error message to override the default.
     """
     def __init__(self, message: Optional[str] = None) -> None:
-        super().__init__(message or "Security violation detected!")
+        msg = message or "Security violation detected!"
+        super().__init__(msg)
 
 
 # Aliases for backward compatibility
