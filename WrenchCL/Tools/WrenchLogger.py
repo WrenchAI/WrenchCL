@@ -510,9 +510,15 @@ class BaseLogger:
         self._internal_log("Color output disabled.")
 
     def _enable_color(self):
+        try:
+            colorama = importlib.import_module("colorama")
+
+        except ImportError:
+            self._internal_log("Colorama not installed. Cannot enable color output. You can install colorama with `pip install WrenchCL[color]`")
+            self._disable_color()
+            return
         self._color_mode = True
         self.highlight_syntax = True
-        colorama = importlib.import_module("colorama")
         self._Color = colorama.Fore
         self._Style = colorama.Style
         self.presets = ColorPresets(self._Color, self._Style)
