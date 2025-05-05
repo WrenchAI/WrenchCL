@@ -248,6 +248,7 @@ class BaseLogger:
         self._deployed = False
         self.level = level
         self._logger_instance = logging.getLogger('WrenchCL')
+        self._setup()
         self._check_deployment()
         self._check_color()
 
@@ -292,12 +293,12 @@ class BaseLogger:
             self._internal_log("Detected AWS deployment. Setting color mode to False.")
             self._color_mode = False
             self._deployed = True
-        if os.environ.get("ENABLE_COLOR") is not None:
-            if os.environ.get("ENABLE_COLOR").lower() == "false":
-                self._internal_log("Detected ENABLE_COLOR Setting color mode to false.")
+        if os.environ.get("COLOR_MODE") is not None:
+            if os.environ.get("COLOR_MODE").lower() == "false":
+                self._internal_log("Detected COLOR_MODE Setting color mode to false.")
                 self._color_mode = False
             else:
-                self._internal_log("Detected ENABLE_COLOR Setting color mode to True.")
+                self._internal_log("Detected COLOR_MODE Setting color mode to True.")
                 self._color_mode = True
 
     def start_time(self) -> None:
@@ -533,7 +534,8 @@ class BaseLogger:
                 self._enable_color()
                 return
             except ImportError as e:
-                self._disable_color()
+                pass
+        self._disable_color()
 
     def _setup(self) -> None:
         self._logger_instance.setLevel(self._get_level(self.level))
@@ -552,8 +554,7 @@ class BaseLogger:
         except ImportError:
             pass
         self.presets = ColorPresets(self._Color, self._Style)
-        self._setup()
-        self._internal_log("Color output disabled.")
+        self._internal_log("Color output disabled.", level = logging.ERROR)
 
     def _enable_color(self):
         try:
@@ -569,8 +570,7 @@ class BaseLogger:
         self.presets = ColorPresets(self._Color, self._Style)
         colorama.deinit()
         colorama.init(strip=False, autoreset=False)
-        self._setup()
-        self._internal_log("Color output enabled.")
+        self._internal_log("Color output enabled.", level = logging.INFO)
 
     # ---------------- Properties ---------------- #
 
@@ -584,14 +584,13 @@ class BaseLogger:
 
     @color_mode.setter
     def color_mode(self, val: bool) -> None:
+        if not isinstance(val, bool):
+            raise TypeError("Expected bool, got %s" % type(val))
         if self._color_mode == val:
             return
         self._color_mode = val
         self._check_deployment()
-        if not self._color_mode:
-            self._disable_color()
-        else:
-            self._enable_color()
+        self._check_color()
 
     @property
     def lambda_mode(self) -> bool:
