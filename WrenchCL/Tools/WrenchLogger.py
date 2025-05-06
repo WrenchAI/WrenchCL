@@ -24,7 +24,6 @@ except ImportError:
 class ExceptionSuggestor:
     @staticmethod
     def suggest_similar(error: BaseException, frame_depth=20, n_suggestions=1, cutoff=0.6) -> Optional[str]:
-
         if not isinstance(error, BaseException):
             return None
         error_msg = error.args[0]
