@@ -1007,7 +1007,7 @@ class BaseLogger:
             # Process multi-line messages
             lines = msg.splitlines()
             if len(lines) > 1:
-                msg = "\n    " + "\n    ".join(lines)
+                msg = "    " + "\n    ".join(lines)
             if exc_info:
                 msg = "\n".join(lines)
 
@@ -1025,7 +1025,9 @@ class BaseLogger:
 
     def _inject_dd_context(self, args: tuple[str]) -> tuple[str]:
         """Add Datadog trace context to log messages if enabled."""
-        if not self.__config['dd_trace_enabled']:
+        if (not self.__config['dd_trace_enabled']
+            or self.__config['mode'] == 'compact'
+            or self.__config['mode'] == 'terminal' and self.level != 'DEBUG'):
             return args
 
         try:
@@ -1106,17 +1108,28 @@ class BaseLogger:
 
         prefix = []
         verbose = self.__config['verbose']
+        first_color_flag = False
         if meta.get('project', None) is not None and (self.__config['deployed'] or verbose):
             prefix.append(f"{color}{style}{meta['project'].upper()}{self.presets.RESET}")
+            first_color_flag = True
         if meta.get('env', None) is not None and (self.__config['deployed'] or verbose):
-            prefix.append(f"{dimmed_color}{dimmed_style}{meta['env'].upper()}{self.presets.RESET}")
+            if first_color_flag:
+                prefix.append(f"{dimmed_color}{dimmed_style}{meta['env'].upper()}{self.presets.RESET}")
+            else:
+                prefix.append(f"{color}{style}{meta['env'].upper()}{self.presets.RESET}")
         if meta.get('project_version', None) is not None and (self.__config['deployed'] or verbose):
-            prefix.append(f"{dimmed_color}{dimmed_style}{meta['project_version'].upper()}{self.presets.RESET}")
+            if first_color_flag:
+                prefix.append(f"{dimmed_color}{dimmed_style}{meta['project_version']}{self.presets.RESET}")
+            else:
+                prefix.append(f"{color}{style}{meta['project_version']}{self.presets.RESET}")
         if meta.get('run_id', None) is not None and (self.__config['deployed'] or verbose):
-            prefix.append(f"{dimmed_color}{dimmed_style}{meta['run_id'].upper()}{self.presets.RESET}")
+            if first_color_flag:
+                prefix.append(f"{dimmed_color}{dimmed_style}{meta['run_id'].upper()}{self.presets.RESET}")
+            else:
+                prefix.append(f"{color}{style}{meta['run_id'].upper()}{self.presets.RESET}")
 
         if len(prefix) > 0:
-            return ' : '.join(prefix) + f" {color}{style}|{self.presets.RESET} "
+            return f' {color}{style}:{self.presets.RESET} '.join(prefix) + f" {color}{style}|{self.presets.RESET} "
         else:
             return ''
 
