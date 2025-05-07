@@ -1356,30 +1356,6 @@ class BaseLogger:
         """
         return self.pretty_log(data, **kwargs)
 
-    # ---------------- Deprecations ----------------
-
-    @Deprecated(message="Use silence_logger() instead")
-    def suppress_package_logger(self, package_name: str, level: int = logging.CRITICAL) -> None:
-        """Routes to the new equivalent method: silence_logger()"""
-        return self.silence_logger(package_name, level)
-
-    @Deprecated(message="Use setLevel() to reconfigure logger")
-    def revertLoggingLevel(self) -> None:
-        """Routes to the equivalent functionality in the new API"""
-        if hasattr(self, 'previous_level') and self.previous_level:
-            self.setLevel(self.previous_level)
-        else:
-            self.setLevel("INFO")
-
-    @Deprecated(message="Use deployment_mode = True/False instead")
-    def overwrite_lambda_mode(self, setting: bool) -> None:
-        """Maintains backward compatibility with old lambda_mode"""
-        self.__config['deployed'] = setting
-        if setting:
-            self.mode = 'json'
-            self.__config['color_enabled'] = False
-
-
 
 @SingletonClass
 class _IntLogger(BaseLogger):
