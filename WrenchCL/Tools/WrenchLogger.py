@@ -1106,9 +1106,9 @@ class BaseLogger:
 
         prefix = []
         verbose = self.__config['verbose']
-        if meta.get('env', None) is not None and (self.__config['deployed'] or verbose):
-            prefix.append(f"{color}{style}{meta['project'].upper()}{self.presets.RESET}")
         if meta.get('project', None) is not None and (self.__config['deployed'] or verbose):
+            prefix.append(f"{color}{style}{meta['project'].upper()}{self.presets.RESET}")
+        if meta.get('env', None) is not None and (self.__config['deployed'] or verbose):
             prefix.append(f"{dimmed_color}{dimmed_style}{meta['env'].upper()}{self.presets.RESET}")
         if meta.get('project_version', None) is not None and (self.__config['deployed'] or verbose):
             prefix.append(f"{dimmed_color}{dimmed_style}{meta['project_version'].upper()}{self.presets.RESET}")
