@@ -8,7 +8,7 @@ from sshtunnel import SSHTunnelForwarder
 from ..Tools.WrenchLogger import _IntLogger
 logger = _IntLogger()
 
-logger.suppress_package_logger("paramiko")
+logger.silence_logger("paramiko")
 
 class _SshTunnelManager:
     """
