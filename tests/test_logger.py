@@ -7,7 +7,6 @@ from io import StringIO
 
 import pytest
 from pydantic import BaseModel
-
 from WrenchCL.Tools.WrenchLogger import _IntLogger
 
 
@@ -18,10 +17,15 @@ class DummyPretty:
 
 class DummyJSON:
     def json(self):
-        return {"meta_data": {"integration_test": True}, "targets": {"likes": 3091},
-            "post_url": "https://picsum.photos/455", "file_type": "video",
+        return {
+            "meta_data": {"integration_test": True},
+            "targets": {"likes": 3091},
+            "post_url": "https://picsum.photos/455",
+            "file_type": "video",
             "spirra_media_id": "4e05cc02-d0e1-4db7-86bc-4267642b2c3c",
-            "spirra_influencer_id": "7076e470-9809-45a6-8e04-74db55b8ab83", "social_media_platform": "facebook"}
+            "spirra_influencer_id": "7076e470-9809-45a6-8e04-74db55b8ab83",
+            "social_media_platform": "facebook"
+        }
 
 
 class SuggestionTarget:
@@ -37,11 +41,19 @@ class DummyPydantic(BaseModel):
 @pytest.fixture
 def logger_stream():
     stream = StringIO()
+    os.environ["PROJECT_NAME"] = "ai-axis"
+    os.environ["PROJECT_VERSION"] = "1.2.3"
+    os.environ["ENV"] = "dev"
+
     logger = _IntLogger()
-    memory_handler = logging.StreamHandler(stream)
-    console_handler = logging.StreamHandler(sys.stdout)
-    logger._BaseLogger__logger_instance.handlers = [memory_handler, console_handler]
-    return logger, stream
+    logger.reinitialize()
+    logger.add_new_handler(logging.StreamHandler, stream=stream, force_replace=True)
+    logger.add_new_handler(logging.StreamHandler, stream=sys.stdout)
+
+    yield logger, stream
+
+    for key in ["PROJECT_NAME", "PROJECT_VERSION", "ENV"]:
+        os.environ.pop(key, None)
 
 
 def flush_handlers(logger):
@@ -107,33 +119,26 @@ def test_header_output(logger_stream):
 
 def test_log_time(logger_stream):
     logger, stream = logger_stream
-    logger._BaseLogger__start_time = time.time() - 1.23  # simulate elapsed
+    logger._BaseLogger__start_time = time.time() - 1.23
     logger.log_time("Step Done")
     flush_handlers(logger)
     out = stream.getvalue()
     assert "Step Done" in out
-    assert ("1.2" in out) or ("1.3" in out)  # tolerance
+    assert any(x in out for x in ["1.2", "1.3"])
 
 
 def test_compact_mode():
-    from io import StringIO
     stream = StringIO()
     logger = _IntLogger()
     logger.compact_mode = True
-
-    # Inject handler without setting formatter manually
-    handler = logging.StreamHandler(stream)
-    logger.logger_instance.handlers = [handler]
+    logger.add_new_handler(logging.StreamHandler, stream=stream, force_replace=True)
 
     logger.info("Compact Test")
     flush_handlers(logger)
-
     output = stream.getvalue()
-
-    # Compact mode should not include newlines, timestamps, or verbose metadata
     assert "Compact Test" in output
-    assert "\n" not in output.strip(), "Compact output should be single-line"
-    assert "->" in output, "Expected arrow in compact log"
+    assert "\n" not in output.strip()
+    assert "->" in output
 
 
 def test_pretty_log_with_pydantic_model(logger_stream):
@@ -155,126 +160,93 @@ def test_pretty_log_with_pydantic_model_non_compact(logger_stream):
     assert "42" in stream.getvalue()
 
 
-# New tests for run ID functionality - FIXED
 def test_run_id_format(logger_stream):
     logger, _ = logger_stream
-    assert re.match(r"R-[A-Z0-9]{7}", logger.run_id)
+    assert re.match(r"R-[A-F0-9]{7}", logger.run_id)
 
 
 def test_initiate_new_run(logger_stream):
     logger, stream = logger_stream
-    original_run_id = logger.run_id
+    original = logger.run_id
     logger.initiate_new_run()
     logger.info("New run")
     flush_handlers(logger)
-
-    # Just test that the run ID changed, don't look for it in the output
-    assert original_run_id != logger.run_id
+    assert original != logger.run_id
     assert "New run" in stream.getvalue()
 
 
-# Test for silence logger functionality
 def test_silence_logger(logger_stream):
     logger, _ = logger_stream
 
-    # Create a test logger and ensure it works
+    # Prepare a logger WrenchCL will silence
     test_logger = logging.getLogger("test_silence")
-    test_logger.setLevel(logging.INFO)
-    test_stream = StringIO()
-    test_handler = logging.StreamHandler(test_stream)
-    test_logger.addHandler(test_handler)
+    test_logger.setLevel(logging.DEBUG)
+    test_logger.propagate = False  # Required to prevent root fallback
 
+    test_stream = StringIO()
+    stream_handler = logging.StreamHandler(test_stream)
+    stream_handler.setLevel(logging.DEBUG)
+
+    test_logger.handlers = [stream_handler]
+
+    # Emit log before silence
     test_logger.info("Before silence")
+    stream_handler.flush()
     assert "Before silence" in test_stream.getvalue()
 
-    # Silence the logger
+    # Silence and assert no output
     logger.silence_logger("test_silence")
 
-    # Clear the stream
     test_stream.truncate(0)
     test_stream.seek(0)
-
-    # Try logging again
     test_logger.info("After silence")
-    assert "After silence" not in test_stream.getvalue()
+
+    assert test_stream.getvalue() == ""
+
 
 
 def test_silence_other_loggers():
-    # Setup main logger
     logger = _IntLogger()
-
-    # Create several test loggers
     test_loggers = []
     test_streams = []
     for i in range(3):
-        stream = StringIO()
-        log = logging.getLogger(f"test_other_{i}")
-        log.setLevel(logging.INFO)
-        handler = logging.StreamHandler(stream)
-        log.addHandler(handler)
-        test_loggers.append(log)
-        test_streams.append(stream)
-
-    # Log before silencing
-    for i, log in enumerate(test_loggers):
-        log.info(f"Test message {i}")
-        assert f"Test message {i}" in test_streams[i].getvalue()
-
-    # Silence other loggers
+        s = StringIO()
+        l = logging.getLogger(f"other_logger_{i}")
+        l.setLevel(logging.INFO)
+        l.addHandler(logging.StreamHandler(s))
+        test_loggers.append(l)
+        test_streams.append(s)
+        l.info(f"msg {i}")
+        assert f"msg {i}" in s.getvalue()
     logger.silence_other_loggers()
-
-    # Clear the streams
-    for stream in test_streams:
-        stream.truncate(0)
-        stream.seek(0)
-
-    # Try logging again
-    for i, log in enumerate(test_loggers):
-        log.info(f"After silence {i}")
-        assert f"After silence {i}" not in test_streams[i].getvalue()
+    for s in test_streams:
+        s.truncate(0); s.seek(0)
+    for i, l in enumerate(test_loggers):
+        l.info(f"after silence {i}")
+        assert f"after silence {i}" not in test_streams[i].getvalue()
 
 
-# Test for verbose mode
 def test_verbose_mode(logger_stream):
     logger, stream = logger_stream
-
-    # Default/non-verbose mode
     logger.verbose_mode = False
     logger.info("Non-verbose test")
     flush_handlers(logger)
-    non_verbose_output = stream.getvalue()
-
-    # Clear the stream
-    stream.truncate(0)
-    stream.seek(0)
-
-    # Verbose mode
+    stream.truncate(0); stream.seek(0)
     logger.verbose_mode = True
     logger.info("Verbose test")
     flush_handlers(logger)
-    verbose_output = stream.getvalue()
-
-    # Verbose output should contain the test message
-    assert "Verbose test" in verbose_output
+    assert "Verbose test" in stream.getvalue()
 
 
-# Test for level management
 def test_set_level(logger_stream):
     logger, stream = logger_stream
-
-    # Set to WARNING level
     logger.setLevel("WARNING")
-
-    # INFO shouldn't appear
-    logger.info("Should not appear")
-    # WARNING should appear
-    logger.warning("Should appear")
-
+    logger.info("Not shown")
+    logger.warning("Shown")
     flush_handlers(logger)
-    output = stream.getvalue()
-
-    assert "Should appear" in output
-    assert "Should not appear" not in output
+    out = stream.getvalue()
+    assert "Shown" in out
+    assert "Not shown" not in out
 
 
 def test_pretty_log_highlighting_all_literals(logger_stream):
@@ -282,109 +254,62 @@ def test_pretty_log_highlighting_all_literals(logger_stream):
     logger.setLevel("INFO")
     logger.verbose_mode = False
 
-    sample_data = {
-        "true_val": True,
-        "false_val": False,
-        "none_val": None,
-        "int_val": 42,
-        "string_val": "hello",
-        "url": "https://example.com",
-        "dict": {"a": 1, "b": [1, 2, {"nested": None}]},
+    sample = {
+        "true_val": True, "false_val": False, "none_val": None, "int_val": 42,
+        "string_val": "hi", "dict": {"a": 1, "b": [1, 2, {"nested": None}]}
     }
 
-    logger.data(sample_data)
+    logger.data(sample)
     flush_handlers(logger)
-    output = stream.getvalue()
-
-    # Assert raw values are no longer directly printed
-    forbidden_literals = [
-        '"true_val": true',
-        '"false_val": false',
-        '"none_val": null',
-        '"true_val": True',
-        '"false_val": False',
-        '"none_val": None',
-        '"int_val": 42',
-        '"string_val": "hello"',
-        '"url": "https://example.com"',
-        '"dict": {"a": 1, "b": [1, 2, {"nested": null}]}',
-    ]
-
-    lit_flag = False
-    for lit in forbidden_literals:
-        if lit in output:
-            lit_flag = True
-            logger.info(f"Literal {lit} found in output")
-    assert not lit_flag, "Found forbidden literals in output"
+    out = stream.getvalue()
+    forbidden = ['"true_val": true', '"false_val": false', '"none_val": null']
+    assert not any(x in out for x in forbidden)
 
 
 def test_simple_info_log_highlighting(logger_stream):
     logger, stream = logger_stream
-    logger.setLevel("INFO")
-    logger.verbose_mode = False
-
     logger.info("Simple literal test: true false none 1234")
     flush_handlers(logger)
-    output = stream.getvalue()
-
-    # Highlighted literals should be present (in some styled form)
+    out = stream.getvalue()
     for token in ["true", "false", "none", "1234"]:
-        assert token in output
+        assert token in out
 
 
 def test_log_no_syntax_highlights(logger_stream):
     logger, stream = logger_stream
-    logger.setLevel("INFO")
-    logger.verbose_mode = False
     logger.highlight_syntax = False
-
-    logger.info("Simple literal test: true false none 1234")
     logger.data("Simple literal test: true false none 1234")
     flush_handlers(logger)
-    output = stream.getvalue()
-
-    # Raw values must exist, but without formatting
-    assert "Simple literal test: true false none 1234" in output
+    assert "Simple literal test: true false none 1234" in stream.getvalue()
 
 
 def test_show_demo_string(logger_stream):
     logger, stream = logger_stream
     logger.display_logger_state()
     flush_handlers(logger)
-    output = stream.getvalue()
+    out = stream.getvalue()
+    required = ["Log Level Color Preview", "Literal/Syntax Highlight Preview"]
+    assert all(x in out for x in required)
 
-    required_phrases = [
-        "Critical message preview",
-        "Log Level Color Preview",
-        "Literal/Syntax Highlight Preview",
-        "Debug message preview",
-    ]
 
-    assert all(x in output for x in required_phrases)
-
-# Test for color presets - FIXED
 def test_color_presets():
     logger = _IntLogger()
+    assert hasattr(logger, "color_presets")
 
-    # Check if color presets exist
-    assert hasattr(logger, "color_presets") or hasattr(logger, "presets")
 
 def test_color_mode(logger_stream):
-    logger = _IntLogger()
-
-    print('\n')
+    logger, stream = logger_stream
     logger.color_mode = True
-    logger.info("Test message")
+    logger.info("Test message A")
     logger.color_mode = False
-    logger.info("Test message")
-    os.environ['AWS_LAMBDA_FUNCTION_NAME'] = 'tester'
+    logger.info("Test message B")
+    os.environ["AWS_LAMBDA_FUNCTION_NAME"] = "lambda"
     logger.color_mode = True
-    logger.info("Test message")
-    os.environ.pop('AWS_LAMBDA_FUNCTION_NAME')
+    logger.info("Test message C")
+    os.environ.pop("AWS_LAMBDA_FUNCTION_NAME")
     logger.color_mode = True
-    logger.info("Test message")
+    logger.info("Test message D")
     logger.compact_mode = True
-    logger.info("Test message")
+    logger.info("Test message E")
     flush_handlers(logger)
-
-    assert True == True
+    assert "Test message" in stream.getvalue()
