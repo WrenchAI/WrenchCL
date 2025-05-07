@@ -379,7 +379,7 @@ class BaseLogger:
             if trace_enabled is not None:
                 self.__config['dd_trace_enabled'] = trace_enabled
                 if self.__config['dd_trace_enabled'] and self.mode != 'json':
-                    self._internal_log("WARNING", "Datadog trace context injection is only visible in JSON output mode.")
+                    self._internal_log("Datadog trace context injection is only visible in JSON output mode.", level = 'warn')
 
     def reinitialize(self):
         """
@@ -886,12 +886,7 @@ class BaseLogger:
         - 'json': Machine-readable structured output
         - 'compact': Minimal single-line output
         """
-        if self.__config['deployed'] or self.__config['dd_trace_enabled']:
-            return 'json'
-        elif self.__config.get('compact', False):
-            return 'compact'
-        else:
-            return 'terminal'
+        return self.__config.get('mode', 'terminal')
 
     @mode.setter
     def mode(self, value: Literal['terminal', 'json', 'compact']):
@@ -909,9 +904,7 @@ class BaseLogger:
                 self.__config['mode'] = 'compact'
             else:  # terminal
                 self.__config['compact'] = False
-                # Only switch to terminal if not in deployment mode
-                if not self.__config['deployed'] and not self.__config['dd_trace_enabled']:
-                    self.__config['mode'] = 'terminal'
+                self.__config['mode'] = 'terminal'
 
     @property
     def level(self) -> str:
