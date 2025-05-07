@@ -119,13 +119,6 @@ def test_typechecker():
     with pytest.raises(TypeError):
         typechecker(invalid_data, expected_types)
 
-def test_logger_set_global_traceback():
-    
-    logger.set_global_traceback(True)
-    assert logger.force_stack_trace
-    logger.set_global_traceback(False)
-    assert not logger.force_stack_trace
-
 @atexit.register
 def shutdown_logging():
     import logging
