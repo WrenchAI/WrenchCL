@@ -9,14 +9,14 @@ import json
 from datetime import datetime
 from logging import Handler
 from types import TracebackType
-from typing import Any, Optional, Union, Literal, Type, IO
+from typing import Any, Optional, Union, Literal, Type, IO, Dict
 from difflib import get_close_matches
+from contextlib import contextmanager
+import threading
 
 from .._Internal._MockPandas import MockPandas
 from ..Decorators.Deprecated import Deprecated
 from ..Decorators.SingletonClass import SingletonClass
-import json
-import logging
 
 try:
     import pandas as pd
@@ -231,6 +231,7 @@ class CustomFormatter(logging.Formatter):
         reset = self.presets.RESET or ''
         return f"{dim_color}{dim_style}{original}{reset}"
 
+
 class JSONLogFormatter(logging.Formatter):
     def __init__(self, env_metadata: dict):
         super().__init__()
@@ -253,9 +254,9 @@ class JSONLogFormatter(logging.Formatter):
             }
         }
 
-        if hasattr(record, "trace_id"):
+        if hasattr(record, "trace_id") and getattr(record, "trace_id") not in [0, None, '0']:
             log_record["trace_id"] = record.trace_id
-        if hasattr(record, "span_id"):
+        if hasattr(record, "span_id") and getattr(record, "span_id") not in [0, None, '0']:
             log_record["span_id"] = record.span_id
         if record.exc_info:
             log_record["exception"] = self.formatException(record.exc_info)
@@ -265,32 +266,6 @@ class JSONLogFormatter(logging.Formatter):
 
 _exc_info_type = None | bool | tuple[Type[BaseException], BaseException, TracebackType | None] | tuple[
     None, None, None] | BaseException
-
-
-import importlib
-import inspect
-import logging
-import os
-import re
-import sys
-import time
-import json
-from datetime import datetime
-from logging import Handler
-from types import TracebackType
-from typing import Any, Optional, Union, Literal, Type, IO, Dict
-from difflib import get_close_matches
-from contextlib import contextmanager
-import threading
-
-from .._Internal._MockPandas import MockPandas
-from ..Decorators.Deprecated import Deprecated
-from ..Decorators.SingletonClass import SingletonClass
-
-try:
-    import pandas as pd
-except ImportError:
-    pd = MockPandas()
 
 
 class BaseLogger:
@@ -404,7 +379,7 @@ class BaseLogger:
             if trace_enabled is not None:
                 self.__config['dd_trace_enabled'] = trace_enabled
                 if self.__config['dd_trace_enabled'] and self.mode != 'json':
-                    self.mode = 'json'
+                    self._internal_log("WARNING", "Datadog trace context injection is only visible in JSON output mode.")
 
     def reinitialize(self):
         """
