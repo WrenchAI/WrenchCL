@@ -7,7 +7,7 @@ from io import StringIO
 
 import pytest
 from pydantic import BaseModel
-from WrenchCL.Tools.WrenchLogger import _IntLogger
+from WrenchCL.Tools.WrenchLogger import _logger_
 
 
 class DummyPretty:
@@ -45,7 +45,7 @@ def logger_stream():
     os.environ["PROJECT_VERSION"] = "1.2.3"
     os.environ["ENV"] = "dev"
 
-    logger = _IntLogger()
+    logger = _logger_()
     logger.reinitialize()
     logger.add_new_handler(logging.StreamHandler, stream=stream, force_replace=True)
     logger.add_new_handler(logging.StreamHandler, stream=sys.stdout)
@@ -129,7 +129,7 @@ def test_log_time(logger_stream):
 
 def test_compact_mode():
     stream = StringIO()
-    logger = _IntLogger()
+    logger = _logger_()
     logger.compact_mode = True
     logger.add_new_handler(logging.StreamHandler, stream=stream, force_replace=True)
 
@@ -206,7 +206,7 @@ def test_silence_logger(logger_stream):
 
 
 def test_silence_other_loggers():
-    logger = _IntLogger()
+    logger = _logger_()
     test_loggers = []
     test_streams = []
     for i in range(3):
@@ -293,7 +293,7 @@ def test_show_demo_string(logger_stream):
 
 
 def test_color_presets():
-    logger = _IntLogger()
+    logger = _logger_()
     assert hasattr(logger, "color_presets")
 
 

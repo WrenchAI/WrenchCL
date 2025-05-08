@@ -5,7 +5,7 @@ import sys
 from io import StringIO
 import pytest
 
-from WrenchCL.Tools.WrenchLogger import _IntLogger
+from WrenchCL import logger
 
 
 @pytest.fixture
@@ -19,10 +19,10 @@ def logger_fixture():
     os.environ["LOG_DD_TRACE"] = "false"
     os.environ["AWS_EXECUTION_ENV"] = "testenv"
 
-    logger = _IntLogger()
-    logger.reinitialize()
-    logger.log_mode = 'json'
-
+    logger.reinitialize(verbose=True)
+    logger.mode = 'json'
+    # logger.force_markup()
+    print(logger.logger_state)
     logger.add_new_handler(
         handler_cls=logging.StreamHandler,
         stream=stream,
@@ -37,7 +37,7 @@ def logger_fixture():
         force_replace=False
     )
 
-    logger.info(f"Logger initialized with log mode: {logger.log_mode}")
+    logger.info(f"Logger initialized with log mode: {logger.mode}")
     yield logger, stream
 
     for k in ["PROJECT_NAME", "PROJECT_VERSION", "ENV", "LOG_DD_TRACE", "AWS_EXECUTION_ENV"]:
@@ -112,7 +112,7 @@ def test_json_flush_and_format_switch(logger_fixture):
     for h in logger.logger_instance.handlers:
         h.flush()
 
-    logger.log_mode = 'json'  # triggers rebind
+    logger.mode = 'json'  # triggers rebind
     logger.info("after switch")
 
     for h in logger.logger_instance.handlers:
@@ -126,7 +126,7 @@ def test_json_flush_and_format_switch(logger_fixture):
 
 def test_terminal_log_env_metadata(logger_fixture):
     logger, stream = logger_fixture
-    logger.log_mode = 'terminal'
+    logger.mode = 'terminal'
 
     logger.info("terminal test")
 
