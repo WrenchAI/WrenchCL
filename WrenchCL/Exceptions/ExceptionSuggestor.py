@@ -10,7 +10,7 @@ from collections.abc import Mapping
 class ExceptionSuggestor:
     """
     Suggestion utility for catching and suggesting fixes for common missing key/attribute errors.
-    Supports Pandas, MockPandas, dicts, CLI options, and generic objects.
+    Supports Pandas, _MockPandas, dicts, CLI options, and generic objects.
     """
 
     @classmethod

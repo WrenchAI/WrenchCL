@@ -14,8 +14,8 @@ import time
 import uuid
 from typing import Any, Dict, Optional
 
-from ..Tools.WrenchLogger import _IntLogger
-logger = _IntLogger()
+from ..Tools.WrenchLogger import _logger_
+logger = _logger_()
 
 
 def trigger_dataflow_metrics(event: Dict[str, Any], context: Any, lambda_client: Any, **kwargs: Any) -> None:
