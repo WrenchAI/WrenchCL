@@ -36,8 +36,8 @@ def TimedMethod(func, level='DEBUG'):
         :param kwargs: Keyword arguments for the function.
         :returns: The result of the function call.
         """
-        from ..Tools.WrenchLogger import _IntLogger
-        logger = _IntLogger()
+        from ..Tools.WrenchLogger import _logger_
+        logger = _logger_()
         
         start = time.time()
         result = func(*args, **kwargs)

@@ -11,8 +11,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from ..Exceptions import InvalidConfigurationException
-from ..Tools.WrenchLogger import _IntLogger
-logger = _IntLogger()
+from ..Tools.WrenchLogger import _logger_
+logger = _logger_()
 
 MISSING_KEYS_MESSAGE = """
 Error in loading environment variables: Missing required key: 'SECRET_ARN'.

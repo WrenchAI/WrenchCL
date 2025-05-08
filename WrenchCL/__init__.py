@@ -1,10 +1,5 @@
-from typing import Type
+from .Tools.WrenchLogger import _logger_
 
-from .Tools.WrenchLogger import _IntLogger
+logger: _logger_ = _logger_()
 
-
-logger: _IntLogger = _IntLogger()
-Logger: _IntLogger = _IntLogger()
-ext_logger: Type[_IntLogger] = _IntLogger
-
-__all__ = ['logger', 'Logger', 'ext_logger']
+__all__ = ['logger']

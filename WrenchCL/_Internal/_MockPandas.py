@@ -5,7 +5,7 @@
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
-class MockPandas:
+class _MockPandas:
     """A mock pandas class for environments where pandas is not installed."""
 
     class DataFrame:
@@ -58,7 +58,7 @@ class MockPandas:
     @staticmethod
     def notnull(value):
         """Mock pandas.notnull function to check for not-None and not-NaN values."""
-        return not MockPandas.isna(value)
+        return not _MockPandas.isna(value)
 
     def __init__(self):
         """Mock pandas.options."""

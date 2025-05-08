@@ -6,12 +6,12 @@
 
 from typing import Any
 
-from .._Internal._MockPandas import MockPandas
+from .._Internal._MockPandas import _MockPandas
 
 try:
     import pandas as pd
 except ImportError:
-    pd = MockPandas()
+    pd = _MockPandas()
 
 
 def standardize_none(data: Any, none_like_values: set = None, evaluate_as_string: bool = False) -> Any:

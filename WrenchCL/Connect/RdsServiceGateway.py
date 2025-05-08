@@ -16,14 +16,14 @@ from psycopg2.pool import ThreadedConnectionPool
 
 from .AwsClientHub import AwsClientHub
 from ..Decorators.SingletonClass import SingletonClass
-from ..Tools.WrenchLogger import _IntLogger
-logger = _IntLogger()
-from .._Internal._MockPandas import MockPandas
+from ..Tools.WrenchLogger import _logger_
+logger = _logger_()
+from .._Internal._MockPandas import _MockPandas
 
 try:
     import pandas as pd
 except ImportError:
-    pd = MockPandas()
+    pd = _MockPandas()
 DataFrame = pd.DataFrame
 
 @SingletonClass

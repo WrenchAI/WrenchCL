@@ -19,8 +19,8 @@ from .AwsClientHub import AwsClientHub
 # Assuming these are your custom modules
 from ..Decorators.Retryable import Retryable
 from ..Decorators.SingletonClass import SingletonClass
-from ..Tools.WrenchLogger import _IntLogger
-logger = _IntLogger()
+from ..Tools.WrenchLogger import _logger_
+logger = _logger_()
 
 
 @SingletonClass
