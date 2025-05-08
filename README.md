@@ -155,11 +155,8 @@ with logger.config_context(mode="compact", level="DEBUG"):
 
 ```python
 # Add a rotating file handler
-logger.add_rotating_file_handler(
-    filename="app.log",
-    max_bytes=10485760,  # 10MB
-    backup_count=5
-)
+logger.add_rotating_file_handler(filename="app.log", max_bytes=10485760,  # 10MB
+    backup_count=5)
 
 # Silence third-party loggers
 logger.silence_logger("noisy_package")
@@ -168,7 +165,7 @@ logger.silence_logger("noisy_package")
 logger.configure_global_stream(level="INFO", silence_others=True)
 
 # Force color in CI/Docker environments
-logger.force_color()
+logger.force_markup()
 
 # Create a new session ID
 logger.initiate_new_run()
