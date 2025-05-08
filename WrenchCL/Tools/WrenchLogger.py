@@ -6,25 +6,26 @@ import re
 import sys
 import time
 import json
+import warnings
 from datetime import datetime
 from logging import Handler
 from types import TracebackType
-from typing import Any, Optional, Union, Literal, Type, IO, Dict
+from typing import Any, Optional, Union, Literal, Type, IO, Dict, Callable
 from difflib import get_close_matches
 from contextlib import contextmanager
 import threading
 
-from .._Internal._MockPandas import MockPandas
+from .._Internal._MockPandas import _MockPandas
 from ..Decorators.Deprecated import Deprecated
 from ..Decorators.SingletonClass import SingletonClass
 
 try:
     import pandas as pd
 except ImportError:
-    pd = MockPandas()
+    pd = _MockPandas()
 
 
-class ExceptionSuggestor:
+class _ExceptionSuggestor:
     @staticmethod
     def suggest_similar(error: BaseException, frame_depth=20, n_suggestions=1, cutoff=0.6) -> Optional[str]:
         if not isinstance(error, BaseException):
@@ -56,7 +57,7 @@ class ExceptionSuggestor:
         return error_msg
 
 
-class MockColorama:
+class _MockColorama:
     pass
 
 
@@ -65,8 +66,8 @@ class ColorPresets:
     Provides color presets for common log use-cases.
     Falls back to mock colors if colorama isn't installed.
     """
-    _color_class = MockColorama
-    _style_class = MockColorama
+    _color_class = _MockColorama
+    _style_class = _MockColorama
     INFO = None
     DEBUG = None
     WARNING = None
@@ -213,7 +214,7 @@ class ColorPresets:
         return demo_string
 
 
-class CustomFormatter(logging.Formatter):
+class _CustomFormatter(logging.Formatter):
     def __init__(self, fmt: str, datefmt: Optional[str], presets: ColorPresets):
         super().__init__(fmt, datefmt)
         self.presets = presets
@@ -232,17 +233,18 @@ class CustomFormatter(logging.Formatter):
         return f"{dim_color}{dim_style}{original}{reset}"
 
 
-class JSONLogFormatter(logging.Formatter):
-    def __init__(self, env_metadata: dict):
+class _JSONLogFormatter(logging.Formatter):
+    def __init__(self, env_metadata: dict, forced_color: bool, highlight_func: Callable):
         super().__init__()
         self.env_metadata = env_metadata
+        self.color_mode = forced_color
+        self.highlight_func = highlight_func
 
     def format(self, record: logging.LogRecord) -> str:
         log_record = {
-            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%SZ"),
             "level": record.levelname,
             "logger": record.name,
-            "message": record.getMessage(),
+            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%SZ"),
             "module": record.module,
             "function": record.funcName,
             "line": record.lineno,
@@ -251,7 +253,8 @@ class JSONLogFormatter(logging.Formatter):
                 "project": self.env_metadata.get("project"),
                 "version": self.env_metadata.get("project_version"),
                 "run_id": self.env_metadata.get("run_id"),
-            }
+            },
+            "message": record.getMessage(),
         }
 
         if hasattr(record, "trace_id") and getattr(record, "trace_id") not in [0, None, '0']:
@@ -261,14 +264,25 @@ class JSONLogFormatter(logging.Formatter):
         if record.exc_info:
             log_record["exception"] = self.formatException(record.exc_info)
 
-        return json.dumps(log_record, ensure_ascii=False)
+        if self.color_mode:
+            meta = {k: v for k, v in log_record.pop("meta").items() if v is not None}
+            message = {'message' : log_record.pop('message')}
+            dumped_json = (f"{log_record.pop('level')} | {log_record.pop('logger')}->\n"
+                           f" - {json.dumps(log_record, default=lambda x: str(x), ensure_ascii=True)}\n"
+                           f" - {json.dumps(meta, default=lambda x: str(x), ensure_ascii=True)}\n"
+                           f" - {message}"
+                           f"\n---")
+            dumped_json = self.highlight_func(dumped_json, True)
+        else:
+            dumped_json = json.dumps(log_record, default=lambda x: str(x), ensure_ascii=False)
+        return dumped_json
 
 
 _exc_info_type = None | bool | tuple[Type[BaseException], BaseException, TracebackType | None] | tuple[
     None, None, None] | BaseException
 
 
-class BaseLogger:
+class _BaseLogger:
     """
     WrenchCL's structured, colorized, and extensible logger.
 
@@ -315,10 +329,12 @@ class BaseLogger:
 
     def __init__(self, level: str = 'INFO') -> None:
         # Thread safety lock
+
         self.__lock = threading.RLock()
 
         # Basic logger state
         self.__global_stream_configured = False
+        self.__force_markup = False
         self.__initialized = False
         self.run_id = self.__generate_run_id()
         self.__base_level = 'DEBUG'
@@ -346,8 +362,9 @@ class BaseLogger:
         # Set up logger instance
         self.__logger_instance = logging.getLogger('WrenchCL')
         self.__setup()
-        self.__check_deployment()
+        self.__check_deployment(False)
         self.__check_color()
+        self._internal_log(f"Logger -> Color:{self.__config['color_enabled']} | Mode:{self.presets.COLOR_BRACE_OPEN}{self.__config['mode'].capitalize()}{self.presets.RESET} | Deployment:{self.__config['deployed']}")
 
     # ---------------- Public Configuration API ----------------
 
@@ -379,9 +396,9 @@ class BaseLogger:
             if trace_enabled is not None:
                 self.__config['dd_trace_enabled'] = trace_enabled
                 if self.__config['dd_trace_enabled'] and self.mode != 'json':
-                    self._internal_log("Datadog trace context injection is only visible in JSON output mode.", level = 'warn')
+                    self._internal_log("Datadog trace context injection is only visible in JSON output mode.")
 
-    def reinitialize(self):
+    def reinitialize(self, verbose = False):
         """
         Re-applies all environment-variable-driven settings (e.g., COLOR_MODE, LOG_DD_TRACE, ENV).
 
@@ -389,9 +406,11 @@ class BaseLogger:
         without reinitializing logger handlers. Call this if env vars are updated at runtime.
         """
         with self.__lock:
-            self.__check_deployment()
+            self.__check_deployment(True)
             self.__check_color()
             self.__env_metadata = self.__fetch_env_metadata()
+            if verbose:
+                self._internal_log(json.dumps(self.logger_state, indent=2, default=lambda x: str(x), ensure_ascii=False))
 
     def update_color_presets(self, **kwargs) -> None:
         """Update color presets for log levels and syntax highlighting."""
@@ -471,13 +490,9 @@ class BaseLogger:
         """
         self.__log(logging.ERROR, *args, exc_info=exc_info, **kwargs)
 
-    def _internal_log(self, *args, exc_info: _exc_info_type = None, level: str | int = None) -> None:
+    def _internal_log(self, *args) -> None:
         """Internal logging method for logger infrastructure messages."""
-        if level:
-            level = self.__get_level(level)
-        if not level:
-            level = logging.DEBUG
-        self.__log(level, *args, exc_info=exc_info, color_flag="INTERNAL")
+        self.__log(logging.WARNING, *args, color_flag="INTERNAL")
 
     # ---------------- Additional Logging Features ----------------
 
@@ -710,7 +725,7 @@ class BaseLogger:
             self.__global_stream_configured = True
 
         # Log outside the lock
-        self.info("[Logger] Global stream configured successfully.")
+        self.info(" Global stream configured successfully.")
 
     def silence_logger(self, logger_name: str, level: Optional[int] = None) -> None:
         """
@@ -740,32 +755,36 @@ class BaseLogger:
             if name != 'WrenchCL':
                 self.silence_logger(name, level)
 
-    def force_color(self) -> None:
+    def force_markup(self) -> None:
         """
-        Forces ANSI color output even in non-TTY environments (CI, Docker).
+        Enables ANSI styling and literal highlighting even in non-TTY environments (e.g., CI, Docker) and JSON output mode.
         """
         try:
             with self.__lock:
                 import colorama
+                self.__force_markup = True
+                self.enable_color()
+                colorama.deinit()
                 colorama.init(strip=False, convert=False)
                 sys.stdout = colorama.AnsiToWin32(sys.stdout).stream
                 sys.stderr = colorama.AnsiToWin32(sys.stderr).stream
-                self._Color = colorama.Fore
-                self._Style = colorama.Style
-                self.__config['color_enabled'] = True
-
+                if self.__force_markup and self.__config['deployed']:
+                    warnings.warn("Forcing Markup in deployment mode is not recommended and will cause issues in external parsers like cloudwatch and Datadog", category=RuntimeWarning, stacklevel=5)
                 # Update color presets and reconfigure formatters
                 self.presets = ColorPresets(self._Color, self._Style)
                 self.flush_handlers()
-                for handler in self.__logger_instance.handlers:
-                    handler.setFormatter(self.__get_formatter(self.__logger_instance.level))
+                if self.mode == 'json':
+                    self.__use_json_logging()
+                else:
+                    for handler in self.__logger_instance.handlers:
+                        handler.setFormatter(self.__get_formatter(self.__logger_instance.level))
 
                 if self.__global_stream_configured:
                     root_logger = logging.getLogger()
                     for handler in root_logger.handlers:
                         handler.setFormatter(self.__get_formatter(root_logger.level))
 
-            self.info("[Logger] Forced color output enabled.")
+            self.info("Forced color output enabled.")
         except ImportError:
             self.warning("Colorama is not installed; cannot force color output.")
 
@@ -781,16 +800,15 @@ class BaseLogger:
                 self.presets = ColorPresets(self._Color, self._Style)
                 colorama.deinit()
                 colorama.init(strip=False, autoreset=False)
-            self._internal_log("Color output enabled.", level=logging.INFO)
         except ImportError:
-            self._internal_log("Colorama not installed. Cannot enable color output.", level=logging.WARNING)
+            self._internal_log("Colorama not installed. Cannot enable color output.")
             self.disable_color()
 
     def disable_color(self):
         """Disable ANSI color output."""
         with self.__lock:
-            self._Color = MockColorama
-            self._Style = MockColorama
+            self._Color = _MockColorama
+            self._Style = _MockColorama
             self.__config['color_enabled'] = False
             self.__config['highlight_syntax'] = False
             try:
@@ -799,7 +817,6 @@ class BaseLogger:
             except ImportError:
                 pass
             self.presets = ColorPresets(self._Color, self._Style)
-        self._internal_log("Color output disabled.", level=logging.ERROR)
 
     def display_logger_state(self) -> None:
         """
@@ -972,19 +989,20 @@ class BaseLogger:
             if isinstance(a, Exception) or isinstance(a, BaseException):
                 exc_info = args.pop(idx)
 
-        suggestion = self.__suggest_exception(exc_info)
-        if suggestion:
-            suggestion = f"{self.presets.ERROR}{suggestion}{self.presets.RESET}"
-            args.append(suggestion)
+        if self.__config['mode'] == 'terminal':
+            suggestion = self.__suggest_exception(exc_info)
+            if suggestion:
+                suggestion = f"{self.presets.ERROR}{suggestion}{self.presets.RESET}"
+                args.append(suggestion)
 
         args = tuple(args)
         msg = '\n'.join(str(arg) for arg in args)
 
-        if self.__config['highlight_syntax'] and self.__config['color_enabled']:
+        if self.__config['highlight_syntax'] and self.__config['color_enabled'] and not self.mode == 'json':
             msg = self.__highlight_literals(msg, data=color_flag == 'DATA')
 
         # Format based on mode
-        if self.mode == 'compact' or self.__config['deployed']:
+        if self.mode == 'compact' or self.__config['deployed'] or self.mode == 'json':
             lines = msg.splitlines()
             msg = ' '.join([line.strip() for line in lines if len(line.strip()) > 0])
             msg = msg.replace('\n', ' ').replace('\r', '').strip()
@@ -1013,21 +1031,19 @@ class BaseLogger:
 
             if isinstance(level, str):
                 level = self.__get_level(level)
-
         # Actual logging outside the lock to prevent deadlocks
         self.__logger_instance.log(
             level,
             msg,
             exc_info=exc_info,
             stack_info=kwargs.get('stack_info', False),
-            stacklevel=self.__get_depth()
+            stacklevel=self.__get_depth(internal = color_flag == 'INTERNAL')
         )
 
     def _inject_dd_context(self, args: tuple[str]) -> tuple[str]:
         """Add Datadog trace context to log messages if enabled."""
         if (not self.__config['dd_trace_enabled']
-            or self.__config['mode'] == 'compact'
-            or self.__config['mode'] == 'terminal' and self.level != 'DEBUG'):
+            or self.__config['mode'] == 'compact'):
             return args
 
         try:
@@ -1035,28 +1051,30 @@ class BaseLogger:
             context = ddtrace.tracer.get_log_correlation_context()
             trace_id = context.get("trace_id")
             span_id = context.get("span_id")
-            if trace_id and span_id:
-                prefix = f"[dd.trace_id={trace_id} dd.span_id={span_id}]"
+            prefix = '['
+            if not trace_id in [None, '0', 0, 'None']:
+                prefix += f"trace_id={trace_id} | "
+            if not span_id in [None, '0', 0, 'None']:
+                prefix += f"span_id={span_id} | "
+            prefix += ']'
+            if prefix == '[]':
+                return args
+            else:
                 return (prefix, *args)
         except ImportError:
             if not self.__dd_log_flag:
-                self._internal_log(
-                    "Datadog trace is not installed while the feature is requested as enabled. "
-                    "You can install it with `pip install wrenchcl[trace]`.",
-                    level=logging.WARNING
-                )
+                self._internal_log("Datadog trace is not installed while the feature is requested as enabled. "
+                                   "You can install it with `pip install wrenchcl[trace]`.")
                 self.__dd_log_flag = True
         except Exception as e:
-            self._internal_log(
-                "Datadog trace injection failed",
-                exc_info=e,
-                level=logging.WARNING
-            )
+            self._internal_log("Datadog trace injection failed")
         return args
 
     def __highlight_literals(self, msg: str, data: bool = False) -> str:
         """Add syntax highlighting to literals in log messages."""
-        if not self.__config['color_enabled'] or not self.__config['highlight_syntax'] or self.__config['deployed']:
+        if self.__force_markup:
+            pass
+        elif not self.__config['color_enabled'] or not self.__config['highlight_syntax'] or self.__config['deployed']:
             return msg
 
         c = self.presets
@@ -1067,34 +1085,89 @@ class BaseLogger:
         msg = re.sub(r'\bnone\b', lambda m: f"{c.COLOR_NONE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
         msg = re.sub(r'\bnull\b', lambda m: f"{c.COLOR_NONE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
         msg = re.sub(r'\bnan\b', lambda m: f"{c.COLOR_NONE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
+        if data and not self.mode == 'json':
+            msg = self.__highlight_data(msg)
+        if self.mode == 'json' and self.__force_markup:
+            msg = self.__highlight_literals_json(msg)
 
-        if data:
-            # Match string keys (only if followed by colon)
+        return msg
+
+    def __highlight_literals_json(self, msg: str) -> str:
+        c = self.presets
+
+        # Highlight log level terms
+        level_keywords = {
+            "DEBUG": c.DEBUG,
+            "INFO": c.INFO,
+            "WARNING": c.WARNING,
+            "WARN": c.WARNING,
+            "ERROR": c.ERROR,
+            "CRITICAL": c.CRITICAL
+        }
+        for keyword, color in level_keywords.items():
             msg = re.sub(
-                r'(?P<key>"[^"]+?")(?P<colon>\s*:)',  # `"key":` only
-                lambda m: f"{c.COLOR_KEY}{c.BRIGHT}{m.group('key')}{c.RESET}{c.COLOR_COLON}{m.group('colon')}{c.RESET}",
-                msg
+                rf'\b{keyword}\b',
+                lambda m: f"{color}{c.BRIGHT}{m.group(0)}{c.RESET}",
+                msg,
+                flags=re.IGNORECASE
             )
 
-            # Match standalone integers (not quoted, surrounded by whitespace or symbols)
-            msg = re.sub(
-                r'(?<=\s)(\d+)(?=\s|[,|\]])',  # match int if followed by space, comma, or ]
-                lambda m: f"{c.COLOR_NUMBER}{m.group(1)}{c.RESET}",
-                msg
-            )
+        # Highlight JSON-style keys (with optional whitespace before colon)
+        msg = re.sub(
+            r'(?P<key>"[^"]+?")(?P<colon>\s*:)',
+            lambda m: f"{c.COLOR_NUMBER}{c.BRIGHT}{m.group('key')}{c.RESET}{c.COLOR_COLON}{m.group('colon')}{c.RESET}",
+            msg
+        )
 
-            # Brackets, braces, parens
-            msg = msg.replace('{', f"{c.COLOR_BRACE_OPEN}{{{c.RESET}")
-            msg = msg.replace('}', f"{c.COLOR_BRACE_CLOSE}}}{c.RESET}")
-            msg = msg.replace('(', f"{c.COLOR_PAREN_OPEN}({c.RESET}")
-            msg = msg.replace(')', f"{c.COLOR_PAREN_CLOSE}){c.RESET}")
-            msg = msg.replace(':', f"{c.COLOR_COLON}:{c.RESET}")
-            msg = msg.replace(',', f"{c.COLOR_COMMA},{c.RESET}")
+        # Highlight numbers
+        msg = re.sub(
+            r'(?<=\s)(-?\d+(\.\d+)?)(?=\s|[,|\]])',
+            lambda m: f"{c.COLOR_KEY}{m.group(1)}{c.RESET}",
+            msg
+        )
 
-            # Brackets: only color when at line-start or line-end to avoid nested breakage
-            msg = re.sub(r'(?<=\n)(\s*)\[', lambda m: f"{m.group(1)}{c.COLOR_BRACKET_OPEN}[{c.RESET}", msg)
-            msg = re.sub(r'\](?=\n)', lambda m: f"{c.COLOR_BRACKET_CLOSE}]{c.RESET}", msg)
+        # Highlight brackets, braces, commas, colons
+        msg = msg.replace('{', f"{c.COLOR_BRACE_OPEN}{{{c.RESET}")
+        msg = msg.replace('}', f"{c.COLOR_BRACE_CLOSE}}}{c.RESET}")
+        msg = msg.replace('(', f"{c.COLOR_PAREN_OPEN}({c.RESET}")
+        msg = msg.replace(')', f"{c.COLOR_PAREN_CLOSE}){c.RESET}")
+        msg = msg.replace(':', f"{c.COLOR_COLON}:{c.RESET}")
+        msg = msg.replace(',', f"{c.COLOR_COMMA},{c.RESET}")
 
+        # Brackets: only color when at line-start or line-end to avoid nested breakage
+        msg = re.sub(r'(?<=\n)(\s*)\[', lambda m: f"{m.group(1)}{c.COLOR_BRACKET_OPEN}[{c.RESET}", msg)
+        msg = re.sub(r'\](?=\n)', lambda m: f"{c.COLOR_BRACKET_CLOSE}]{c.RESET}", msg)
+
+        return msg
+
+
+    def __highlight_data(self, msg):
+        # Match string keys (only if followed by colon)
+        c = self.presets
+        msg = re.sub(
+            r'(?P<key>"[^"]+?")(?P<colon>\s*:)',  # `"key":` only
+            lambda m: f"{c.COLOR_KEY}{c.BRIGHT}{m.group('key')}{c.RESET}{c.COLOR_COLON}{m.group('colon')}{c.RESET}",
+            msg
+        )
+
+        # Match standalone integers (not quoted, surrounded by whitespace or symbols)
+        msg = re.sub(
+            r'(?<=\s)(\d+)(?=\s|[,|\]])',  # match int if followed by space, comma, or ]
+            lambda m: f"{c.COLOR_NUMBER}{m.group(1)}{c.RESET}",
+            msg
+        )
+
+        # Brackets, braces, parens
+        msg = msg.replace('{', f"{c.COLOR_BRACE_OPEN}{{{c.RESET}")
+        msg = msg.replace('}', f"{c.COLOR_BRACE_CLOSE}}}{c.RESET}")
+        msg = msg.replace('(', f"{c.COLOR_PAREN_OPEN}({c.RESET}")
+        msg = msg.replace(')', f"{c.COLOR_PAREN_CLOSE}){c.RESET}")
+        msg = msg.replace(':', f"{c.COLOR_COLON}:{c.RESET}")
+        msg = msg.replace(',', f"{c.COLOR_COMMA},{c.RESET}")
+
+        # Brackets: only color when at line-start or line-end to avoid nested breakage
+        msg = re.sub(r'(?<=\n)(\s*)\[', lambda m: f"{m.group(1)}{c.COLOR_BRACKET_OPEN}[{c.RESET}", msg)
+        msg = re.sub(r'\](?=\n)', lambda m: f"{c.COLOR_BRACKET_CLOSE}]{c.RESET}", msg)
         return msg
 
     def __get_env_prefix(self, dimmed_color, dimmed_style, color, style) -> str:
@@ -1133,11 +1206,14 @@ class BaseLogger:
         else:
             return ''
 
-    def __get_depth(self) -> int:
+    def __get_depth(self, internal = False) -> int:
         """Get stack depth to determine log source."""
         for i, frame in enumerate(inspect.stack()):
             if frame.filename.endswith("WrenchLogger.py") or 'WrenchCL' in frame.filename or frame.filename == '<string>':
-                continue
+                if internal:
+                    return i + 2
+                else:
+                    continue
             return i
 
     def __suggest_exception(self, args) -> Optional[str]:
@@ -1152,7 +1228,7 @@ class BaseLogger:
             if isinstance(a, Exception) or isinstance(a, BaseException):
                 ex = a
                 if hasattr(ex, 'args') and ex.args and isinstance(ex.args[0], str):
-                    suggestion = ExceptionSuggestor.suggest_similar(ex)
+                    suggestion = _ExceptionSuggestor.suggest_similar(ex)
                 break
         return suggestion
 
@@ -1160,33 +1236,42 @@ class BaseLogger:
         """Apply ANSI colors to text if color mode is enabled."""
         return f"{color}{self.presets.BRIGHT}{text}{self.presets.RESET}" if color else text
 
-    def __check_deployment(self):
+    def __check_deployment(self, log = True):
         """Detect deployment environment and adjust settings accordingly."""
         if os.environ.get("AWS_LAMBDA_FUNCTION_NAME") is not None:
-            self._internal_log("Detected Lambda deployment. Setting color mode to False.")
             self.__config['color_enabled'] = False
             self.__config['deployed'] = True
+            self.disable_color()
+            if log:
+                self._internal_log("Detected Lambda deployment. Set color mode to False.")
             self.mode = 'json'
 
         if os.environ.get("AWS_EXECUTION_ENV") is not None:
-            self._internal_log("Detected AWS deployment. Setting color mode to False.")
             self.__config['color_enabled'] = False
             self.__config['deployed'] = True
+            self.disable_color()
+            if log:
+                self._internal_log("Detected AWS deployment. Set color mode to False.")
             self.mode = 'json'
 
         if os.environ.get("COLOR_MODE") is not None:
             if os.environ.get("COLOR_MODE").lower() == "false":
-                self._internal_log("Detected COLOR_MODE Setting color mode to false.")
                 self.__config['color_enabled'] = False
+                self.disable_color()
+                if log:
+                    self._internal_log("Detected COLOR_MODE Set color mode to false.")
             else:
-                self._internal_log("Detected COLOR_MODE Setting color mode to True.")
                 self.__config['color_enabled'] = True
+                self.enable_color()
+                if log:
+                    self._internal_log("Detected COLOR_MODE Setting color mode to True.")
 
         if os.environ.get("LOG_DD_TRACE") is not None:
             val = os.environ.get("LOG_DD_TRACE", "false").lower()
             self.__config['dd_trace_enabled'] = val == "true"
             state = "enabled" if self.__config['dd_trace_enabled'] else "disabled"
-            self._internal_log(f"LOG_DD_TRACE detected — Datadog tracing {state}.", level="INTERNAL")
+            if log:
+                self._internal_log(f"LOG_DD_TRACE detected — Datadog tracing {state}. | Mode Json")
             if self.__config['dd_trace_enabled']:
                 self.mode = 'json'
 
@@ -1205,7 +1290,7 @@ class BaseLogger:
         """Initialize the logger with basic configuration."""
         with self.__lock:
             if self.__initialized:
-                self._internal_log("Logger already initialized. Skipping setup.", level=logging.WARNING)
+                self._internal_log("Logger already initialized. Skipping setup.")
                 return
 
             self.flush_handlers()
@@ -1223,6 +1308,7 @@ class BaseLogger:
                 self.enable_color()
                 return
             except ImportError:
+                self._internal_log("Color mode not available. Disabling.")
                 pass
         self.disable_color()
 
@@ -1230,7 +1316,7 @@ class BaseLogger:
         """
         Configure the logger for JSON-structured output.
         """
-        formatter = JSONLogFormatter(self.__env_metadata)
+        formatter = _JSONLogFormatter(self.__env_metadata, self.__force_markup, self.__highlight_literals)
 
         if not self.__logger_instance.handlers:
             self.add_new_handler(logging.StreamHandler, stream=sys.stdout, formatter=formatter, force_replace=True)
@@ -1286,8 +1372,8 @@ class BaseLogger:
     def __get_formatter(self, level: Union[str, int], no_format=False) -> logging.Formatter:
         """Get the appropriate formatter based on log level and mode."""
 
-        if self.mode == 'json':
-            return JSONLogFormatter(self.__env_metadata)
+        if self.mode == 'json' and level != 'INTERNAL':
+            return _JSONLogFormatter(self.__env_metadata, self.__force_markup, self.__highlight_literals)
 
         color = self.presets.get_color_by_level(level)
         style = self.presets.get_level_style(level)
@@ -1305,6 +1391,11 @@ class BaseLogger:
 
         dimmed_style = self.presets.get_level_style('INTERNAL')
 
+        if level == 'INTERNAL':
+            color = self.presets.CRITICAL
+            style = self.presets.get_level_style('INTERNAL')
+
+
         file_section = f"{dimmed_color}{dimmed_style}%(filename)s:%(funcName)s:%(lineno)d]{self.presets.RESET}"
         verbose_section = f"{dimmed_color}{dimmed_style}[%(asctime)s|{file_section}{self.presets.RESET}"
         app_env_section = self.__get_env_prefix(dimmed_color, dimmed_style, color, style)
@@ -1313,7 +1404,7 @@ class BaseLogger:
         message_section = f"{style}{message_color}%(message)s{self.presets.RESET}"
 
         if level == "INTERNAL":
-            level_name_section = f"{color}{style}WRENCHCL{self.presets.RESET}"
+            level_name_section = f"{color}{style}  WrenchCLInternal{self.presets.RESET}"
         elif level == "DATA":
             level_name_section = f"{color}{style}DATA    {self.presets.RESET}"
 
@@ -1321,10 +1412,14 @@ class BaseLogger:
             fmt = f"{level_name_section}{file_section}{colored_arrow_section}{message_section}"
         elif no_format:
             fmt = "%(message)s"
+        if level == 'INTERNAL':
+            fmt = f"{level_name_section}{colored_arrow_section}{message_section}"
         else:
             fmt = f"{app_env_section}{level_name_section}{verbose_section}{colored_arrow_section}{message_section}"
 
-        return CustomFormatter(fmt, datefmt='%H:%M:%S', presets=self.presets)
+        fmt = f"{self.presets.RESET}{fmt}{self.presets.RESET}"
+
+        return _CustomFormatter(fmt, datefmt='%H:%M:%S', presets=self.presets)
 
     # ---------------- Aliases/Shortcuts ----------------
 
@@ -1339,5 +1434,13 @@ class BaseLogger:
 
 
 @SingletonClass
-class _IntLogger(BaseLogger):
-    pass
+class _logger_(_BaseLogger):
+    __doc__ = """Singleton thread-safe instance of BaseLogger.""" + _BaseLogger.__doc__
+
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def baseClass(self) -> Type[_BaseLogger]:
+        "Returns the base class of this instance."
+        return _BaseLogger
