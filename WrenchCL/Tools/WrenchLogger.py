@@ -410,7 +410,8 @@ class _BaseLogger:
                   highlight_syntax: Optional[bool] = None,
                   verbose: Optional[bool] = None,
                   trace_enabled: Optional[bool] = None,
-                  deployment_mode: Optional[bool] = None) -> None:
+                  deployment_mode: Optional[bool] = None,
+                  suppress_autoconfig: bool = False) -> None:
         """
         Centralized configuration method to set multiple options at once.
 
@@ -422,7 +423,10 @@ class _BaseLogger:
         :param deployment_mode: Whether to use deployment mode (e.g., Lambda) disable color and enable json output
         :param highlight_syntax: Whether to highlight syntax, set to true when enabling color, set to false when disabling color initially set to true if color is enabled
         """
+
         with self.__lock:
+            if not suppress_autoconfig:
+                self.__check_deployment()
             if mode is not None:
                 self.__config['mode'] = mode
             if highlight_syntax is not None:
@@ -431,9 +435,10 @@ class _BaseLogger:
                 self.setLevel(level)
             if color_enabled is not None:
                 self.__config['color_enabled'] = color_enabled
-                self.__check_color()
             if verbose is not None:
                 self.__config['verbose'] = verbose
+            if deployment_mode is not None:
+                self.__config['deployed'] = deployment_mode
             if trace_enabled is not None:
                 self.__config['dd_trace_enabled'] = trace_enabled
                 try:
@@ -444,13 +449,10 @@ class _BaseLogger:
                 except ImportError:
                     self.__config['dd_trace_enabled'] = False
                     self._internal_log("   Datadog trace injection disabled: `ddtrace` module not available.")
-            if deployment_mode is not None:
-                self.__config['deployed'] = deployment_mode
-
             if self.__config.get('dd_trace_enabled') and self.__config['mode'] != 'json':
                 self._internal_log("   Trace injection requested, but trace_id/span_id only appear in JSON mode.")
-        self.reinitialize()
-
+            self.__check_color()
+            self.__env_metadata = self.__fetch_env_metadata()
 
     def reinitialize(self, verbose = False):
         """
@@ -1255,14 +1257,8 @@ class _BaseLogger:
         if os.environ.get("COLOR_MODE") is not None:
             if os.environ.get("COLOR_MODE").lower() == "false":
                 self.__config['color_enabled'] = False
-                self.disable_color()
-                if log:
-                    self._internal_log("Detected COLOR_MODE Set color mode to false.")
             else:
                 self.__config['color_enabled'] = True
-                self.enable_color()
-                if log:
-                    self._internal_log("Detected COLOR_MODE Setting color mode to True.")
 
         if os.environ.get("LOG_DD_TRACE") is not None:
             val = os.environ.get("LOG_DD_TRACE", "false").lower()
