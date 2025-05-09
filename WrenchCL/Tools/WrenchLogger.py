@@ -368,7 +368,7 @@ class _BaseLogger:
         # Thread safety lock
 
         self.__lock = threading.RLock()
-
+        self.__logger_instance = logging.getLogger('WrenchCL')
         # Basic logger state
         self.__global_stream_configured = False
         self.__force_markup = False
@@ -397,7 +397,6 @@ class _BaseLogger:
         self.__config['color_enabled'] = os.environ.get("COLOR_MODE", "true").lower() == "true"
 
         # Set up logger instance
-        self.__logger_instance = logging.getLogger('WrenchCL')
         self.__setup()
         self.reinitialize()
         self._internal_log(f"Logger -> Color:{self.__config['color_enabled']} | Mode:{self.presets.COLOR_BRACE_OPEN}{self.__config['mode'].capitalize()}{self.presets.RESET} | Deployment:{self.__config['deployed']}")
@@ -408,8 +407,10 @@ class _BaseLogger:
                   mode: Optional[Literal['terminal', 'json', 'compact']] = None,
                   level: Optional[str] = None,
                   color_enabled: Optional[bool] = None,
+                  highlight_syntax: Optional[bool] = None,
                   verbose: Optional[bool] = None,
-                  trace_enabled: Optional[bool] = None) -> None:
+                  trace_enabled: Optional[bool] = None,
+                  deployment_mode: Optional[bool] = None) -> None:
         """
         Centralized configuration method to set multiple options at once.
 
@@ -418,10 +419,14 @@ class _BaseLogger:
         :param color_enabled: Whether to use ANSI colors
         :param verbose: Enable detailed context information
         :param trace_enabled: Enable Datadog trace ID injection
+        :param deployment_mode: Whether to use deployment mode (e.g., Lambda) disable color and enable json output
+        :param highlight_syntax: Whether to highlight syntax, set to true when enabling color, set to false when disabling color initially set to true if color is enabled
         """
         with self.__lock:
             if mode is not None:
                 self.__config['mode'] = mode
+            if highlight_syntax is not None:
+                self.__config['highlight_syntax'] = highlight_syntax
             if level is not None:
                 self.setLevel(level)
             if color_enabled is not None:
@@ -439,6 +444,8 @@ class _BaseLogger:
                 except ImportError:
                     self.__config['dd_trace_enabled'] = False
                     self._internal_log("   Datadog trace injection disabled: `ddtrace` module not available.")
+            if deployment_mode is not None:
+                self.__config['deployed'] = deployment_mode
 
             if self.__config.get('dd_trace_enabled') and self.__config['mode'] != 'json':
                 self._internal_log("   Trace injection requested, but trace_id/span_id only appear in JSON mode.")
@@ -841,7 +848,7 @@ class _BaseLogger:
             with self.__lock:
                 colorama = importlib.import_module("colorama")
                 self.__config['color_enabled'] = True
-                self.__config['highlight_syntax'] = True
+                self.__config['highlight_syntax'] = True if self.__config['highlight_syntax'] is not False else False
                 self._Color = colorama.Fore
                 self._Style = colorama.Style
                 self.presets = ColorPresets(self._Color, self._Style)
@@ -899,7 +906,9 @@ class _BaseLogger:
                     'mode': 'mode',
                     'color_enabled': 'color_enabled',
                     'verbose': 'verbose',
-                    'trace_enabled': 'dd_trace_enabled'
+                    'trace_enabled': 'dd_trace_enabled',
+                    'highlight_syntax': 'highlight_syntax',
+                    'deployed': 'deployed',
                 }
 
                 config_args = {}
@@ -1274,7 +1283,6 @@ class _BaseLogger:
             "project_version": os.getenv("PROJECT_VERSION") or os.getenv("LAMBDA_TASK_ROOT") or os.getenv('REPO_VERSION') or None,
             "run_id": self.run_id
         }
-        self._internal_log(f"Environment metadata: {env_vars}")
         return env_vars
 
     def __setup(self) -> None:
