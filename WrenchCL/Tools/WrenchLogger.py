@@ -240,6 +240,48 @@ class _JSONLogFormatter(logging.Formatter):
         self.color_mode = forced_color
         self.highlight_func = highlight_func
 
+
+    def _extract_generic_context(self) -> dict:
+        """
+        Scan all active ContextVars for common keys like user_id, client_id, or organization_id.
+        Supports deeply nested dicts and custom objects.
+        """
+
+
+        context_data = {}
+        user_keys = {'user_id', 'usr_id', 'entity_id', 'user_entity_id'}
+        org_keys = {'client_id', 'org_id', 'organization_id'}
+
+        def scan_dict(d: dict):
+            found = {}
+            try:
+                for k, v in d.items():
+                    key_lower = k.lower()
+                    if key_lower in user_keys:
+                        found['user_id'] = v
+                    elif key_lower in org_keys:
+                        found['organization_id'] = v
+                    elif isinstance(v, dict):
+                        found.update(scan_dict(v))
+                    elif hasattr(v, '__dict__'):
+                        found.update(scan_dict(vars(v)))
+            finally:
+                return found
+
+        try:
+            import contextvars
+            ctx = contextvars.copy_context()
+            for var in ctx:
+                val = var.get()
+                if isinstance(val, dict):
+                    context_data.update(scan_dict(val))
+                elif hasattr(val, '__dict__'):
+                    context_data.update(scan_dict(vars(val)))
+        finally:
+            return context_data
+
+
+
     def format(self, record: logging.LogRecord) -> str:
         log_record = {
             "level": record.levelname,
@@ -248,35 +290,29 @@ class _JSONLogFormatter(logging.Formatter):
             "module": record.module,
             "function": record.funcName,
             "line": record.lineno,
-            "meta": {
-                "env": self.env_metadata.get("env"),
-                "project": self.env_metadata.get("project"),
-                "version": self.env_metadata.get("project_version"),
-                "run_id": self.env_metadata.get("run_id"),
-            },
             "message": record.getMessage(),
+
+            # Required for Datadog log correlation
+            "dd.env": self.env_metadata.get("env"),
+            "dd.service": self.env_metadata.get("project"),
+            "dd.version": self.env_metadata.get("project_version"),
+            "dd.trace_id": str(getattr(record, "dd.trace_id", "")),
+            "dd.span_id": str(getattr(record, "dd.span_id", "")),
         }
 
-        if hasattr(record, "trace_id") and getattr(record, "trace_id") not in [0, None, '0']:
-            log_record["trace_id"] = record.trace_id
-        if hasattr(record, "span_id") and getattr(record, "span_id") not in [0, None, '0']:
-            log_record["span_id"] = record.span_id
         if record.exc_info:
             log_record["exception"] = self.formatException(record.exc_info)
 
-        if self.color_mode:
-            meta = {k: v for k, v in log_record.pop("meta").items() if v is not None}
-            message = {'message' : log_record.pop('message')}
-            dumped_json = (f"{log_record.pop('level')} | {log_record.pop('logger')}->\n"
-                           f" - {json.dumps(log_record, default=lambda x: str(x), ensure_ascii=True)}\n"
-                           f" - {json.dumps(meta, default=lambda x: str(x), ensure_ascii=True)}\n"
-                           f" - {message}"
-                           f"\n---")
-            dumped_json = self.highlight_func(dumped_json, True)
-        else:
-            dumped_json = json.dumps(log_record, default=lambda x: str(x), ensure_ascii=False)
-        return dumped_json
+        ctx = self._extract_generic_context()
+        if len(ctx) > 0:
+            log_record.update(ctx)
 
+        dumped_json = json.dumps(log_record, default=str, ensure_ascii=False)
+
+        if self.color_mode:
+            dumped_json = self.highlight_func(dumped_json, True)
+
+        return dumped_json
 
 _exc_info_type = None | bool | tuple[Type[BaseException], BaseException, TracebackType | None] | tuple[
     None, None, None] | BaseException
@@ -289,49 +325,50 @@ class _BaseLogger:
     Features:
     ---------
     • Structured formatting with optional syntax highlighting for Python/JSON-style literals.
-    • Multiple output modes: terminal (colored), json (for infrastructure), compact (for scripts).
-    • Optional Datadog APM trace correlation (trace_id, span_id) via ddtrace.
-    • Thread-safe operations for concurrent environments.
-    • Intelligent error suggestions for common exceptions (e.g. attribute typos).
+    • Multiple output modes: 'terminal' (colored), 'json' (infra-readable), 'compact' (minimal).
+    • Datadog APM correlation (trace_id, span_id) via ddtrace integration.
+    • Colorized output with environment-aware fallback (e.g., AWS Lambda disables color).
+    • Smart exception suggestion engine for attribute errors.
+    • Thread-safe across logging, handler updates, and reconfiguration.
+    • Singleton-safe with `_logger_()` for consistent usage across modules.
+
+    Initialization:
+    ---------------
+    - On instantiation, the logger performs:
+        1. Stream handler setup (`__setup`)
+        2. Environment-aware configuration refresh (`reinitialize`)
+    - All runtime changes to env vars (COLOR_MODE, LOG_DD_TRACE, etc.) should be followed by `reinitialize()`.
 
     Environment Variables:
     ----------------------
-    - COLOR_MODE:
-        Controls ANSI color output.
-        Accepts: "true", "false"
-        Default: "true" (disabled automatically in AWS Lambda)
+    - COLOR_MODE: "true" or "false" (defaults to true unless on Lambda)
+    - LOG_DD_TRACE: "true" or "false" to enable Datadog trace injection
+    - ENV, PROJECT_NAME, PROJECT_VERSION: Used in prefix metadata (optional)
 
-    - LOG_DD_TRACE:
-        Enables Datadog trace context injection (trace_id/span_id) if `ddtrace` is available.
-        Accepts: "true", "false"
-        Default: "false"
-
-    - PROJECT_NAME, PROJECT_VERSION, ENV:
-        Optional project metadata used in log headers.
-
-    Quick Setup:
-    -----------
+    Usage Example:
+    --------------
     ```python
     from WrenchCL.Tools import logger
 
-    # Basic usage
-    logger.info("Processing started")
-    logger.error("Something went wrong", exc_info=True)
+    logger.info("Starting job...")
+    logger.error("Something failed", exc_info=True)
 
-    # Configure for specific environment
-    logger.configure(
-        mode="json",        # 'terminal', 'json', or 'compact'
-        level="DEBUG",
-        trace_enabled=True
-    )
+    # Runtime config switch
+    logger.configure(mode="json", trace_enabled=True)
+    ```
+
+    To force colors and JSON highlighting in CI:
+    ```python
+    logger.force_markup()
     ```
     """
+
 
     def __init__(self, level: str = 'INFO') -> None:
         # Thread safety lock
 
         self.__lock = threading.RLock()
-
+        self.__logger_instance = logging.getLogger('WrenchCL')
         # Basic logger state
         self.__global_stream_configured = False
         self.__force_markup = False
@@ -360,10 +397,8 @@ class _BaseLogger:
         self.__config['color_enabled'] = os.environ.get("COLOR_MODE", "true").lower() == "true"
 
         # Set up logger instance
-        self.__logger_instance = logging.getLogger('WrenchCL')
         self.__setup()
-        self.__check_deployment(False)
-        self.__check_color()
+        self.reinitialize()
         self._internal_log(f"Logger -> Color:{self.__config['color_enabled']} | Mode:{self.presets.COLOR_BRACE_OPEN}{self.__config['mode'].capitalize()}{self.presets.RESET} | Deployment:{self.__config['deployed']}")
 
     # ---------------- Public Configuration API ----------------
@@ -372,8 +407,10 @@ class _BaseLogger:
                   mode: Optional[Literal['terminal', 'json', 'compact']] = None,
                   level: Optional[str] = None,
                   color_enabled: Optional[bool] = None,
+                  highlight_syntax: Optional[bool] = None,
                   verbose: Optional[bool] = None,
-                  trace_enabled: Optional[bool] = None) -> None:
+                  trace_enabled: Optional[bool] = None,
+                  deployment_mode: Optional[bool] = None) -> None:
         """
         Centralized configuration method to set multiple options at once.
 
@@ -382,10 +419,14 @@ class _BaseLogger:
         :param color_enabled: Whether to use ANSI colors
         :param verbose: Enable detailed context information
         :param trace_enabled: Enable Datadog trace ID injection
+        :param deployment_mode: Whether to use deployment mode (e.g., Lambda) disable color and enable json output
+        :param highlight_syntax: Whether to highlight syntax, set to true when enabling color, set to false when disabling color initially set to true if color is enabled
         """
         with self.__lock:
             if mode is not None:
-                self.mode = mode
+                self.__config['mode'] = mode
+            if highlight_syntax is not None:
+                self.__config['highlight_syntax'] = highlight_syntax
             if level is not None:
                 self.setLevel(level)
             if color_enabled is not None:
@@ -395,8 +436,21 @@ class _BaseLogger:
                 self.__config['verbose'] = verbose
             if trace_enabled is not None:
                 self.__config['dd_trace_enabled'] = trace_enabled
-                if self.__config['dd_trace_enabled'] and self.mode != 'json':
-                    self._internal_log("Datadog trace context injection is only visible in JSON output mode.")
+                try:
+                    import ddtrace
+                    ddtrace.patch(logging=True)
+                    self._internal_log("Datadog trace injection enabled via ddtrace.patch(logging=True)")
+                    os.environ["DD_TRACE_ENABLED"] = "true"
+                except ImportError:
+                    self.__config['dd_trace_enabled'] = False
+                    self._internal_log("   Datadog trace injection disabled: `ddtrace` module not available.")
+            if deployment_mode is not None:
+                self.__config['deployed'] = deployment_mode
+
+            if self.__config.get('dd_trace_enabled') and self.__config['mode'] != 'json':
+                self._internal_log("   Trace injection requested, but trace_id/span_id only appear in JSON mode.")
+        self.reinitialize()
+
 
     def reinitialize(self, verbose = False):
         """
@@ -406,7 +460,7 @@ class _BaseLogger:
         without reinitializing logger handlers. Call this if env vars are updated at runtime.
         """
         with self.__lock:
-            self.__check_deployment(True)
+            self.__check_deployment(verbose)
             self.__check_color()
             self.__env_metadata = self.__fetch_env_metadata()
             if verbose:
@@ -512,7 +566,7 @@ class _BaseLogger:
             elapsed = time.time() - self.__start_time
             self.info(f"{message}: {elapsed:.2f}s")
 
-    def header(self, text: str, size=80, compact=False) -> None:
+    def header(self, text: str, size:int =None, compact=False) -> None:
         """
         Logs a stylized section header.
 
@@ -521,12 +575,12 @@ class _BaseLogger:
         :param compact: If True, uses a single-line compact format
         """
         text = text.replace('_', ' ').replace('-', ' ').strip().capitalize()
-        if compact or self.mode == 'compact':
-            size = 40
+        if compact or self.__config['mode'] == 'compact':
+            size = size or 40
             formatted = self.__apply_color(text, self.presets.HEADER).center(size, "-")
         else:
-            size = 80
-            formatted = "\n\n" + self.__apply_color(text, self.presets.HEADER).center(size, "-") + "\n"
+            size = size or 80
+            formatted = "\n" + self.__apply_color(text, self.presets.HEADER).center(size, "-")
         self.__log("INFO", formatted, no_format=True, no_color=True)
 
     def pretty_log(self, obj: Any, indent=4, **kwargs) -> None:
@@ -773,7 +827,7 @@ class _BaseLogger:
                 # Update color presets and reconfigure formatters
                 self.presets = ColorPresets(self._Color, self._Style)
                 self.flush_handlers()
-                if self.mode == 'json':
+                if self.__config['mode'] == 'json':
                     self.__use_json_logging()
                 else:
                     for handler in self.__logger_instance.handlers:
@@ -794,7 +848,7 @@ class _BaseLogger:
             with self.__lock:
                 colorama = importlib.import_module("colorama")
                 self.__config['color_enabled'] = True
-                self.__config['highlight_syntax'] = True
+                self.__config['highlight_syntax'] = True if self.__config['highlight_syntax'] is not False else False
                 self._Color = colorama.Fore
                 self._Style = colorama.Style
                 self.presets = ColorPresets(self._Color, self._Style)
@@ -852,7 +906,9 @@ class _BaseLogger:
                     'mode': 'mode',
                     'color_enabled': 'color_enabled',
                     'verbose': 'verbose',
-                    'trace_enabled': 'dd_trace_enabled'
+                    'trace_enabled': 'dd_trace_enabled',
+                    'highlight_syntax': 'highlight_syntax',
+                    'deployed': 'deployed',
                 }
 
                 config_args = {}
@@ -905,24 +961,6 @@ class _BaseLogger:
         """
         return self.__config.get('mode', 'terminal')
 
-    @mode.setter
-    def mode(self, value: Literal['terminal', 'json', 'compact']):
-        """Set the output mode - 'terminal', 'json', or 'compact'."""
-        if value not in ('terminal', 'json', 'compact'):
-            raise ValueError("Mode must be 'terminal', 'json', or 'compact'")
-
-        with self.__lock:
-            if value == 'json':
-                # Directly set mode first to avoid recursion in __use_json_logging
-                self.__config['mode'] = 'json'
-                self.__use_json_logging()
-            elif value == 'compact':
-                self.__config['compact'] = True
-                self.__config['mode'] = 'compact'
-            else:  # terminal
-                self.__config['compact'] = False
-                self.__config['mode'] = 'terminal'
-
     @property
     def level(self) -> str:
         """Get the current logging level."""
@@ -946,7 +984,7 @@ class _BaseLogger:
         return {
             "Logging Level": self.level,
             "Run Id": self.run_id,
-            "Mode": self.mode,
+            "Mode": self.__config['mode'],
             "Environment Metadata": self.__env_metadata,
             "Configuration": {
                 "Color Enabled": self.__config['color_enabled'],
@@ -969,21 +1007,11 @@ class _BaseLogger:
         """Whether syntax highlighting for literals is enabled."""
         return self.__config['highlight_syntax']
 
-    @highlight_syntax.setter
-    def highlight_syntax(self, val: bool) -> None:
-        """Enables or disables syntax highlighting for literals."""
-        with self.__lock:
-            self.__config['highlight_syntax'] = val
-
     # ---------------- Internals ----------------
 
     def __log(self, level: Union[int, str], *args: str, exc_info: _exc_info_type = None,
               color_flag: Optional[Literal['INTERNAL', 'DATA']] = None, **kwargs) -> None:
         """Thread-safe logging implementation."""
-
-        # No lock for the initial processing to reduce lock contention
-        args = self._inject_dd_context(args)
-
         args = list(args)
         for idx, a in enumerate(args):
             if isinstance(a, Exception) or isinstance(a, BaseException):
@@ -998,11 +1026,11 @@ class _BaseLogger:
         args = tuple(args)
         msg = '\n'.join(str(arg) for arg in args)
 
-        if self.__config['highlight_syntax'] and self.__config['color_enabled'] and not self.mode == 'json':
+        if self.__config['highlight_syntax'] and self.__config['color_enabled'] and not self.__config['mode'] == 'json':
             msg = self.__highlight_literals(msg, data=color_flag == 'DATA')
 
         # Format based on mode
-        if self.mode == 'compact' or self.__config['deployed'] or self.mode == 'json':
+        if self.__config['mode'] == 'compact' or self.__config['deployed'] or self.__config['mode'] == 'json':
             lines = msg.splitlines()
             msg = ' '.join([line.strip() for line in lines if len(line.strip()) > 0])
             msg = msg.replace('\n', ' ').replace('\r', '').strip()
@@ -1040,36 +1068,6 @@ class _BaseLogger:
             stacklevel=self.__get_depth(internal = color_flag == 'INTERNAL')
         )
 
-    def _inject_dd_context(self, args: tuple[str]) -> tuple[str]:
-        """Add Datadog trace context to log messages if enabled."""
-        if (not self.__config['dd_trace_enabled']
-            or self.__config['mode'] == 'compact'):
-            return args
-
-        try:
-            ddtrace = importlib.import_module("ddtrace")
-            context = ddtrace.tracer.get_log_correlation_context()
-            trace_id = context.get("trace_id")
-            span_id = context.get("span_id")
-            prefix = '['
-            if not trace_id in [None, '0', 0, 'None']:
-                prefix += f"trace_id={trace_id} | "
-            if not span_id in [None, '0', 0, 'None']:
-                prefix += f"span_id={span_id} | "
-            prefix += ']'
-            if prefix == '[]':
-                return args
-            else:
-                return (prefix, *args)
-        except ImportError:
-            if not self.__dd_log_flag:
-                self._internal_log("Datadog trace is not installed while the feature is requested as enabled. "
-                                   "You can install it with `pip install wrenchcl[trace]`.")
-                self.__dd_log_flag = True
-        except Exception as e:
-            self._internal_log("Datadog trace injection failed")
-        return args
-
     def __highlight_literals(self, msg: str, data: bool = False) -> str:
         """Add syntax highlighting to literals in log messages."""
         if self.__force_markup:
@@ -1085,9 +1083,9 @@ class _BaseLogger:
         msg = re.sub(r'\bnone\b', lambda m: f"{c.COLOR_NONE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
         msg = re.sub(r'\bnull\b', lambda m: f"{c.COLOR_NONE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
         msg = re.sub(r'\bnan\b', lambda m: f"{c.COLOR_NONE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
-        if data and not self.mode == 'json':
+        if data and not self.__config['mode'] == 'json':
             msg = self.__highlight_data(msg)
-        if self.mode == 'json' and self.__force_markup:
+        if self.__config['mode'] == 'json' and self.__force_markup:
             msg = self.__highlight_literals_json(msg)
 
         return msg
@@ -1146,7 +1144,7 @@ class _BaseLogger:
         c = self.presets
         msg = re.sub(
             r'(?P<key>"[^"]+?")(?P<colon>\s*:)',  # `"key":` only
-            lambda m: f"{c.COLOR_KEY}{c.BRIGHT}{m.group('key')}{c.RESET}{c.COLOR_COLON}{m.group('colon')}{c.RESET}",
+            lambda m: f"{c.INFO}{c.BRIGHT}{m.group('key')}{c.RESET}{c.COLOR_COLON}{m.group('colon')}{c.RESET}",
             msg
         )
 
@@ -1173,7 +1171,7 @@ class _BaseLogger:
     def __get_env_prefix(self, dimmed_color, dimmed_style, color, style) -> str:
         """Generate environment prefix for log messages."""
         meta = self.__env_metadata
-        if not self.__config['color_enabled'] or self.__config['deployed'] or self.mode == 'json':
+        if not self.__config['color_enabled'] or self.__config['deployed'] or self.__config['mode'] == 'json':
             dimmed_color = ''
             dimmed_style = ''
             color = ''
@@ -1244,7 +1242,7 @@ class _BaseLogger:
             self.disable_color()
             if log:
                 self._internal_log("Detected Lambda deployment. Set color mode to False.")
-            self.mode = 'json'
+            self.__config['mode'] = 'json'
 
         if os.environ.get("AWS_EXECUTION_ENV") is not None:
             self.__config['color_enabled'] = False
@@ -1252,7 +1250,7 @@ class _BaseLogger:
             self.disable_color()
             if log:
                 self._internal_log("Detected AWS deployment. Set color mode to False.")
-            self.mode = 'json'
+            self.__config['mode'] = 'json'
 
         if os.environ.get("COLOR_MODE") is not None:
             if os.environ.get("COLOR_MODE").lower() == "false":
@@ -1273,18 +1271,19 @@ class _BaseLogger:
             if log:
                 self._internal_log(f"LOG_DD_TRACE detected — Datadog tracing {state}. | Mode Json")
             if self.__config['dd_trace_enabled']:
-                self.mode = 'json'
+                self.__config['mode'] = 'json'
 
     def __fetch_env_metadata(self) -> dict:
         """
         Extract environment metadata from system environment variables.
         """
-        return {
+        env_vars = {
             "env": os.getenv("ENV") or os.getenv('DD_ENV') or os.getenv("AWS_EXECUTION_ENV") or None,
             "project": os.getenv("PROJECT_NAME") or os.getenv('COMPOSE_PROJECT_NAME') or os.getenv("AWS_LAMBDA_FUNCTION_NAME") or None,
             "project_version": os.getenv("PROJECT_VERSION") or os.getenv("LAMBDA_TASK_ROOT") or os.getenv('REPO_VERSION') or None,
             "run_id": self.run_id
         }
+        return env_vars
 
     def __setup(self) -> None:
         """Initialize the logger with basic configuration."""
@@ -1335,6 +1334,10 @@ class _BaseLogger:
 
     def __log_setup_summary(self) -> None:
         """Log a summary of the current logger configuration."""
+        if self.__config["mode"] == "json":
+            self._internal_log(json.dumps(self.__config, indent=2, default=str))
+            return
+
         settings = self.logger_state
         msg = '⚙️  Logger Configuration:\n'
 
@@ -1349,9 +1352,10 @@ class _BaseLogger:
             msg += f"      - {mode:20s}: {self.__apply_color(state, color)}\n"
 
         if self.__config['color_enabled']:
-            msg += self.presets.get_demo_string()  # Use the actual instance, not the dict
+            msg += self.presets.get_demo_string()
 
-        self.__logger_instance.info(msg)
+        self._internal_log(msg)
+
 
     @staticmethod
     def __generate_run_id() -> str:
@@ -1372,7 +1376,7 @@ class _BaseLogger:
     def __get_formatter(self, level: Union[str, int], no_format=False) -> logging.Formatter:
         """Get the appropriate formatter based on log level and mode."""
 
-        if self.mode == 'json' and level != 'INTERNAL':
+        if self.__config['mode'] == 'json' and level != 'INTERNAL':
             return _JSONLogFormatter(self.__env_metadata, self.__force_markup, self.__highlight_literals)
 
         color = self.presets.get_color_by_level(level)
@@ -1408,7 +1412,7 @@ class _BaseLogger:
         elif level == "DATA":
             level_name_section = f"{color}{style}DATA    {self.presets.RESET}"
 
-        if self.mode == 'compact':
+        if self.__config['mode'] == 'compact':
             fmt = f"{level_name_section}{file_section}{colored_arrow_section}{message_section}"
         elif no_format:
             fmt = "%(message)s"

@@ -19,8 +19,8 @@ def logger_fixture():
     os.environ["LOG_DD_TRACE"] = "false"
     os.environ["AWS_EXECUTION_ENV"] = "testenv"
 
-    logger.reinitialize(verbose=True)
-    logger.mode = 'json'
+
+    logger.configure(mode='json')
     # logger.force_markup()
     print(logger.logger_state)
     logger.add_new_handler(
@@ -62,9 +62,9 @@ def test_json_log_format_and_metadata(logger_fixture):
     assert "module" in log_entry
     assert "line" in log_entry
     assert "function" in log_entry
-    assert log_entry["meta"]["project"] == "ai-axis"
-    assert log_entry["meta"]["version"] == "1.2.3"
-    assert log_entry["meta"]["env"] == "dev"
+    assert log_entry["dd.service"] == "ai-axis"
+    assert log_entry["dd.version"] == "1.2.3"
+    assert log_entry["dd.env"] == "dev"
 
 
 def test_json_log_includes_exception(logger_fixture):
@@ -112,7 +112,7 @@ def test_json_flush_and_format_switch(logger_fixture):
     for h in logger.logger_instance.handlers:
         h.flush()
 
-    logger.mode = 'json'  # triggers rebind
+    logger.configure(mode='json')
     logger.info("after switch")
 
     for h in logger.logger_instance.handlers:
@@ -126,7 +126,7 @@ def test_json_flush_and_format_switch(logger_fixture):
 
 def test_terminal_log_env_metadata(logger_fixture):
     logger, stream = logger_fixture
-    logger.mode = 'terminal'
+    logger.configure(mode = 'terminal')
 
     logger.info("terminal test")
 
