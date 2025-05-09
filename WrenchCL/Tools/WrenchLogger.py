@@ -240,6 +240,48 @@ class _JSONLogFormatter(logging.Formatter):
         self.color_mode = forced_color
         self.highlight_func = highlight_func
 
+
+    def _extract_generic_context(self) -> dict:
+        """
+        Scan all active ContextVars for common keys like user_id, client_id, or organization_id.
+        Supports deeply nested dicts and custom objects.
+        """
+
+
+        context_data = {}
+        user_keys = {'user_id', 'usr_id', 'entity_id', 'user_entity_id'}
+        org_keys = {'client_id', 'org_id', 'organization_id'}
+
+        def scan_dict(d: dict):
+            found = {}
+            try:
+                for k, v in d.items():
+                    key_lower = k.lower()
+                    if key_lower in user_keys:
+                        found['user_id'] = v
+                    elif key_lower in org_keys:
+                        found['organization_id'] = v
+                    elif isinstance(v, dict):
+                        found.update(scan_dict(v))
+                    elif hasattr(v, '__dict__'):
+                        found.update(scan_dict(vars(v)))
+            finally:
+                return found
+
+        try:
+            import contextvars
+            ctx = contextvars.copy_context()
+            for var in ctx:
+                val = var.get()
+                if isinstance(val, dict):
+                    context_data.update(scan_dict(val))
+                elif hasattr(val, '__dict__'):
+                    context_data.update(scan_dict(vars(val)))
+        finally:
+            return context_data
+
+
+
     def format(self, record: logging.LogRecord) -> str:
         log_record = {
             "level": record.levelname,
@@ -261,10 +303,14 @@ class _JSONLogFormatter(logging.Formatter):
         if record.exc_info:
             log_record["exception"] = self.formatException(record.exc_info)
 
+        ctx = self._extract_generic_context()
+        if len(ctx) > 0:
+            log_record.update(ctx)
+
         dumped_json = json.dumps(log_record, default=str, ensure_ascii=False)
 
         if self.color_mode:
-            dumped_json = self.highlight_func(json.dumps(dumped_json, default=str), True)
+            dumped_json = self.highlight_func(dumped_json, True)
 
         return dumped_json
 
@@ -1222,12 +1268,14 @@ class _BaseLogger:
         """
         Extract environment metadata from system environment variables.
         """
-        return {
+        env_vars = {
             "env": os.getenv("ENV") or os.getenv('DD_ENV') or os.getenv("AWS_EXECUTION_ENV") or None,
             "project": os.getenv("PROJECT_NAME") or os.getenv('COMPOSE_PROJECT_NAME') or os.getenv("AWS_LAMBDA_FUNCTION_NAME") or None,
             "project_version": os.getenv("PROJECT_VERSION") or os.getenv("LAMBDA_TASK_ROOT") or os.getenv('REPO_VERSION') or None,
             "run_id": self.run_id
         }
+        self._internal_log(f"Environment metadata: {env_vars}")
+        return env_vars
 
     def __setup(self) -> None:
         """Initialize the logger with basic configuration."""
