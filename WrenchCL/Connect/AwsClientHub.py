@@ -40,13 +40,10 @@ class AwsClientHub:
         self.__db_client: Optional[RDSClient] = None
         self.__lambda = None
         self.__initialized = False
+        self.__secret_loaded = False
         self.__init_mode = False
 
-    def _check_init(self):
-        if not self.__initialized:
-            self._initialize()
-
-    def _initialize(self):
+    def _initialize(self, need_secret=False):
         """Load config and secrets if not already initialized."""
         if not self.__initialized:
             try:
@@ -54,6 +51,9 @@ class AwsClientHub:
                 self.__initialized = True
             except InvalidConfigurationException as e:
                 logger._interal_log(f"AWS Client Hub initialization deferred: {e}")
+        if self.__initialized and not self.__secret_loaded:
+            if need_secret:
+                self._load_rds_secret()
 
     def reload_config(self, env_path: Optional[str] = None, **kwargs):
         """
@@ -69,19 +69,19 @@ class AwsClientHub:
     @property
     def config(self) -> _ConfigurationManager:
         """Loaded configuration object."""
-        self._check_init()
+        self._initialize()
         return self.__config
 
     @property
     def db_uri(self) -> str:
         """Constructed Postgres URI from loaded secret."""
-        self._check_init()
+        self._initialize(True)
         return self.config.construct_db_uri()
 
     @property
     def db(self) -> RDSClient:
         """Postgres connection (via psycopg2) with optional SSH tunnel."""
-        self._check_init()
+        self._initialize(True)
         if self.__db_client is None:
             self._init_rds_client()
         return self.__db_client
@@ -89,19 +89,19 @@ class AwsClientHub:
     @property
     def s3(self) -> S3Client:
         """Return a boto3 S3 client."""
-        self._check_init()
+        self._initialize()
         return self.session.client("s3", region_name=self.config.region_name)
 
     @property
     def secretmanager(self) -> SecretsManagerClient:
         """Return a boto3 SecretsManager client."""
-        self._check_init()
+        self._initialize()
         return self.session.client("secretsmanager", region_name=self.config.region_name)
 
     @property
     def lambda_client(self) -> LambdaClient:
         """Return a boto3 Lambda client."""
-        self._check_init()
+        self._initialize(True)
         if self.__lambda is None:
             self.__lambda = self.session.client("lambda", region_name=self.config.region_name)
         return self.__lambda
@@ -109,7 +109,7 @@ class AwsClientHub:
     @property
     def session(self):
         """Return a cached boto3 Session."""
-        self._check_init()
+        self._initialize()
         return _get_boto3_session(self.config.aws_profile)
 
     def _load_rds_secret(self):
@@ -134,7 +134,6 @@ class AwsClientHub:
         Initialize the database client, applying PGHOST/PGPORT override or setting up an SSH tunnel if configured.
         """
         try:
-            self._load_rds_secret()
             config = {
                 "PGHOST": self.config.pghost_override or self.config.db_host,
                 "PGPORT": int(self.config.pgport_override or self.config.db_port),
@@ -195,7 +194,7 @@ class AwsClientHub:
         :param secret_id: Optional override for Secret ARN
         :return: Parsed dict or raw secret string
         """
-        self._check_init()
+        self._initialize()
         try:
             raw = self.secretmanager.get_secret_value(SecretId=secret_id or self.config.secret_arn)["SecretString"]
             try:
