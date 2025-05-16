@@ -1,97 +1,93 @@
-
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
 from sshtunnel import SSHTunnelForwarder
-
 from ..Tools.WrenchLogger import _logger_
-logger = _logger_()
 
+logger = _logger_()
 logger.silence_logger("paramiko")
+
 
 class _SshTunnelManager:
     """
-    Manages the SSH tunnel for securely connecting to a remote database server. This class uses the SSHTunnelForwarder
-    to establish and manage the SSH tunnel.
-
-    Attributes:
-        config (dict): Configuration dictionary containing SSH and database connection details.
-        ssh_config (dict): Configuration dictionary specific to SSH tunneling.
-        tunnel (SSHTunnelForwarder): Instance of the SSHTunnelForwarder to manage the SSH tunnel.
+    Handles creation and teardown of an SSH tunnel to a remote database host.
+    Requires config with SSH credentials and target DB host/port.
     """
 
-    def __init__(self, config):
+    def __init__(self, config: dict):
         """
-        Initializes the _SshTunnelManager with the given configuration.
+        Initialize SSH tunnel manager with DB + SSH credentials.
 
-        :param config: Configuration dictionary containing SSH and database connection details.
-                       Example:
-                       {
-                           "PGHOST": "database_host",
-                           "PGPORT": 5432,
-                           "PGDATABASE": "database_name",
-                           "PGUSER": "database_user",
-                           "PGPASSWORD": "database_password",
-                           "SSH_TUNNEL": {
-                               "SSH_SERVER": "ssh_server",
-                               "SSH_PORT": 22,
-                               "SSH_USER": "ssh_user",
-                               "SSH_PASSWORD": "ssh_password",
-                               "SSH_KEY_PATH": "path_to_ssh_key"
-                           }
-                       }
-        :type config: dict
+        :param config: Dictionary with DB and SSH config:
+            - PGHOST, PGPORT, PGPASSWORD, etc.
+            - SSH_TUNNEL:
+                - SSH_SERVER
+                - SSH_PORT
+                - SSH_USER
+                - (SSH_PASSWORD | SSH_KEY_PATH)
         """
         self.config = config
-        self.ssh_config = config['SSH_TUNNEL']
-        self.tunnel = None
+        self.ssh_config = config.get("SSH_TUNNEL", {})
+        self.tunnel: SSHTunnelForwarder | None = None
 
-        # Mask sensitive information
-        def mask_sensitive(value):
-            if value and isinstance(value, str) and len(value) > 6:
-                return f"{value[:3]}...{value[-3:]}"
-            return value
+        self._validate_ssh_config()
 
-        # Safe config without sensitive fields
-        safe_config = {k: (mask_sensitive(v) if k == 'PGPASSWORD' else v) for k, v in self.config.items()}
-        safe_ssh_config = {k: (mask_sensitive(v) if k in ['SSH_PASSWORD', 'SSH_KEY_PATH'] else v) for k, v in self.ssh_config.items()}
+        # Mask sensitive fields for safe logging
+        def mask(val):
+            return f"{val[:3]}...{val[-3:]}" if isinstance(val, str) and len(val) > 6 else val
 
-        logger.debug(f"SSH Tunnel Manager initialized with config: {safe_config}")
-        logger.debug(f"SSH-specific configuration: {safe_ssh_config}")
+        safe_config = {k: mask(v) if k == "PGPASSWORD" else v for k, v in self.config.items()}
+        safe_ssh_config = {
+            k: mask(v) if k in {"SSH_PASSWORD", "SSH_KEY_PATH"} else v
+            for k, v in self.ssh_config.items()
+        }
 
-    def start_tunnel(self):
+        logger._internal_log(f"SSH Tunnel Manager initialized with config: {safe_config}")
+        logger._internal_log(f"SSH-specific configuration: {safe_ssh_config}")
+
+    def _validate_ssh_config(self):
+        """Raise if essential SSH tunnel credentials are missing."""
+        required = ["SSH_SERVER", "SSH_PORT", "SSH_USER"]
+        for key in required:
+            if key not in self.ssh_config:
+                raise ValueError(f"Missing required SSH config: {key}")
+
+        if not (self.ssh_config.get("SSH_PASSWORD") or self.ssh_config.get("SSH_KEY_PATH")):
+            raise ValueError("SSH tunnel requires either SSH_PASSWORD or SSH_KEY_PATH")
+
+    def start_tunnel(self) -> tuple[str, int]:
         """
-        Starts the SSH tunnel using the provided SSH configuration.
+        Starts the SSH tunnel.
 
-        :returns: A tuple containing the local bind address and port.
-        :rtype: tuple
+        :returns: Local bind address and port tuple.
+        :raises Exception: If tunnel fails to start.
         """
-        logger.debug(f"Starting SSH tunnel with server: {self.ssh_config['SSH_SERVER']} "
-                     f"and port: {self.ssh_config['SSH_PORT']}")
-        logger.debug(f"Using SSH user: {self.ssh_config['SSH_USER']}")
-
-        self.tunnel = SSHTunnelForwarder(
-            ssh_address_or_host=(self.ssh_config['SSH_SERVER'], self.ssh_config['SSH_PORT']),
-            ssh_username=self.ssh_config['SSH_USER'],
-            ssh_password=self.ssh_config.get('SSH_PASSWORD', None),
-            ssh_pkey=self.ssh_config.get('SSH_KEY_PATH', None),
-            remote_bind_address=(self.config['PGHOST'], self.config['PGPORT'])
+        logger._internal_log(
+            f"Starting SSH tunnel to {self.ssh_config['SSH_SERVER']}:{self.ssh_config['SSH_PORT']} "
+            f"as user {self.ssh_config['SSH_USER']}"
         )
 
-        self.tunnel.start()
-        local_bind_address = '127.0.0.1'
-        local_bind_port = self.tunnel.local_bind_port
+        self.tunnel = SSHTunnelForwarder(
+            ssh_address_or_host=(self.ssh_config["SSH_SERVER"], self.ssh_config["SSH_PORT"]),
+            ssh_username=self.ssh_config["SSH_USER"],
+            ssh_password=self.ssh_config.get("SSH_PASSWORD"),
+            ssh_pkey=self.ssh_config.get("SSH_KEY_PATH"),
+            remote_bind_address=(self.config["PGHOST"], self.config["PGPORT"])
+        )
 
-        # Log details after starting the tunnel
-        logger.debug(f"SSH tunnel started, forwarding local port: {local_bind_port}")
-        return local_bind_address, local_bind_port
+        try:
+            self.tunnel.start()
+        except Exception as e:
+            logger.error(f"Failed to start SSH tunnel: {e}")
+            raise
+
+        logger._internal_log(f"SSH tunnel active at 127.0.0.1:{self.tunnel.local_bind_port}")
+        return "127.0.0.1", self.tunnel.local_bind_port
 
     def stop_tunnel(self):
-        """
-        Stops the SSH tunnel if it is currently running.
-        """
+        """Stops the tunnel if running."""
         if self.tunnel:
-            logger.debug("Stopping the SSH tunnel.")
+            logger._internal_log("Stopping SSH tunnel...")
             self.tunnel.stop()
-            logger.debug("SSH tunnel stopped.")
+            logger._internal_log("SSH tunnel stopped.")
