@@ -45,13 +45,13 @@ def parse_json(response: Union[str, dict], max_depth: int = 25, verbose=False, p
     """
     try:
         if verbose:
-            _logger_().debug(f"Starting JSON parsing. Max depth: {max_depth}")
+            _logger_()._internal_log(f"Starting JSON parsing. Max depth: {max_depth}")
         parsed_json = recur_parse_json(response, max_depth=max_depth, verbose = verbose)
         if print_tree:
             show_json_tree(parsed_json)
         return parsed_json
     except RecursionError as e:
-        _logger_().error(f"Recursion limit reached: {e}", stack_info=False)
+        _logger_().error(f"Recursion limit reached: {e}", exc_info=False)
         raise
     except (TypeError, ValueError, json.JSONDecodeError) as e:
         _logger_().error(f"Invalid input format: {e}")
@@ -166,7 +166,7 @@ def recur_parse_json(d: Union[dict, str], depth: int = 0, max_depth: int = 25, v
                 d[k] = list_loader(v, depth=depth + 1, max_depth=max_depth, verbose = verbose)
             indent = "--" * (depth + 1)
             if verbose:
-                _logger_().debug(f"{indent}>Parsed key '{k}': to type {type(d[k]).__name__}")
+                _logger_()._internal_log(f"{indent}>Parsed key '{k}': to type {type(d[k]).__name__}")
         return d
 
 
@@ -273,11 +273,11 @@ def safe_json_loader(content: Any, raise_error=False, depth=0, verbose = False) 
                             indent = "--" * (depth + 2)
                             if '{' in value or '}' in value:
                                 if verbose:
-                                    _logger_().warning(f"{indent}>Malformed JSON in key '{key}': {value}")
+                                    _logger_()._internal_log(f"{indent}>Malformed JSON in key '{key}': {value}")
                                 else:
-                                    _logger_().debug(f"{indent}>Malformed JSON in key '{key}': {value}")
+                                    _logger_()._internal_log(f"{indent}>Malformed JSON in key '{key}': {value}")
                             if verbose:
-                                _logger_().debug(f"{indent}>End of structure at key: {key}, value: {value}'")
+                                _logger_()._internal_log(f"{indent}>End of structure at key: {key}, value: {value}'")
                             return parsed
                 return parsed
             elif isinstance(parsed, list):
@@ -287,24 +287,24 @@ def safe_json_loader(content: Any, raise_error=False, depth=0, verbose = False) 
             if content.startswith('{') and content.endswith('}'):
                 if verbose:
                     indent = "--" * (depth + 1)
-                    _logger_().warning(f"{indent}>Malformed JSON in content: {content}")
-                    _logger_().debug(f"{indent}>End of structure at depth: {depth + 1}")
+                    _logger_()._internal_log(f"{indent}>Malformed JSON in content: {content}")
+                    _logger_()._internal_log(f"{indent}>End of structure at depth: {depth + 1}")
                 if raise_error:
                     if depth == 0:
                         raise
                     else:
                         if verbose:
-                            _logger_().warning(f"Failed to parse content at depth {depth + 1}, continuing with next branch: {content}")
+                            _logger_()._internal_log(f"Failed to parse content at depth {depth + 1}, continuing with next branch: {content}")
                         else:
-                            _logger_().debug(f"Failed to parse content at depth {depth + 1}, continuing with next branch")
+                            _logger_()._internal_log(f"Failed to parse content at depth {depth + 1}, continuing with next branch")
                         try:
                             content = str(content)
                         except Exception as e:
-                            _logger_().debug(f"Failed to convert content to string, returning as is: {e}")
+                            _logger_()._internal_log(f"Failed to convert content to string, returning as is: {e}")
                             pass
             else:
                 if verbose:
-                    _logger_().debug(f"String is not a JSON object, returning as is...")
+                    _logger_()._internal_log(f"String is not a JSON object, returning as is...")
             return content  # Leave malformed content as-is
 
     raise TypeError(f"safe_json_loader expected string or dict but got {type(content).__name__}")
