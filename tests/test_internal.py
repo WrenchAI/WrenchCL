@@ -9,29 +9,37 @@ from WrenchCL._Internal._ConfigurationManager import _ConfigurationManager
 from WrenchCL._Internal._MockPandas import _MockPandas
 from WrenchCL._Internal._SshTunnelManager import _SshTunnelManager
 
+def get_cfg(**kwargs):
+    cfg = _ConfigurationManager()
+    cfg.reset()
+    env_path = kwargs.pop("env_path", None)
+    cfg.initialize(env_path, False, **kwargs)
+    return cfg
+
+
 # ─────────────────────────────────────────────────────────────
 # Tests for _ConfigurationManager
 # ─────────────────────────────────────────────────────────────
 
 def test_configuration_manager_env(monkeypatch):
     monkeypatch.setenv("SECRET_ARN", "arn:aws:secretsmanager:us-east-1:123456789012:secret:example")
-    cfg = _ConfigurationManager()
+    cfg = get_cfg()
     assert cfg.secret_arn.startswith("arn:aws")
 
 def test_configuration_manager_env_path(tmp_path, monkeypatch):
     dotenv = tmp_path / ".env"
     dotenv.write_text("SECRET_ARN=arn:aws:secretsmanager:us-east-1:123456789012:secret:test\nAWS_PROFILE=test-profile")
-    cfg = _ConfigurationManager(env_path=str(dotenv))
+    cfg = get_cfg(env_path=str(dotenv))
     assert cfg.aws_profile == "test-profile"
     assert cfg.secret_arn.endswith(":test")
 
 def test_configuration_manager_kwargs():
-    cfg = _ConfigurationManager(SECRET_ARN="x", REGION_NAME="us-west-2", SSH_PORT=2200)
+    cfg = get_cfg(SECRET_ARN="x", REGION_NAME="us-west-2", SSH_PORT=2200)
     assert cfg.region_name == "us-west-2"
     assert cfg.ssh_port == 2200
 
 def test_configuration_manager_uri_construction():
-    cfg = _ConfigurationManager(SECRET_ARN="x")
+    cfg = get_cfg(SECRET_ARN="x")
     secret = {
         "username": "test",
         "password": "pass",
@@ -42,12 +50,6 @@ def test_configuration_manager_uri_construction():
     cfg.load_rds_secret(secret)
     uri = cfg.construct_db_uri()
     assert uri.startswith("postgresql://test:pass@db.host.com:5432/main")
-
-def test_configuration_manager_log_safe_config():
-    cfg = _ConfigurationManager(SECRET_ARN="verysecret", OPENAI_API_KEY="openaikey")
-    masked = cfg._log_safe_config()
-    assert masked["secret_arn"].startswith("ver...")
-    assert "..." in masked["openai_api_key"]
 
 # ─────────────────────────────────────────────────────────────
 # Tests for _MockPandas

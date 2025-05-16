@@ -69,7 +69,7 @@ def test_parse_response(example_name, examples, caplog):
     example_data = examples[example_name]
     logger.setLevel("DEBUG")
 
-    logger.info(f"Processing {example_name}")
+    logger._internal_log(f"Processing {example_name}")
     try:
         parsed = parse_json(example_data)
         logger.data(parsed)
