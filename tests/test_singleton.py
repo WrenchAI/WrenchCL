@@ -1,7 +1,7 @@
 import pytest
 from WrenchCL.Decorators import SingletonClass
 
-from Exceptions._internal import _SingletonViolationException
+from WrenchCL.Exceptions._internal import _SingletonViolationException
 
 
 def test_singleton_violation_on_new():
