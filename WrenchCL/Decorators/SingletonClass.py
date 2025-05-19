@@ -1,47 +1,39 @@
+from ..Exceptions._internal import _SingletonViolationException as SvE
 
 
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
-def SingletonClass(cls):
+def SingletonClass(cls: type) -> type:
     """
-    Decorator for a class to implement the Singleton pattern. This decorator ensures that only one instance of the
-    decorated class can exist at any time. If an instance of the class already exists, it returns that instance;
-    otherwise, it creates and returns a new instance.
+    Enforces singleton behavior by wrapping the class in a custom subclass.
 
-    The Singleton pattern is particularly useful when exactly one object is needed to coordinate actions across the
-    system, such as in the case of managing database connections.
+    Prevents the user-defined class from defining its own `__new__`, which would
+    conflict with the singleton logic.
 
-    :param cls: The class to be decorated as a Singleton.
-    :type cls: type
-    :returns: A wrapper function that manages the instantiation of the singleton class, ensuring that only one
-              instance exists.
-    :rtype: function
-
-    **Example**::
-
-        >>> @SingletonClass
-        ... class DatabaseManager:
-        ...     def __init__(self, connection_string):
-        ...         self.connection_string = connection_string
-        ...
-        >>> db_manager1 = DatabaseManager('db_connection_string')
-        >>> db_manager2 = DatabaseManager('db_connection_string')
-        >>> assert db_manager1 is db_manager2  # Both variables point to the same instance
+    :param cls: The class to wrap
+    :return: A singleton-enforcing subclass of the original
     """
-    instances = {}
+    if "__new__" in cls.__dict__:
+        raise SvE(cls)
 
-    def get_instance(*args, **kwargs):
-        """
-        Returns the singleton instance of the class, creating it if it does not already exist.
+    class SingletonWrapper(cls):
+        _instance = None
 
-        :param args: Positional arguments for the class constructor.
-        :param kwargs: Keyword arguments for the class constructor.
-        :returns: The singleton instance of the class.
-        """
-        if cls not in instances:
-            instances[cls] = cls(*args, **kwargs)
-        return instances[cls]
+        def __new__(cls_, *args, **kwargs):
+            if cls_._instance is None:
+                cls_._instance = super(SingletonWrapper, cls_).__new__(cls_)
+            return cls_._instance
 
-    return get_instance
+        def __init__(self, *args, **kwargs):
+            if not getattr(self, '__singleton_initialized__', False):
+                super(SingletonWrapper, self).__init__(*args, **kwargs)
+                setattr(self, '__singleton_initialized__', True)
+
+    SingletonWrapper.__name__ = cls.__name__
+    SingletonWrapper.__qualname__ = cls.__qualname__
+    SingletonWrapper.__doc__ = cls.__doc__
+    return SingletonWrapper
+
+

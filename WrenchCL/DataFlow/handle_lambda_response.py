@@ -7,14 +7,10 @@ import os
 
 from boto3 import client as boto3client
 
-from .trigger_dataflow_metrics import trigger_minimum_dataflow_metrics
 from ..Tools import robust_serializer
 from ..Tools.WrenchLogger import _logger_
 logger = _logger_()
 from ..Tools.TypeChecker import typechecker  # Update this to the correct import path
-
-lambda_response = None
-
 
 class GuardedResponseTrigger(Exception):
     """Custom exception to signal early exit from the Lambda function."""
@@ -80,15 +76,6 @@ def handle_lambda_response(code, message, params, response_body=None, client_id=
         if params.get('lambda_client') is None:
             params['lambda_client'] = boto3client('lambda')
 
-        trigger_minimum_dataflow_metrics(
-            event=params.get('event', {}),
-            context=params.get('context', {}),
-            lambda_client=params.get('lambda_client'),
-            job_name=os.getenv('AWS_FUNCTION_NAME', ''),
-            job_type=os.getenv('AWS_JOB_TYPE', 'lambda'),
-            status_code=code,
-            exception_msg=str(message)
-        )
     except Exception as e:
         logger.error(f"Failed to invoke dataflow metrics with error {e}")
 
@@ -123,11 +110,11 @@ def handle_lambda_response(code, message, params, response_body=None, client_id=
     if code in custom_error_messages:
         logger.error(
             f"Custom Code = {code} | {custom_error_messages[code]} | [Client ID: {client_id}, Entity ID: {entity_id}] | Status Message: {message}"
-        ,stack_info=True)
+        ,exc_info=True)
     else:
         logger.error(
             f"Custom Code = {code} | Unrecognized Error Code | [Client ID: {client_id}, Entity ID: {entity_id}] | Status Message: {message}"
-        ,stack_info=True)
+        ,exc_info=True)
 
     default_headers = {
         'Content-Type': 'application/json; charset=utf-8',

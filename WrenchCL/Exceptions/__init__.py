@@ -124,14 +124,6 @@ class SecurityViolationException(Exception):
         msg = message or "Security violation detected!"
         super().__init__(msg)
 
-
-# Aliases for backward compatibility
-IncompleteInitializationError = IncompleteInitializationException
-InitializationError = InitializationException
-ArgumentTypeError = ArgumentTypeException
-ArgumentValueError = ArgumentValueException
-
-
 __all__ = [
     'InitializationException',
     'IncompleteInitializationException',
@@ -142,10 +134,4 @@ __all__ = [
     'ValidationTypeException',
     'InvalidPayloadException',
     'SecurityViolationException',
-
-    # Backward compatibility aliases
-    'InitializationError',
-    'IncompleteInitializationError',
-    'ArgumentTypeError',
-    'ArgumentValueError',
 ]

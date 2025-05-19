@@ -268,12 +268,13 @@ def test_pretty_log_highlighting_all_literals(logger_stream):
 
 def test_simple_info_log_highlighting(logger_stream):
     logger, stream = logger_stream
-    logger.info("Simple literal test: true false none 1234")
+    logger.warning("Simple literal test: true false none 1234 %s {name}")
     flush_handlers(logger)
     out = stream.getvalue()
-    for token in ["true", "false", "none", "1234"]:
+    for token in ["true", "false", "none", "1234", '%s', '{', '}']:
         assert token in out
-
+    for token in ['{name}']:
+        assert token not in out
 
 def test_log_no_syntax_highlights(logger_stream):
     logger, stream = logger_stream
@@ -315,3 +316,57 @@ def test_color_mode(logger_stream):
     logger.info("Test message E")
     flush_handlers(logger)
     assert "Test message" in stream.getvalue()
+
+def test_number_highlighting_with_units_and_exclusions(logger_stream):
+    logger, stream = logger_stream
+    logger.configure(highlight_syntax=True, color_enabled=True)
+
+    test_msg = (
+        "Duration: 3s, 1.5sec, 2min, 4.7minutes, 95%, 2x "
+        "— Invalids: Data3, abc123, uuid-1234-5678, key42"
+    )
+    logger.info(test_msg)
+    flush_handlers(logger)
+    out = stream.getvalue()
+
+    # ✅ Highlighted tokens
+    should_be_colored = ["3s", "1.5sec", "2min", "4.7minutes", "95%", "2x"]
+    # ❌ Should remain uncolored
+    should_not_be_colored = ["Data3", "abc123", "1234", "5678", "key42"]
+
+    ansi_pattern = re.compile(
+        r'\x1b\[[\d;]+m(\d+(?:\.\d+)?(?:[a-zA-Z%]+)?)\x1b\[39m'
+    )
+    highlighted = [m.group(1) for m in ansi_pattern.finditer(out)]
+
+    for val in should_be_colored:
+        assert val in highlighted, f"{val} should be highlighted"
+
+    for val in should_not_be_colored:
+        assert not any(val in h for h in highlighted), f"{val} should not be highlighted"
+
+
+def test_uuid_highlighting(logger_stream):
+    logger, stream = logger_stream
+    logger.configure(highlight_syntax=True, color_enabled=True)
+
+    test_msg = (
+        "Tracking IDs: 550e8400-e29b-41d4-a716-446655440000, "
+        "not-a-uuid, 1234-5678, uuid:00000000-0000-0000-0000-000000000000"
+    )
+    logger.info(test_msg)
+    flush_handlers(logger)
+
+    out = stream.getvalue()
+    print(repr(out))
+    # Match ANSI-highlighted UUIDs
+    uuid_ansi_pattern = re.compile(
+        r'\x1b\[[\d;]+m([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\x1b\[(?:39|0)m',
+        re.IGNORECASE
+    )
+
+    highlighted = [m.group(1) for m in uuid_ansi_pattern.finditer(out)]
+
+    assert "550e8400-e29b-41d4-a716-446655440000" in highlighted
+
+    assert all(x not in highlighted for x in ["not-a-uuid", "1234-5678", '00000000-0000-0000-0000-000000000000'])

@@ -146,9 +146,9 @@ Temporarily change logger configuration:
 
 ```python
 # Temporarily change configuration
-with logger.config_context(mode="compact", level="DEBUG"):
-    logger.debug("This will be logged in compact mode at DEBUG level")
-    # Outside the context, the logger returns to previous settings
+with logger.temporary(mode="compact", level="DEBUG"):
+    logger.debug(
+        "This will be logged in compact mode at DEBUG level")  # Outside the context, the logger returns to previous settings
 ```
 
 ### Advanced Features
@@ -156,13 +156,13 @@ with logger.config_context(mode="compact", level="DEBUG"):
 ```python
 # Add a rotating file handler
 logger.add_rotating_file_handler(filename="app.log", max_bytes=10485760,  # 10MB
-    backup_count=5)
+                                 backup_count=5)
 
 # Silence third-party loggers
 logger.silence_logger("noisy_package")
 
 # Configure global logging
-logger.configure_global_stream(level="INFO", silence_others=True)
+logger.attach_global_stream(level="INFO", silence_others=True)
 
 # Force color in CI/Docker environments
 logger.force_markup()

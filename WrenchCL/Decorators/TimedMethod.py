@@ -44,11 +44,11 @@ def TimedMethod(func, level='DEBUG'):
         elapsed = time.time() - start
         log_string = f"{func.__name__} took {elapsed:.2f} seconds"
         if level.lower() == "info":
-            logger.info(log_string)
+            logger._internal_log(log_string)
         elif level.lower() == "context":
             logger.context(log_string)
         else:
-            logger.debug(log_string)
+            logger._internal_log(log_string)
 
         return result
 

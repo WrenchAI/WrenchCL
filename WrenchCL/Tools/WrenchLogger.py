@@ -74,15 +74,17 @@ class ColorPresets:
     ERROR = None
     CRITICAL = None
     HEADER = None
-    DATA = None
     BRIGHT = None
     NORMAL = None
+
     RESET = None
+    RESET_FORE = None
+
     COLOR_TRUE = None
     COLOR_FALSE = None
     COLOR_NONE = None
-    COLOR_KEY = None
     COLOR_NUMBER = None
+    COLOR_UUID = None
 
     COLOR_BRACE_OPEN = None
     COLOR_BRACE_CLOSE = None
@@ -105,18 +107,18 @@ class ColorPresets:
         super().__setattr__('ERROR', getattr(self._color_class, 'RED', ''))
         super().__setattr__('CRITICAL', getattr(self._color_class, 'MAGENTA', ''))
         super().__setattr__('HEADER', getattr(self._color_class, 'CYAN', ''))
-        super().__setattr__("DATA", getattr(self._color_class, 'BLUE', ''))
 
         super().__setattr__('BRIGHT', getattr(self._style_class, 'BRIGHT', ''))
         super().__setattr__('NORMAL', getattr(self._style_class, 'NORMAL', ''))
         super().__setattr__('RESET', getattr(self._style_class, 'RESET_ALL', ''))
+        super().__setattr__("RESET_FORE", getattr(self._color_class, 'RESET', ''))
 
         # Literal colors
         super().__setattr__('COLOR_TRUE', getattr(self._color_class, 'GREEN', ''))
         super().__setattr__('COLOR_FALSE', getattr(self._color_class, 'RED', ''))
         super().__setattr__('COLOR_NONE', getattr(self._color_class, 'WHITE', ''))
-        super().__setattr__('COLOR_KEY', getattr(self._color_class, '', ''))
         super().__setattr__('COLOR_NUMBER', getattr(self._color_class, 'YELLOW', ''))
+        super().__setattr__('COLOR_UUID', getattr(self._color_class, 'MAGENTA', ''))
 
         # Syntax colors
         super().__setattr__('COLOR_BRACE_OPEN', getattr(self._color_class, 'CYAN', ''))     # {
@@ -189,30 +191,6 @@ class ColorPresets:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
-
-    def get_demo_string(self):
-        demo_string = "\n  • Log Level Color Preview:\n"
-        demo_string += f"    {self.DEBUG}{self.get_level_style('DEBUG')}[DEBUG] Debug message preview{self.RESET}\n"
-        demo_string += f"    {self.INFO}{self.get_level_style('INFO')}[INFO] Info message preview{self.RESET}\n"
-        demo_string += f"    {self.WARNING}{self.get_level_style('WARNING')}[WARNING] Warning message preview{self.RESET}\n"
-        demo_string += f"    {self.ERROR}{self.get_level_style('ERROR')}[ERROR] Error message preview{self.RESET}\n"
-        demo_string += f"    {self.CRITICAL}{self.get_level_style('CRITICAL')}[CRITICAL] Critical message preview{self.RESET}\n"
-        demo_string += f"    {self.HEADER}{self.get_level_style('HEADER')}[HEADER] Section header example{self.RESET}\n"
-        demo_string += f"    {self.DATA}{self.get_level_style('DATA')}[DATA] Structured data printout{self.RESET}\n"
-
-        demo_string += "  • Literal/Syntax Highlight Preview:\n"
-        demo_string += f"    - true → {self.COLOR_TRUE}{self.BRIGHT}true{self.RESET}\n"
-        demo_string += f"    - false → {self.COLOR_FALSE}{self.BRIGHT}false{self.RESET}\n"
-        demo_string += f"    - none → {self.COLOR_NONE}{self.BRIGHT}None{self.RESET}\n"
-        demo_string += f"    - \"key\": → {self.COLOR_KEY}{self.BRIGHT}\"key\"{self.RESET}{self.COLOR_COLON}:{self.RESET}\n"
-        demo_string += f"    - 123 → {self.COLOR_NUMBER}123{self.RESET}\n"
-        demo_string += f"    - {{ }} → {self.COLOR_BRACE_OPEN}{{{self.RESET} content {self.COLOR_BRACE_CLOSE}}}{self.RESET}\n"
-        demo_string += f"    - [ ] → {self.COLOR_BRACKET_OPEN}[{self.RESET} content {self.COLOR_BRACKET_CLOSE}]{self.RESET}\n"
-        demo_string += f"    - ( ) → {self.COLOR_PAREN_OPEN}({self.RESET} content {self.COLOR_PAREN_CLOSE}){self.RESET}\n"
-        demo_string += f"    - {self.COLOR_KEY}{self.BRIGHT}key{self.RESET}{self.COLOR_COLON}:{self.RESET}value{self.COLOR_COMMA},{self.RESET}\n"
-
-        return demo_string
-
 
 class _CustomFormatter(logging.Formatter):
     def __init__(self, fmt: str, datefmt: Optional[str], presets: ColorPresets):
@@ -350,7 +328,7 @@ class _BaseLogger:
     ```python
     from WrenchCL.Tools import logger
 
-    logger.info("Starting job...")
+    logger._internal_log("Starting job...")
     logger.error("Something failed", exc_info=True)
 
     # Runtime config switch
@@ -395,11 +373,11 @@ class _BaseLogger:
         # Read environment variables
         self.__config['dd_trace_enabled'] = os.environ.get("LOG_DD_TRACE", "false").lower() == "true"
         self.__config['color_enabled'] = os.environ.get("COLOR_MODE", "true").lower() == "true"
-
+        self.__from_context = False
         # Set up logger instance
         self.__setup()
         self.reinitialize()
-        self._internal_log(f"Logger -> Color:{self.__config['color_enabled']} | Mode:{self.presets.COLOR_BRACE_OPEN}{self.__config['mode'].capitalize()}{self.presets.RESET} | Deployment:{self.__config['deployed']}")
+        self._internal_log(f"Logger -> Color:{self.__config['color_enabled']} | Mode:{self.__config['mode'].capitalize()} | Deployment:{self.__config['deployed']}")
 
     # ---------------- Public Configuration API ----------------
 
@@ -411,17 +389,40 @@ class _BaseLogger:
                   verbose: Optional[bool] = None,
                   trace_enabled: Optional[bool] = None,
                   deployment_mode: Optional[bool] = None,
-                  suppress_autoconfig: bool = False) -> None:
+                  suppress_autoconfig: bool = True) -> None:
         """
-        Centralized configuration method to set multiple options at once.
+        Configures the logger's behavior and settings based on the provided parameters.
 
-        :param mode: Output mode - 'terminal' (human readable), 'json' (for infrastructure), 'compact' (for scripts)
-        :param level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        :param color_enabled: Whether to use ANSI colors
-        :param verbose: Enable detailed context information
-        :param trace_enabled: Enable Datadog trace ID injection
-        :param deployment_mode: Whether to use deployment mode (e.g., Lambda) disable color and enable json output
-        :param highlight_syntax: Whether to highlight syntax, set to true when enabling color, set to false when disabling color initially set to true if color is enabled
+        This method allows customizing various aspects of the logger's operation, such as
+        output format (e.g., terminal, JSON, compact), log level, colorization, syntax
+        highlighting, verbosity, trace injection, and deployment behavior. It also enables
+        interaction with Datadog tracing if applicable.
+
+        All configuration updates made by this method are thread-safe due to the use of
+        internal synchronization.
+
+        :param mode: Specifies the logging mode. Expected values are 'terminal', 'json',
+                     or 'compact'. If None, the current mode is retained.
+        :param level: Defines the logging verbosity level, aligning with standard
+                      Python logging levels such as 'INFO', 'DEBUG', or 'ERROR'.
+        :param color_enabled: Indicates whether colorization is turned on in logging
+                              output. Set to True for enabling colorized logs, False
+                              for plain output.
+        :param highlight_syntax: Controls whether syntax highlighting is applied to
+                                 the logs. True to enable syntax highlights; False
+                                 to disable.
+        :param verbose: Activates verbose mode for logging output when set to True.
+                        Defaults to None, which retains the current verbosity setting.
+        :param trace_enabled: Enables or disables Datadog trace injection. If True,
+                              Datadog tracing features are activated. If False,
+                              tracing is forcibly disabled.
+        :param deployment_mode: Determines if the logger operates in a deployment
+                                context. If True, the logger reflects a production-ready
+                                configuration.
+        :param suppress_autoconfig: Avoids triggering the automatic configuration
+                                    of deployment metadata if set to True. Defaults
+                                    to True for suppressing autoconfig behavior.
+        :return: None
         """
 
         with self.__lock:
@@ -456,10 +457,15 @@ class _BaseLogger:
 
     def reinitialize(self, verbose = False):
         """
-        Re-applies all environment-variable-driven settings (e.g., COLOR_MODE, LOG_DD_TRACE, ENV).
+        Reinitializes the current environment state by rechecking deployment
+        configuration, color scheme, and fetching updated metadata for the
+        environment. Optionally logs the internal state if verbose is enabled.
 
-        This method refreshes internal flags such as deployment mode, color mode, and metadata
-        without reinitializing logger handlers. Call this if env vars are updated at runtime.
+        :param verbose: A boolean indicating whether detailed internal logging
+                        should be enabled during reinitialization.
+        :type verbose: bool
+
+        :return: None
         """
         with self.__lock:
             self.__check_deployment(verbose)
@@ -469,18 +475,48 @@ class _BaseLogger:
                 self._internal_log(json.dumps(self.logger_state, indent=2, default=lambda x: str(x), ensure_ascii=False))
 
     def update_color_presets(self, **kwargs) -> None:
-        """Update color presets for log levels and syntax highlighting."""
+        """
+        Updates the color presets dictionary with the given key-value pairs.
+
+        This method is used to update the existing color presets with new or modified
+        key-value pairs provided through the keyword arguments. It ensures thread-safety
+        by acquiring a lock during the update to prevent race conditions.
+
+        :param kwargs: Arbitrary keyword arguments representing the color presets
+            to update. The keys are the preset names, and the values are their
+            corresponding configurations.
+        :return: None
+        """
         with self.__lock:
             self.presets.update(**kwargs)
 
-    def setLevel(self, level: Literal["DEBUG", "INFO", 'WARNING', 'ERROR', 'CRITICAL']) -> None:
-        """Set the logging level for this logger."""
+    def setLevel(self, level: Union[Literal["DEBUG", "INFO", 'WARNING', 'ERROR', 'CRITICAL'], int]) -> None:
+        """
+        Sets the logging level for the application, determining the severity of messages
+        that should be handled. This method updates the logging configuration by flushing
+        handlers and applying the new level to the logger instance.
+
+        :param level: The desired logging level. Can either be an integer or one of the
+            predefined logging level literals - "DEBUG", "INFO", "WARNING", "ERROR",
+            or "CRITICAL". These levels regulate which log messages are processed.
+        :return: None
+        """
         with self.__lock:
             self.flush_handlers()
             self.__logger_instance.setLevel(self.__get_level(level))
 
     def initiate_new_run(self):
-        """Generate a new run ID for this logger instance."""
+        """
+        Initializes and assigns a new run ID for the current process.
+
+        This method generates a new run ID using the internal mechanism
+        and assigns it to the `run_id` attribute under the protection of a
+        thread lock to ensure thread safety. The method is useful for
+        distinguishing and managing separate execution runs in a controlled
+        environment.
+
+        :return: None
+        """
         with self.__lock:
             self.run_id = self.__generate_run_id()
 
@@ -548,33 +584,62 @@ class _BaseLogger:
 
     def _internal_log(self, *args) -> None:
         """Internal logging method for logger infrastructure messages."""
-        self.__log(logging.WARNING, *args, color_flag="INTERNAL")
+        if not self.__from_context:
+            self.__log(logging.WARNING, *args, color_flag="INTERNAL")
 
     # ---------------- Additional Logging Features ----------------
 
     def start_time(self) -> None:
         """
-        Starts or resets the internal timer for measuring elapsed time.
+        Records the current time as the start time.
+
+        This method captures the current time using the `time.time()` function and
+        stores it in the `__start_time` attribute. It is typically used to mark
+        the beginning of a time-sensitive operation or process.
+
+        :Attributes:
+            __start_time (float): The recorded start time in seconds since
+            the epoch, as provided by `time.time()`.
+
+        :return: None
         """
         self.__start_time = time.time()
 
     def log_time(self, message="Elapsed time") -> None:
         """
-        Logs the time elapsed since the last `start_time()` checkpoint.
+        Logs the elapsed time since the timer was started.
 
-        :param message: Prefix message to display alongside elapsed duration.
+        This method calculates the elapsed time by subtracting the start
+        time from the current time and logs the elapsed duration along
+        with the provided message. If the timer was not started, the method
+        does nothing.
+
+        :param message: Optional custom message to log along with the
+            elapsed time. Defaults to "Elapsed time".
+        :return: None
         """
         if self.__start_time:
             elapsed = time.time() - self.__start_time
-            self.info(f"{message}: {elapsed:.2f}s")
+            self._internal_log(f"{message}: {elapsed:.2f}s")
 
     def header(self, text: str, size:int =None, compact=False) -> None:
         """
-        Logs a stylized section header.
+        Formats and logs a text message as a header with optional size and compact
+        mode settings.
 
-        :param text: The header text
-        :param size: Width of the line used to center the header
-        :param compact: If True, uses a single-line compact format
+        The method processes the provided text by replacing underscores and
+        hyphens with spaces, trimming whitespace, and capitalizing the first
+        letter. Depending on the compact mode or configuration, it formats the
+        header differently and centers it within the given size width. Then it
+        logs the formatted header.
+
+        :param text: The text to be formatted and logged as a header.
+        :param size: Optional size of the output header's width for centering the
+            text. If not provided, defaults to 40 for compact mode or 80 otherwise.
+        :param compact: A boolean flag that determines whether to use compact
+            mode formatting. This also overrides the global configuration's
+            compact mode setting. Defaults to False.
+        :return: None
         """
         text = text.replace('_', ' ').replace('-', ' ').strip().capitalize()
         if compact or self.__config['mode'] == 'compact':
@@ -587,11 +652,21 @@ class _BaseLogger:
 
     def pretty_log(self, obj: Any, indent=4, **kwargs) -> None:
         """
-        Logs a prettified version of an object (dict, model, DataFrame, etc).
+        Logs a given object in a visually formatted manner, handling various object types including
+        pandas DataFrames, objects with custom serialization methods, dictionaries, and JSON strings.
+        The method includes options for indentation and keyword arguments for customization.
 
-        :param obj: Any printable object
-        :param indent: Indentation level for structured formats
-        :param kwargs: Passed through to serialization methods
+        :param obj: The object to be logged. Can be of type `pandas.DataFrame`, a dictionary, JSON
+            string, or an object with methods like `pretty_print`, `model_dump_json`, `dump_json_schema`,
+            or `json`.
+        :type obj: Any
+        :param indent: Indentation level for pretty printing JSON or similar structures.
+            Defaults to 4.
+        :type indent: int
+        :param kwargs: Additional keyword arguments passed to specific serialization methods based
+            on the object type.
+        :type kwargs: dict
+        :return: None
         """
         try:
             if isinstance(obj, pd.DataFrame):
@@ -629,7 +704,15 @@ class _BaseLogger:
 
     def flush_handlers(self):
         """
-        Thread-safe method to flush all handlers associated with the logger instance.
+        Flushes all the handlers associated with the logger instance.
+
+        This method iterates through all the handlers of the logger instance
+        and attempts to flush each of them to ensure all pending log records
+        are written out. If an exception occurs during the flush operation,
+        it is caught and ignored.
+
+        :raises Exception: Catches and ignores any exceptions raised during the
+            flushing process for individual handlers.
         """
         with self.__lock:
             for h in self.__logger_instance.handlers:
@@ -640,8 +723,16 @@ class _BaseLogger:
 
     def close(self):
         """
-        Properly closes all handlers and releases resources.
-        Should be called during application shutdown.
+        Closes all handlers associated with the logger instance, ensuring any buffered log
+        entries are flushed before removing the handlers. It also manages the cleanup of
+        global stream handlers if they were configured.
+
+        This method ensures that all resources associated with logging handlers are properly
+        released. If any errors occur while closing a handler, they are logged to standard
+        error, but the process continues to ensure other handlers are also cleaned up.
+
+        :return: None
+        :rtype: None
         """
         with self.__lock:
             self.flush_handlers()
@@ -674,14 +765,29 @@ class _BaseLogger:
         force_replace: bool = False,
     ) -> logging.Handler:
         """
-        Adds a new logging handler to the WrenchCL logger.
+        Adds a new logging handler to the logger instance. This function allows creating
+        and configuring a logging handler dynamically with the specified attributes such
+        as type of handler, associated stream, logging level, formatter, and whether to
+        replace existing handlers.
 
-        :param handler_cls: Handler class (StreamHandler, FileHandler, etc.)
-        :param stream: Required for StreamHandler
-        :param level: Log level for this handler
-        :param formatter: Optional custom formatter
-        :param force_replace: If True, removes existing handlers
-        :return: The newly added handler
+        :param handler_cls: The logging handler class to instantiate. Should be a subclass
+            of `logging.Handler`. Defaults to `logging.StreamHandler`.
+        :param stream: The stream to be used by the handler, specifically required if
+            `handler_cls` is `StreamHandler`. Accepts file-like objects or other valid
+            streams. Defaults to None.
+        :param level: The logging level for the handler. Can be specified as a string
+            (e.g., `"INFO"`, `"DEBUG"`) or an integer corresponding to logging constants.
+            Defaults to None, which uses the instance's base logging level.
+        :param formatter: An instance of `logging.Formatter` to format log messages. If
+            not provided, a default formatter is created based on the logging level.
+            Defaults to None.
+        :param force_replace: Whether to replace all existing handlers in the logger
+            instance before adding the new handler. When set to True, any previously
+            attached handlers will be removed. Defaults to False.
+
+        :return: The instance of the created and configured logging handler attached to
+            the logger instance.
+        :rtype: logging.Handler
         """
         with self.__lock:
             if not level:
@@ -717,14 +823,20 @@ class _BaseLogger:
         formatter: Optional[logging.Formatter] = None,
     ) -> logging.Handler:
         """
-        Adds a rotating file handler with the specified parameters.
+        Adds a rotating file handler to the logger instance. This handler writes log
+        messages to a file, creating new files when the current file reaches a
+        specified maximum size. Old files are retained up to a set number of backups.
 
-        :param filename: Path to the log file
-        :param max_bytes: Maximum size in bytes before rollover (default 10MB)
-        :param backup_count: Number of backup files to keep (default 5)
-        :param level: Logging level for this handler
-        :param formatter: Optional custom formatter
-        :return: The configured RotatingFileHandler
+        :param filename: The name of the file to which log messages will be written.
+        :param max_bytes: The maximum size, in bytes, that a log file can grow
+            before it is rolled over. Default is 10MB.
+        :param backup_count: The number of backup files to retain once the log file
+            is rolled over. Default is 5.
+        :param level: The logging level for the handler. If not provided, the logger's
+            base level is used. Can be specified as a string or integer.
+        :param formatter: A logging formatter instance to format the log messages.
+            If not provided, the default formatter for the logger is used.
+        :return: The newly created rotating file handler instance.
         """
         try:
             from logging.handlers import RotatingFileHandler
@@ -753,13 +865,20 @@ class _BaseLogger:
 
     # ---------------- Global Configuration ----------------
 
-    def configure_global_stream(self, level: str = "INFO", silence_others: bool = False, stream = sys.stdout) -> None:
+    def attach_global_stream(self, level: str = "INFO", silence_others: bool = False, stream = sys.stdout) -> None:
         """
-        Configures the root logger to use WrenchCL formatting.
+        Attaches a global stream handler to the root logger, setting its level and
+        silencing other loggers if specified. This method overwrites existing handlers
+        on the root logger and configures one with the given stream and level.
 
-        :param level: Log level for the global handler
-        :param silence_others: If True, silences all other loggers
-        :param stream: Output stream (defaults to stdout)
+        :param level: The logging level for the global stream, default is "INFO".
+        :type level: str
+        :param silence_others: Flag indicating whether to silence other loggers.
+        :type silence_others: bool
+        :param stream: The stream to which log messages will be written, default is sys.stdout.
+        :type stream: `io.TextIOBase`
+        :return: None
+        :rtype: None
         """
         with self.__lock:
             self.flush_handlers()
@@ -770,7 +889,8 @@ class _BaseLogger:
                 logging.StreamHandler,
                 stream=stream,
                 level=level,
-                force_replace=True
+                force_replace=True,
+                formatter=self.__get_formatter(level),
             )
             root_logger.handlers = [handler]
             root_logger.propagate = False
@@ -781,39 +901,113 @@ class _BaseLogger:
             self.__global_stream_configured = True
 
         # Log outside the lock
-        self.info(" Global stream configured successfully.")
+        self._internal_log(" Global stream configured successfully.")
 
-    def silence_logger(self, logger_name: str, level: Optional[int] = None) -> None:
+    def set_named_logger_level(self, logger_name: str, level: Optional[int] = None) -> None:
         """
-        Silences a specific logger by attaching a NullHandler.
+        Sets the logging level for a named logger. If no logging level is provided, the
+        level is set to a custom level above CRITICAL (CRITICAL + 1). This method ensures
+        that the logger has its handlers properly flushed and replaced with a
+        NullHandler when necessary. If the logging level exceeds CRITICAL + 1, the logger
+        will not propagate messages to ancestor loggers.
 
-        :param logger_name: Name of the logger to silence
-        :param level: Optional override level
+        :param logger_name: The name of the logger to configure.
+        :type logger_name: str
+        :param level: The logging level to set for the specified logger. Defaults to None,
+            which sets the level to CRITICAL + 1.
+        :type level: Optional[int]
+        :return: None
         """
+        if not level:
+            level = logging.CRITICAL + 1
+
         with self.__lock:
-            logger = logging.getLogger(logger_name)
-            for h in logger.handlers:
-                h.flush()
-            logger.handlers = [logging.NullHandler()]
-            if not level:
-                logger.setLevel(logging.CRITICAL + 1)
-            else:
+            if not self.__global_stream_configured:
+                logger = logging.getLogger(logger_name)
+                for h in logger.handlers:
+                    h.flush()
+                logger.handlers = [logging.NullHandler()]
                 logger.setLevel(level)
-            logger.propagate = False
+                if level >= logging.CRITICAL + 1:
+                    logger.propagate = False
 
-    def silence_other_loggers(self, level: Optional[int] = None) -> None:
+    def set_attached_handler_level(self, handler_name:str, level: Optional[int] = None) -> None:
         """
-        Silences all non-WrenchCL loggers.
+        Sets the logging level and formatter of an attached handler identified
+        by its name. If the level is not provided, the current logger level is used.
 
-        :param level: Optional override level
+        :param handler_name: The name of the handler to modify.
+        :type handler_name: str
+        :param level: The logging level to set for the handler. If None, the
+                      level of the logger is used.
+        :type level: Optional[int]
+        :return: None
+        """
+        if handler_name in self.attached_loggers:
+            for h in self.logger_instance.handlers:
+                if h.name == handler_name:
+                    h.setLevel(self.__get_level(level))
+                    if level is None:
+                        h.setFormatter(self.__get_formatter(self.level))
+                    else:
+                        h.setFormatter(self.__get_formatter(level))
+                    break
+
+    def silence_logger(self, logger_name:str) -> None:
+        """
+        Sets the logging level to effectively silence the specified logger by assigning
+        a level higher than CRITICAL.
+
+        :param logger_name: The name of the logger to be silenced.
+        :type logger_name: str
+        :return: This method does not return anything.
+        :rtype: None
+        """
+        level = logging.CRITICAL + 1
+        self.set_named_logger_level(logger_name, level)
+
+    def silence_other_loggers(self) -> None:
+        """
+        Silences all loggers except for the logger named 'WrenchCL'.
+
+        This function iterates through all loggers present in the logging manager's
+        logger dictionary. For each logger found, it silences it by invoking the
+        `silence_logger` method unless the logger's name is 'WrenchCL'.
+
+        :return: None
         """
         for name in logging.root.manager.loggerDict:
             if name != 'WrenchCL':
-                self.silence_logger(name, level)
+                self.silence_logger(name)
 
     def force_markup(self) -> None:
         """
-        Enables ANSI styling and literal highlighting even in non-TTY environments (e.g., CI, Docker) and JSON output mode.
+        Enables forced markup for colorful console output, updates logging
+        formatting, and configures output streams for better compatibility with
+        terminal emulators, particularly on Windows systems.
+
+        This method forcibly enables color-coded output for logging by initializing
+        Colorama to handle ANSI escape codes. It modifies standard output and error
+        streams to ensure compatibility with Windows consoles. Additional checks
+        are performed for deployment configurations and logging modes to ensure proper
+        behavior in various environments.
+
+        If Colorama is not installed, an appropriate warning will be logged,
+        and colorized output cannot be forced.
+
+        .. warning::
+
+           Forcing markup in deployment mode is not recommended. It can cause
+           issues in external parsers such as CloudWatch or Datadog. Use with caution
+           in such scenarios.
+
+        Raises:
+            - A RuntimeWarning if markup is forced while deployed, signaling potential issues.
+
+        Exceptions:
+            - Logs a warning if the Colorama library is not installed.
+
+        :raises RuntimeWarning: If markup is forced in deployment mode.
         """
         try:
             with self.__lock:
@@ -840,12 +1034,19 @@ class _BaseLogger:
                     for handler in root_logger.handlers:
                         handler.setFormatter(self.__get_formatter(root_logger.level))
 
-            self.info("Forced color output enabled.")
+            self._internal_log("Forced color output enabled.")
         except ImportError:
             self.warning("Colorama is not installed; cannot force color output.")
 
     def enable_color(self):
-        """Enable ANSI color output if colorama is available."""
+        """
+        Enables color support for terminal output. This method initializes the `colorama`
+        library if available and updates the internal configuration to enable colorized
+        output. It also initializes the presets for specific color and style usage.
+        If `colorama` is not installed, the method disables color support.
+
+        :raises ImportError: If the `colorama` module cannot be imported.
+        """
         try:
             with self.__lock:
                 colorama = importlib.import_module("colorama")
@@ -861,7 +1062,18 @@ class _BaseLogger:
             self.disable_color()
 
     def disable_color(self):
-        """Disable ANSI color output."""
+        """
+        Disables color output and syntax highlighting for the application.
+
+        This method ensures that all color and styling configurations are reset
+        to a mock implementation, effectively disabling any visual enhancements
+        previously provided. It updates the internal configuration to mark color
+        features as disabled and deinitializes the `colorama` module if present.
+
+        :raises ImportError: If the `colorama` module is not installed when attempting
+            to deinitialize it.
+
+        """
         with self.__lock:
             self._Color = _MockColorama
             self._Style = _MockColorama
@@ -876,112 +1088,182 @@ class _BaseLogger:
 
     def display_logger_state(self) -> None:
         """
-        Logs the current logger configuration and formatting settings.
+        Logs the current logger's configuration and settings.
+
+        This method calls an internal function to output a summary
+        of the logger's setup, including any relevant configurations or
+        details about the logger state. It does not take any input
+        parameters and does not return anything.
+
+        :raises Exception: If an error occurs during the logging process
+
+        :return: None
         """
         self.__log_setup_summary()
 
     # ---------------- Context Manager ----------------
 
     @contextmanager
-    def config_context(self, **kwargs):
+    def temporary(
+        self,
+        level: Optional[Union[str, int]] = None,
+        mode: Optional[Literal['terminal', 'json', 'compact']] = None,
+        color_enabled: Optional[bool] = None,
+        verbose: Optional[bool] = None,
+        trace_enabled: Optional[bool] = None,
+        highlight_syntax: Optional[bool] = None,
+        deployed: Optional[bool] = None,
+    ):
         """
-        Context manager for temporarily changing logger configuration.
+        Temporarily override logger configuration within a scoped context.
 
-        Example:
-            with logger.config_context(mode='compact', level="DEBUG"):
-                logger.debug("This will be logged in compact mode at DEBUG level")
-
-        :param kwargs: Configuration parameters to change
+        :param level: Log level (e.g. 'DEBUG', 'INFO', or int).
+        :param mode: Output mode ('terminal', 'json', 'compact').
+        :param color_enabled: Enables or disables ANSI color output.
+        :param verbose: Enables verbose logging.
+        :param trace_enabled: Enables Datadog trace correlation.
+        :param highlight_syntax: Enables literal highlighting.
+        :param deployed: Toggles deployment mode behavior.
         """
         with self.__lock:
-            # Save original values
+            self.__from_context = True
             original_values = {}
 
-            # Special handling for 'level'
-            if 'level' in kwargs:
+            # Handle level separately
+            if level is not None:
                 original_values['level'] = self.level
-                self.setLevel(kwargs.pop('level'))
+                self.setLevel(level)
 
-            # Handle all other attributes via the configure method
-            if kwargs:
-                attrs_map = {
-                    'mode': 'mode',
-                    'color_enabled': 'color_enabled',
-                    'verbose': 'verbose',
-                    'trace_enabled': 'dd_trace_enabled',
-                    'highlight_syntax': 'highlight_syntax',
-                    'deployed': 'deployed',
-                }
+            # Save existing config values
+            if mode is not None:
+                original_values['mode'] = self.__config['mode']
+            if color_enabled is not None:
+                original_values['color_enabled'] = self.__config['color_enabled']
+            if verbose is not None:
+                original_values['verbose'] = self.__config['verbose']
+            if trace_enabled is not None:
+                original_values['dd_trace_enabled'] = self.__config['dd_trace_enabled']
+            if highlight_syntax is not None:
+                original_values['highlight_syntax'] = self.__config['highlight_syntax']
+            if deployed is not None:
+                original_values['deployed'] = self.__config['deployed']
 
-                config_args = {}
-                for key, value in kwargs.items():
-                    if key in attrs_map:
-                        mapped_key = attrs_map[key]
-                        original_values[mapped_key] = self.__config.get(mapped_key)
-                        config_args[key] = value
-
-                # Apply the temporary configuration
-                if config_args:
-                    self.configure(**config_args)
+            # Apply changes
+            self.configure(
+                mode=mode,
+                color_enabled=color_enabled,
+                verbose=verbose,
+                trace_enabled=trace_enabled,
+                highlight_syntax=highlight_syntax,
+                deployment_mode=deployed,
+                suppress_autoconfig=True
+            )
 
         try:
-            # Yield control back to the with block
             yield
         finally:
-            # Restore original values
             with self.__lock:
-                # Restore level if it was changed
                 if 'level' in original_values:
-                    self.setLevel(original_values.pop('level'))
+                    self.setLevel(original_values['level'])
 
-                # Restore other configs that were changed
-                restore_args = {}
-                for attr, value in original_values.items():
-                    if attr == 'mode':
-                        restore_args['mode'] = value
-                    elif attr == 'color_enabled':
-                        restore_args['color_enabled'] = value
-                    elif attr == 'verbose':
-                        restore_args['verbose'] = value
-                    elif attr == 'dd_trace_enabled':
-                        restore_args['trace_enabled'] = value
+                self.configure(
+                    mode=original_values.get('mode'),
+                    color_enabled=original_values.get('color_enabled'),
+                    verbose=original_values.get('verbose'),
+                    trace_enabled=original_values.get('dd_trace_enabled'),
+                    highlight_syntax=original_values.get('highlight_syntax'),
+                    deployment_mode=original_values.get('deployed'),
+                    suppress_autoconfig=True
+                )
+            self.__from_context = False
 
-                if restore_args:
-                    self.configure(**restore_args)
 
     # ---------------- Properties (SIMPLIFIED) ----------------
 
     @property
     def mode(self) -> str:
         """
-        Get the current logging mode.
+        Gets the value of the 'mode' configuration.
 
-        Returns one of:
-        - 'terminal': Human-readable colored output
-        - 'json': Machine-readable structured output
-        - 'compact': Minimal single-line output
+        This property retrieves the 'mode' setting from the internal configuration
+        dictionary. If the 'mode' key is not present, it defaults to 'terminal'.
+
+        :return: The current mode setting from the configuration.
+        :rtype: str
         """
         return self.__config.get('mode', 'terminal')
 
     @property
+    def attached_loggers(self):
+        """
+        Provides a dictionary representation of the currently attached loggers and their configurations.
+
+        The function retrieves all handlers attached to the logger instance and compiles
+        a dictionary indicating the name and logging level of each handler.
+
+        :return: Dictionary where keys are handler names, and values are dictionaries containing
+                 the handler's configuration details such as logging level.
+        :rtype: dict
+        """
+        return_dict = {}
+        for h in self.__logger_instance.handlers:
+            return_dict[h.name] = {'level': h.level}
+        return return_dict
+
+    @property
     def level(self) -> str:
-        """Get the current logging level."""
+        """
+        Provides access to the logging level of the associated logger instance.
+
+        This property retrieves the string representation of the logging level
+        from the logger instance associated with the object.
+
+        :return: The string representation of the logger instance's current
+            logging level.
+        :rtype: str
+        """
         return logging.getLevelName(self.__logger_instance.level)
 
     @property
     def logger_instance(self) -> logging.Logger:
-        """Get the underlying logger instance."""
+        """
+        Provides access to the logger instance that is used by the class.
+
+        This property returns a logging.Logger instance that can be used
+        for logging within the scope of the class or associated operations.
+        The logger is initialized privately within the class and is exposed
+        through this read-only property.
+
+        :return: The logger instance for the class.
+        :rtype: logging.Logger
+        """
         return self.__logger_instance
 
     @property
     def handlers(self) -> list[Handler]:
-        """Get the current handlers."""
+        """
+        Provides access to the list of handlers associated with the logger instance.
+
+        This property allows retrieval of all the handlers currently attached to the
+        logger instance. Handlers are responsible for directing the logging output to
+        its destination, such as a file, console, or remote server. The list of handlers
+        can be used to inspect, modify, or interact with the output configuration of
+        the logger.
+
+        :return: List of handlers currently attached to the logger instance
+        :rtype: list[Handler]
+        """
         return self.__logger_instance.handlers
 
     @property
     def logger_state(self) -> dict:
         """
-        Get a complete summary of the logger's current state.
+        Provides a dictionary that represents the current state of the logger.
+        The state includes logging level, run identifier, mode, environment metadata,
+        configuration details, and information about handlers attached to the logger.
+
+        :return: A dictionary containing detailed state information of the logger.
+        :rtype: dict
         """
         return {
             "Logging Level": self.level,
@@ -1001,12 +1283,27 @@ class _BaseLogger:
 
     @property
     def color_presets(self) -> ColorPresets:
-        """Returns the active ColorPresets object used for ANSI styling."""
+        """
+        Provides access to predefined color presets associated with the object. These
+        presets can be used to define color configurations or themes based on the
+        underlying data.
+
+        :rtype: ColorPresets
+        :return: A collection of predefined color presets.
+        """
         return self.presets
 
     @property
     def highlight_syntax(self) -> bool:
-        """Whether syntax highlighting for literals is enabled."""
+        """
+        Indicates whether syntax highlighting is enabled in the current configuration.
+
+        This property retrieves the value of the `highlight_syntax` setting from the
+        internal configuration dictionary.
+
+        :return: A boolean value indicating if syntax highlighting is enabled
+        :rtype: bool
+        """
         return self.__config['highlight_syntax']
 
     # ---------------- Internals ----------------
@@ -1070,8 +1367,15 @@ class _BaseLogger:
             stacklevel=self.__get_depth(internal = color_flag == 'INTERNAL')
         )
 
+    @staticmethod
+    def __remove_ansi_codes(text: str) -> str:
+        """Remove any existing ANSI escape codes from the text."""
+        return re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', text)
+
     def __highlight_literals(self, msg: str, data: bool = False) -> str:
         """Add syntax highlighting to literals in log messages."""
+        msg = self.__remove_ansi_codes(msg)
+
         if self.__force_markup:
             pass
         elif not self.__config['color_enabled'] or not self.__config['highlight_syntax'] or self.__config['deployed']:
@@ -1079,12 +1383,50 @@ class _BaseLogger:
 
         c = self.presets
 
+        # Highlight numbers
+        msg = re.sub(
+            r'(?<![\w-])'            # no word char or hyphen before
+            r'(\d+(?:\.\d+)?[a-zA-Z%]*)'  # number with optional decimal and unit suffix
+            r'(?=\s|$|\)|(?=\W\s))',  # end must be space, end-of-line, closing paren, or punctuation+space
+            lambda m: f"{c.COLOR_NUMBER}{m.group(1)}{c.RESET_FORE}",
+            msg
+        )
+
         # Boolean/None literals — match as full words
-        msg = re.sub(r'\btrue\b', lambda m: f"{c.COLOR_TRUE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
-        msg = re.sub(r'\bfalse\b', lambda m: f"{c.COLOR_FALSE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
-        msg = re.sub(r'\bnone\b', lambda m: f"{c.COLOR_NONE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
-        msg = re.sub(r'\bnull\b', lambda m: f"{c.COLOR_NONE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
-        msg = re.sub(r'\bnan\b', lambda m: f"{c.COLOR_NONE}{c.BRIGHT}{m.group(0)}{c.RESET}", msg, flags=re.IGNORECASE)
+        msg = re.sub(r'\btrue\b', lambda m: f"{c.COLOR_TRUE}{m.group(0)}{c.RESET_FORE}", msg, flags=re.IGNORECASE)
+        msg = re.sub(r'\bfalse\b', lambda m: f"{c.COLOR_FALSE}{m.group(0)}{c.RESET_FORE}", msg, flags=re.IGNORECASE)
+        msg = re.sub(r'\bnone\b', lambda m: f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}", msg, flags=re.IGNORECASE)
+        msg = re.sub(r'\bnull\b', lambda m: f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}", msg, flags=re.IGNORECASE)
+        msg = re.sub(r'\bnan\b', lambda m: f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}", msg, flags=re.IGNORECASE)
+
+        msg = re.sub(
+            r'^[ \t]*\[(.*?)\]',  # only literal spaces/tabs allowed
+            lambda m: f"{c.COLOR_COLON}[{m.group(1)}]{c.RESET_FORE}",
+            msg
+        )
+
+        # Highlight %s and %{}s placeholders
+        msg = re.sub(
+            r'%\{?[a-zA-Z0-9]*[s]\}?\b',  # Match %s and %{xxc}s
+            lambda m: f"{c.COLOR_COLON}{m.group(0)}{c.RESET_FORE}",
+            msg
+        )
+
+        # Highlight only the literal curly braces and |
+        msg = re.sub(
+            r'(?<!\\)([\{\}\|])',
+            lambda m: f"{c.COLOR_COLON}{m.group(1)}{c.RESET_FORE}",
+            msg
+        )
+
+        #Highlight UUID
+        msg = re.sub(
+            r'\b([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\b',
+            lambda m: f"{c.COLOR_UUID}{m.group(1)}{c.RESET_FORE}",
+            msg,
+            flags=re.IGNORECASE
+        )
+
         if data and not self.__config['mode'] == 'json':
             msg = self.__highlight_data(msg)
         if self.__config['mode'] == 'json' and self.__force_markup:
@@ -1107,7 +1449,7 @@ class _BaseLogger:
         for keyword, color in level_keywords.items():
             msg = re.sub(
                 rf'\b{keyword}\b',
-                lambda m: f"{color}{c.BRIGHT}{m.group(0)}{c.RESET}",
+                lambda m: f"{color}{m.group(0)}{c.RESET_FORE}",
                 msg,
                 flags=re.IGNORECASE
             )
@@ -1115,28 +1457,21 @@ class _BaseLogger:
         # Highlight JSON-style keys (with optional whitespace before colon)
         msg = re.sub(
             r'(?P<key>"[^"]+?")(?P<colon>\s*:)',
-            lambda m: f"{c.COLOR_NUMBER}{c.BRIGHT}{m.group('key')}{c.RESET}{c.COLOR_COLON}{m.group('colon')}{c.RESET}",
-            msg
-        )
-
-        # Highlight numbers
-        msg = re.sub(
-            r'(?<=\s)(-?\d+(\.\d+)?)(?=\s|[,|\]])',
-            lambda m: f"{c.COLOR_KEY}{m.group(1)}{c.RESET}",
+            lambda m: f"{c.COLOR_NUMBER}{m.group('key')}{c.RESET_FORE}{c.COLOR_COLON}{m.group('colon')}{c.RESET_FORE}",
             msg
         )
 
         # Highlight brackets, braces, commas, colons
-        msg = msg.replace('{', f"{c.COLOR_BRACE_OPEN}{{{c.RESET}")
-        msg = msg.replace('}', f"{c.COLOR_BRACE_CLOSE}}}{c.RESET}")
-        msg = msg.replace('(', f"{c.COLOR_PAREN_OPEN}({c.RESET}")
-        msg = msg.replace(')', f"{c.COLOR_PAREN_CLOSE}){c.RESET}")
-        msg = msg.replace(':', f"{c.COLOR_COLON}:{c.RESET}")
-        msg = msg.replace(',', f"{c.COLOR_COMMA},{c.RESET}")
+        msg = msg.replace('{', f"{c.COLOR_BRACE_OPEN}{{{c.RESET_FORE}")
+        msg = msg.replace('}', f"{c.COLOR_BRACE_CLOSE}}}{c.RESET_FORE}")
+        msg = msg.replace('(', f"{c.COLOR_PAREN_OPEN}({c.RESET_FORE}")
+        msg = msg.replace(')', f"{c.COLOR_PAREN_CLOSE}){c.RESET_FORE}")
+        msg = msg.replace(':', f"{c.COLOR_COLON}:{c.RESET_FORE}")
+        msg = msg.replace(',', f"{c.COLOR_COMMA},{c.RESET_FORE}")
 
         # Brackets: only color when at line-start or line-end to avoid nested breakage
-        msg = re.sub(r'(?<=\n)(\s*)\[', lambda m: f"{m.group(1)}{c.COLOR_BRACKET_OPEN}[{c.RESET}", msg)
-        msg = re.sub(r'\](?=\n)', lambda m: f"{c.COLOR_BRACKET_CLOSE}]{c.RESET}", msg)
+        msg = re.sub(r'(?<=\n)(\s*)\[', lambda m: f"{m.group(1)}{c.COLOR_BRACKET_OPEN}[{c.RESET_FORE}", msg)
+        msg = re.sub(r'\](?=\n)', lambda m: f"{c.COLOR_BRACKET_CLOSE}]{c.RESET_FORE}", msg)
 
         return msg
 
@@ -1146,28 +1481,21 @@ class _BaseLogger:
         c = self.presets
         msg = re.sub(
             r'(?P<key>"[^"]+?")(?P<colon>\s*:)',  # `"key":` only
-            lambda m: f"{c.INFO}{c.BRIGHT}{m.group('key')}{c.RESET}{c.COLOR_COLON}{m.group('colon')}{c.RESET}",
-            msg
-        )
-
-        # Match standalone integers (not quoted, surrounded by whitespace or symbols)
-        msg = re.sub(
-            r'(?<=\s)(\d+)(?=\s|[,|\]])',  # match int if followed by space, comma, or ]
-            lambda m: f"{c.COLOR_NUMBER}{m.group(1)}{c.RESET}",
+            lambda m: f"{c.INFO}{m.group('key')}{c.RESET_FORE}{c.COLOR_COLON}{m.group('colon')}{c.RESET_FORE}",
             msg
         )
 
         # Brackets, braces, parens
-        msg = msg.replace('{', f"{c.COLOR_BRACE_OPEN}{{{c.RESET}")
-        msg = msg.replace('}', f"{c.COLOR_BRACE_CLOSE}}}{c.RESET}")
-        msg = msg.replace('(', f"{c.COLOR_PAREN_OPEN}({c.RESET}")
-        msg = msg.replace(')', f"{c.COLOR_PAREN_CLOSE}){c.RESET}")
-        msg = msg.replace(':', f"{c.COLOR_COLON}:{c.RESET}")
-        msg = msg.replace(',', f"{c.COLOR_COMMA},{c.RESET}")
+        msg = msg.replace('{', f"{c.COLOR_BRACE_OPEN}{{{c.RESET_FORE}")
+        msg = msg.replace('}', f"{c.COLOR_BRACE_CLOSE}}}{c.RESET_FORE}")
+        msg = msg.replace('(', f"{c.COLOR_PAREN_OPEN}({c.RESET_FORE}")
+        msg = msg.replace(')', f"{c.COLOR_PAREN_CLOSE}){c.RESET_FORE}")
+        msg = msg.replace(':', f"{c.COLOR_COLON}:{c.RESET_FORE}")
+        msg = msg.replace(',', f"{c.COLOR_COMMA},{c.RESET_FORE}")
 
         # Brackets: only color when at line-start or line-end to avoid nested breakage
-        msg = re.sub(r'(?<=\n)(\s*)\[', lambda m: f"{m.group(1)}{c.COLOR_BRACKET_OPEN}[{c.RESET}", msg)
-        msg = re.sub(r'\](?=\n)', lambda m: f"{c.COLOR_BRACKET_CLOSE}]{c.RESET}", msg)
+        msg = re.sub(r'(?<=\n)(\s*)\[', lambda m: f"{m.group(1)}{c.COLOR_BRACKET_OPEN}[{c.RESET_FORE}", msg)
+        msg = re.sub(r'\](?=\n)', lambda m: f"{c.COLOR_BRACKET_CLOSE}]{c.RESET_FORE}", msg)
         return msg
 
     def __get_env_prefix(self, dimmed_color, dimmed_style, color, style) -> str:
@@ -1343,12 +1671,8 @@ class _BaseLogger:
 
         msg += "  • Configuration:\n"
         for mode, enabled in settings["Configuration"].items():
-            state = "✓ Enabled" if enabled else "✗ Disabled"
-            color = self.presets.INFO if enabled else self.presets.ERROR
-            msg += f"      - {mode:20s}: {self.__apply_color(state, color)}\n"
-
-        if self.__config['color_enabled']:
-            msg += self.presets.get_demo_string()
+            state = enabled
+            msg += f"      - {mode:30s}: {state}\n"
 
         self._internal_log(msg)
 
@@ -1403,6 +1727,11 @@ class _BaseLogger:
         colored_arrow_section = f"{color}{style} -> {self.presets.RESET}"
         message_section = f"{style}{message_color}%(message)s{self.presets.RESET}"
 
+        if self.__global_stream_configured:
+            name_section = f"{color}{style}[%(name)s] - {self.presets.RESET}"
+        else:
+            name_section = f""
+
         if level == "INTERNAL":
             level_name_section = f"{color}{style}  WrenchCLInternal{self.presets.RESET}"
         elif level == "DATA":
@@ -1415,7 +1744,7 @@ class _BaseLogger:
         if level == 'INTERNAL':
             fmt = f"{level_name_section}{colored_arrow_section}{message_section}"
         else:
-            fmt = f"{app_env_section}{level_name_section}{verbose_section}{colored_arrow_section}{message_section}"
+            fmt = f"{app_env_section}{name_section}{level_name_section}{verbose_section}{colored_arrow_section}{message_section}"
 
         fmt = f"{self.presets.RESET}{fmt}{self.presets.RESET}"
 
@@ -1425,10 +1754,19 @@ class _BaseLogger:
 
     def data(self, data, **kwargs):
         """
-        Alias for `pretty_log()` for structured or semantic logging.
+        Formats and logs the given data and additional keyword arguments.
 
-        :param data: JSON-serializable object or printable value
-        :param kwargs: Optional formatting or indentation parameters
+        This method is responsible for processing input data and additional
+        keyword arguments, formatting them appropriately, and logging
+        the formatted result. It delegates the operation to the `pretty_log`
+        method, ensuring the data is displayed in a well-structured format.
+
+        :param data: The input data to be logged.
+        :type data: Any
+        :param kwargs: Additional keyword arguments passed to the logging operation.
+        :type kwargs: dict
+        :return: The result of the `pretty_log` method after formatting and logging the input.
+        :rtype: Any
         """
         return self.pretty_log(data, **kwargs)
 

@@ -19,8 +19,6 @@ def test_dataflow_import():
         from WrenchCL.DataFlow import (
             handle_lambda_response,
             GuardedResponseTrigger,
-            trigger_minimum_dataflow_metrics,
-            trigger_dataflow_metrics
         )
     except ImportError as e:
         pytest.fail(f"Importing from WrenchCL.DataFlow failed: {e}")

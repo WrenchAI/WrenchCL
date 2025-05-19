@@ -2,7 +2,7 @@
 
 import io
 import pytest
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch, MagicMock, mock_open, PropertyMock
 
 from WrenchCL.Connect import AwsClientHub, RdsServiceGateway, S3ServiceGateway
 
@@ -11,55 +11,67 @@ from WrenchCL.Connect import AwsClientHub, RdsServiceGateway, S3ServiceGateway
 # AwsClientHub Tests
 # ─────────────────────────────────────────────────────────────
 
-@patch("WrenchCL.Connect.AwsClientHub._ConfigurationManager")
-@patch("WrenchCL.Connect.AwsClientHub.boto3")
-def test_aws_client_hub_initialization(mock_boto3, mock_config_cls):
-    mock_config = MagicMock()
-    mock_config.secret_arn = "arn:aws:secret"
-    mock_config.aws_profile = "test"
-    mock_config.region_name = "us-west-2"
-    mock_config_cls.return_value = mock_config
 
-    mock_session = MagicMock()
-    mock_boto3.session.Session.return_value = mock_session
-    mock_session.client.return_value.get_secret_value.return_value = {
-        "SecretString": '{"username":"u","password":"p","host":"h","port":5432,"dbname":"d"}'
+@patch("WrenchCL.Connect.AwsClientHub._fetch_secret_from_secretsmanager")
+@patch("WrenchCL.Connect.AwsClientHub._get_boto3_session")
+@patch("WrenchCL.Connect.AwsClientHub._ConfigurationManager")
+def test_aws_client_hub_initialization(mock_cfg_cls, mock_boto_session, mock_fetch_secret):
+    mock_config = MagicMock()
+    mock_config.secret_arn = "arn:aws:secretsmanager:us-east-1:123456:secret"
+    mock_config.aws_profile = "test-profile"
+    mock_config.region_name = "us-west-2"
+    mock_config.construct_db_uri.return_value = "postgresql://u:p@h:5432/d"
+    mock_cfg_cls.return_value = mock_config
+
+    mock_fetch_secret.return_value = {
+        "username": "u", "password": "p", "host": "h", "port": 5432, "dbname": "d"
     }
 
-    hub = AwsClientHub(env_path=None, AWS_PROFILE="test", SECRET_ARN="arn:aws:secret")
-    uri = hub.get_db_uri()
-    assert uri.startswith("postgresql://")
+    hub = AwsClientHub(env_path=None, AWS_PROFILE="test-profile", SECRET_ARN="arn:aws:secretsmanager:us-east-1:123456:secret")
+    assert hub.db_uri.startswith("postgresql://")
+    assert hub.config.secret_arn == "arn:aws:secretsmanager:us-east-1:123456:secret"
 
 
-@patch("WrenchCL.Connect.AwsClientHub.boto3.session.Session")
-@patch("WrenchCL.Connect.AwsClientHub._ConfigurationManager")
-def test_get_s3_client(mock_config_cls, mock_session_cls):
+
+
+
+@patch.object(AwsClientHub, "config", new_callable=PropertyMock)
+@patch.object(AwsClientHub, "session", new_callable=PropertyMock)
+def test_get_s3_client(mock_session_prop, mock_config_prop, ):
+    # Config mock
     mock_config = MagicMock()
     mock_config.secret_arn = "arn"
     mock_config.aws_profile = "p"
     mock_config.region_name = "us-east-1"
-    mock_config_cls.return_value = mock_config
+    mock_config_prop.return_value = mock_config
 
-    mock_session = MagicMock()
-    mock_client = MagicMock()
-    mock_session.client.return_value = mock_client
-    mock_session_cls.return_value = mock_session
+    # Boto3 session and client mock
+    mock_boto_client = MagicMock()
+    mock_boto_session = MagicMock()
+    mock_boto_session.client.return_value = mock_boto_client
+    mock_session_prop.return_value = mock_boto_session
 
     hub = AwsClientHub(env_path=None, AWS_PROFILE="p", SECRET_ARN="arn")
-    s3 = hub.get_s3_client()
-    assert s3 is not None
+    s3_client = hub.s3
+    assert s3_client is mock_boto_client
+
 
 
 # ─────────────────────────────────────────────────────────────
 # RdsServiceGateway Tests
 # ─────────────────────────────────────────────────────────────
 
+from unittest.mock import patch, MagicMock
+
+from WrenchCL.Connect import RdsServiceGateway
+
+
 @patch("WrenchCL.Connect.RdsServiceGateway.ThreadedConnectionPool")
 @patch("WrenchCL.Connect.RdsServiceGateway.AwsClientHub")
 def test_rds_multithreaded_connection(mock_hub_cls, mock_pool_cls):
     mock_hub = MagicMock()
-    mock_hub.get_config.return_value.db_batch_size = 100
-    mock_hub.get_db_uri.return_value = "postgresql://u:p@h:5432/d"
+    mock_hub.config.db_batch_size = 100
+    mock_hub.db_uri = "postgresql://u:p@h:5432/d"
     mock_hub_cls.return_value = mock_hub
 
     mock_pool = MagicMock()
@@ -85,14 +97,16 @@ def test_rds_update_tuple_commit(mock_hub_cls):
     mock_cursor.fetchall.return_value = [{'id': 1}]
 
     mock_hub = MagicMock()
-    mock_hub.get_db_uri.return_value = "postgresql://..."
-    mock_hub.get_db_client.return_value = mock_conn
-    mock_hub.get_config.return_value.db_batch_size = 1000
+    mock_hub.db = mock_conn
+    mock_hub.db_uri = "postgresql://..."
+    mock_hub.config.db_batch_size = 1000
     mock_hub_cls.return_value = mock_hub
 
     svc = RdsServiceGateway(multithreaded=False)
     result = svc.update_database("UPDATE table SET x = %s", payload=("val",), returning=True)
     assert result == [{'id': 1}]
+
+
 
 
 # ─────────────────────────────────────────────────────────────
