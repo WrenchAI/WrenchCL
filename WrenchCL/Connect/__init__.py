@@ -3,13 +3,14 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
 # WrenchCL/Connect/__init__.py
-
+from WrenchCL import logger
 try:
     from .AwsClientHub import *
     from .RdsServiceGateway import *
     from .S3ServiceGateway import *
     from .Lambda import *
 except ImportError:
+    logger.debug('WrenchCL.Connect not available due to missing optional dependencies')
     AwsClientHub = None
     RdsServiceGateway = None
     S3ServiceGateway = None

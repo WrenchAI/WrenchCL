@@ -5,6 +5,9 @@
 import json
 
 from typing import Optional, Union
+
+import WrenchCL.Exceptions
+
 try:
     import psycopg2
     from mypy_boto3_lambda.client import LambdaClient
@@ -28,11 +31,12 @@ except ImportError:
     imports = False
 
 from WrenchCL.Decorators.SingletonClass import SingletonClass
-from WrenchCLExceptions import InvalidConfigurationException
+from WrenchCL.Exceptions import InvalidConfigurationException
 from WrenchCL._Internal.require_module import require_module
-from WrenchCLTools.ccLogBase import logger
+from WrenchCL.Tools.ccLogBase import logger
 
 
+# noinspection PyUnresolvedReferences
 @SingletonClass
 class AwsClientHub:
     """
@@ -64,7 +68,7 @@ class AwsClientHub:
                 self.reload_config(env_path=self.__env_path, **self.__kwargs)
                 self.__initialized = True
             except InvalidConfigurationException as e:
-                logger._interal_log(f"AWS Client Hub initialization deferred: {e}")
+                logger._internal_log(f"AWS Client Hub initialization deferred: {e}")
         if self.__initialized:
             if need_secret:
                 self._load_rds_secret()
@@ -151,28 +155,31 @@ class AwsClientHub:
         Initialize the database client, applying PGHOST/PGPORT override or setting up an SSH tunnel if configured.
         """
         try:
-            config = {
-                "PGHOST": self.config.pghost_override or self.config.db_host,
-                "PGPORT": int(self.config.pgport_override or self.config.db_port),
-                "PGDATABASE": self.config.db_name,
-                "PGUSER": self.config.db_user,
-                "PGPASSWORD": self.config.db_pass
-            }
-
-            if not self.config.pghost_override and all([
-                self.config.ssh_server,
-                self.config.ssh_user,
-                self.config.pem_path or self.config.ssh_password
-            ]):
-                config["SSH_TUNNEL"] = {
-                    "SSH_SERVER": self.config.ssh_server,
-                    "SSH_PORT": self.config.ssh_port,
-                    "SSH_USER": self.config.ssh_user,
-                    "SSH_PASSWORD": self.config.ssh_password,
-                    "SSH_KEY_PATH": self.config.pem_path
+            if self.config and isinstance(self.config, _ConfigurationManager):
+                config = {
+                    "PGHOST": self.config.pghost_override or self.config.db_host,
+                    "PGPORT": int(self.config.pgport_override or self.config.db_port),
+                    "PGDATABASE": self.config.db_name,
+                    "PGUSER": self.config.db_user,
+                    "PGPASSWORD": self.config.db_pass
                 }
 
-            self.__db_client = self._rds_handle_configuration(config)
+                if not self.config.pghost_override and all([
+                    self.config.ssh_server,
+                    self.config.ssh_user,
+                    self.config.pem_path or self.config.ssh_password
+                ]):
+                    config["SSH_TUNNEL"] = {
+                        "SSH_SERVER": self.config.ssh_server,
+                        "SSH_PORT": self.config.ssh_port,
+                        "SSH_USER": self.config.ssh_user,
+                        "SSH_PASSWORD": self.config.ssh_password,
+                        "SSH_KEY_PATH": self.config.pem_path
+                    }
+
+                self.__db_client = self._rds_handle_configuration(config)
+            else:
+                raise WrenchCL.Exceptions.InvalidConfigurationException("Missing required config due to missing dependencies.")
 
         except Exception as e:
             logger.error(f"Failed to initialize DB client: {e}")
