@@ -4,8 +4,16 @@
 
 # WrenchCL/Connect/__init__.py
 
-from .AwsClientHub import *
-from .RdsServiceGateway import *
-from .S3ServiceGateway import *
+try:
+    from .AwsClientHub import *
+    from .RdsServiceGateway import *
+    from .S3ServiceGateway import *
+    from .Lambda import *
+except ImportError:
+    AwsClientHub = None
+    RdsServiceGateway = None
+    S3ServiceGateway = None
+    Lambda = None
+    pass
 
-__all__ = ['RdsServiceGateway', 'S3ServiceGateway', 'AwsClientHub']
+__all__ = ['RdsServiceGateway', 'S3ServiceGateway', 'AwsClientHub', 'handle_lambda_response']
