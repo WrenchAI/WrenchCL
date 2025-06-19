@@ -1,12 +1,15 @@
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
+from .require_module import require_module
 
-from sshtunnel import SSHTunnelForwarder
-from ..Tools.WrenchLogger import _logger_
+try:
+    from sshtunnel import SSHTunnelForwarder
+except ImportError:
+    SSHTunnelForwarder = None
+    require_module(True, 'aws', 'sshtunnel')
 
-logger = _logger_()
-logger.silence_logger("paramiko")
+from WrenchCL.Tools.ccLogBase import logger
 
 
 class _SshTunnelManager:
@@ -39,12 +42,12 @@ class _SshTunnelManager:
 
         safe_config = {k: mask(v) if k == "PGPASSWORD" else v for k, v in self.config.items()}
         safe_ssh_config = {
-            k: mask(v) if k in {"SSH_PASSWORD", "SSH_KEY_PATH"} else v
-            for k, v in self.ssh_config.items()
-        }
+                k: mask(v) if k in {"SSH_PASSWORD", "SSH_KEY_PATH"} else v
+                for k, v in self.ssh_config.items()
+                }
 
-        logger._internal_log(f"SSH Tunnel Manager initialized with config: {safe_config}")
-        logger._internal_log(f"SSH-specific configuration: {safe_ssh_config}")
+        logger.debug(f"SSH Tunnel Manager initialized with config: {safe_config}")
+        logger.debug(f"SSH-specific configuration: {safe_ssh_config}")
 
     def _validate_ssh_config(self):
         """Raise if essential SSH tunnel credentials are missing."""
@@ -63,18 +66,18 @@ class _SshTunnelManager:
         :returns: Local bind address and port tuple.
         :raises Exception: If tunnel fails to start.
         """
-        logger._internal_log(
-            f"Starting SSH tunnel to {self.ssh_config['SSH_SERVER']}:{self.ssh_config['SSH_PORT']} "
-            f"as user {self.ssh_config['SSH_USER']}"
-        )
+        logger.debug(
+                f"Starting SSH tunnel to {self.ssh_config['SSH_SERVER']}:{self.ssh_config['SSH_PORT']} "
+                f"as user {self.ssh_config['SSH_USER']}"
+                )
 
         self.tunnel = SSHTunnelForwarder(
-            ssh_address_or_host=(self.ssh_config["SSH_SERVER"], self.ssh_config["SSH_PORT"]),
-            ssh_username=self.ssh_config["SSH_USER"],
-            ssh_password=self.ssh_config.get("SSH_PASSWORD"),
-            ssh_pkey=self.ssh_config.get("SSH_KEY_PATH"),
-            remote_bind_address=(self.config["PGHOST"], self.config["PGPORT"])
-        )
+                ssh_address_or_host=(self.ssh_config["SSH_SERVER"], self.ssh_config["SSH_PORT"]),
+                ssh_username=self.ssh_config["SSH_USER"],
+                ssh_password=self.ssh_config.get("SSH_PASSWORD"),
+                ssh_pkey=self.ssh_config.get("SSH_KEY_PATH"),
+                remote_bind_address=(self.config["PGHOST"], self.config["PGPORT"])
+                )
 
         try:
             self.tunnel.start()
@@ -82,12 +85,12 @@ class _SshTunnelManager:
             logger.error(f"Failed to start SSH tunnel: {e}")
             raise
 
-        logger._internal_log(f"SSH tunnel active at 127.0.0.1:{self.tunnel.local_bind_port}")
+        logger.debug(f"SSH tunnel active at 127.0.0.1:{self.tunnel.local_bind_port}")
         return "127.0.0.1", self.tunnel.local_bind_port
 
     def stop_tunnel(self):
         """Stops the tunnel if running."""
         if self.tunnel:
-            logger._internal_log("Stopping SSH tunnel...")
+            logger.debug("Stopping SSH tunnel...")
             self.tunnel.stop()
-            logger._internal_log("SSH tunnel stopped.")
+            logger.debug("SSH tunnel stopped.")
