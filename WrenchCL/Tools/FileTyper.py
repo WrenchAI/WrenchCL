@@ -2,24 +2,28 @@
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
-
 import base64
 import mimetypes
 from io import BytesIO
 from pathlib import Path
 from typing import Union, Optional, Tuple
 
-import filetype
+from filetype import filetype
 import requests
-from botocore.response import StreamingBody
-
+from WrenchCL._Internal.require_module import require_module
 from .Image2B64 import validate_base64
+
+try:
+    from botocore.response import StreamingBody
+    imports = True
+except ImportError:
+    imports = False
 
 
 class UnsupportedFileTypeError(Exception):
     pass
 
-def get_file_type(file_source: Union[str, Path, bytes, BytesIO, StreamingBody], is_url: bool = True) -> Tuple[str, str]:
+def get_file_type(file_source: Union[str, Path, bytes, BytesIO, "StreamingBody"], is_url: bool = True) -> Tuple[str, str]:
     """
     Determine the file type of a file from a URL, file path, Base64 string, bytes, or BytesIO.
 
@@ -31,7 +35,6 @@ def get_file_type(file_source: Union[str, Path, bytes, BytesIO, StreamingBody], 
     :rtype: Tuple[str, str]
     :raises UnsupportedFileTypeError: If the file type cannot be determined.
     """
-    base64_data: Optional[bytes] = None
 
     if isinstance(file_source, (str, Path)):
         if validate_base64(file_source):
@@ -59,7 +62,7 @@ def get_file_type(file_source: Union[str, Path, bytes, BytesIO, StreamingBody], 
         base64_data = file_source.read()
         file_source.seek(0)
 
-    elif isinstance(file_source, StreamingBody):
+    elif imports and isinstance(file_source, StreamingBody):
         base64_data = file_source.read()
 
     else:

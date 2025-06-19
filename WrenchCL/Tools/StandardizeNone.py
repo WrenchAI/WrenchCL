@@ -6,7 +6,7 @@
 
 from typing import Any
 
-from .._Internal._MockPandas import _MockPandas
+from WrenchCL._Internal._MockPandas import _MockPandas
 
 try:
     import pandas as pd

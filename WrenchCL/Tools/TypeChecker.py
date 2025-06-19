@@ -6,14 +6,15 @@
 
 from typing import Any, Dict, List, Type, Union, Iterable
 
-from .WrenchLogger import _logger_
+from .ccLogBase import logger
 
 
 def typechecker(
     data: Union[Dict[str, Any], List[Dict[str, Any]]],
     expected_types: Dict[str, Union[Type, List[Type]]],
     none_is_ok: bool = False,
-    errors: str = 'raise'
+    errors: str = 'raise',
+    verbose: bool = False
 ) -> bool:
     """
     Validates that each entry in a dictionary or a list of dictionaries matches the expected type.
@@ -57,11 +58,13 @@ def typechecker(
     for item in data:
         # Check for incorrect types
         for param, expected in expected_types.items():
-            _logger_()._internal_log(f"Checking param: {param}, expected type(s): {expected}")
+            if verbose:
+                logger.debug(f"Checking param: {param}, expected type(s): {expected}")
 
             if not isinstance(item, dict):
                 item = {param: item}
-                _logger_()._internal_log(f"Converted item to dict: {item}")
+                if verbose:
+                    logger.debug(f"Converted item to dict: {item}")
 
             if none_is_ok and item.get(param) is None:
                 continue
@@ -73,7 +76,8 @@ def typechecker(
                     if errors == 'raise':
                         raise TypeError(f"Incorrect param types: {error_message}")
                     elif errors == 'coerce':
-                        _logger_()._internal_log(f"Invalid input found when checking input dictionary: {error_message}")
+                        if verbose:
+                            logger.debug(f"Invalid input found when checking input dictionary: {error_message}")
                         return False
             else:
                 if not isinstance(item.get(param), expected):
@@ -81,7 +85,8 @@ def typechecker(
                     if errors == 'raise':
                         raise TypeError(f"Incorrect param types: {error_message}")
                     elif errors == 'coerce':
-                        _logger_()._internal_log(f"Invalid input found when checking input dictionary: {error_message}")
+                        if verbose:
+                            logger.debug(f"Invalid input found when checking input dictionary: {error_message}")
                         return False
 
     return True
