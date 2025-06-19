@@ -1,4 +1,4 @@
-from ..Exceptions._internal import _SingletonViolationException as SvE
+from WrenchCL.Exceptions._internal import _SingletonViolationException as SvE
 
 
 #  Copyright (c) 2024-2025.
