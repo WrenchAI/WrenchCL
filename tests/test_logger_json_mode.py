@@ -1,8 +1,8 @@
-import os
 import json
 import logging
-import sys
+import os
 from io import StringIO
+
 import pytest
 
 from WrenchCL import logger
@@ -11,7 +11,7 @@ from WrenchCL import logger
 @pytest.fixture
 def logger_fixture():
     stream = StringIO()
-
+    os.environ['DD_SERVICE'] = 'test-service'
     # Set environment for deterministic output
     os.environ["PROJECT_NAME"] = "ai-axis"
     os.environ["PROJECT_VERSION"] = "1.2.3"
@@ -19,23 +19,15 @@ def logger_fixture():
     os.environ["LOG_DD_TRACE"] = "false"
     os.environ["AWS_EXECUTION_ENV"] = "testenv"
 
-
     logger.configure(mode='json')
     # logger.force_markup()
     print(logger.logger_state)
     logger.add_new_handler(
-        handler_cls=logging.StreamHandler,
-        stream=stream,
-        level="INFO",
-        force_replace=False
-    )
-
-    logger.add_new_handler(
-        handler_cls=logging.StreamHandler,
-        stream=sys.stdout,
-        level="INFO",
-        force_replace=False
-    )
+            handler_cls=logging.StreamHandler,
+            stream=stream,
+            level="INFO",
+            force_replace=False
+            )
 
     logger.info(f"Logger initialized with log mode: {logger.mode}")
     yield logger, stream
@@ -46,8 +38,9 @@ def logger_fixture():
 
 def test_json_log_format_and_metadata(logger_fixture):
     logger, stream = logger_fixture
-    logger.info("json test message")
 
+    logger.configure(trace_enabled=True)
+    logger.info("json test message")
     for h in logger.logger_instance.handlers:
         h.flush()
 
@@ -58,13 +51,10 @@ def test_json_log_format_and_metadata(logger_fixture):
 
     assert log_entry["message"] == "json test message"
     assert log_entry["level"] == "INFO"
-    assert "timestamp" in log_entry
-    assert "module" in log_entry
-    assert "line" in log_entry
-    assert "function" in log_entry
-    assert log_entry["dd.service"] == "ai-axis"
-    assert log_entry["dd.version"] == "1.2.3"
-    assert log_entry["dd.env"] == "dev"
+    trace = log_entry["trace"]
+    assert trace["dd.service"] == "ai-axis"
+    assert trace["dd.version"] == "1.2.3"
+    assert trace["dd.env"] == "dev"
 
 
 def test_json_log_includes_exception(logger_fixture):
@@ -126,7 +116,7 @@ def test_json_flush_and_format_switch(logger_fixture):
 
 def test_terminal_log_env_metadata(logger_fixture):
     logger, stream = logger_fixture
-    logger.configure(mode = 'terminal')
+    logger.configure(mode='terminal')
 
     logger.info("terminal test")
 

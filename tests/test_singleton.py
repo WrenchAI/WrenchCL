@@ -1,6 +1,6 @@
 import pytest
-from WrenchCL.Decorators import SingletonClass
 
+from WrenchCL.Decorators import SingletonClass
 from WrenchCL.Exceptions._internal import _SingletonViolationException
 
 
