@@ -6,9 +6,17 @@ import asyncio
 import time
 from functools import wraps
 from json import JSONDecodeError
-
+from WrenchCL._Internal.require_module import require_module
 import requests
-from botocore.exceptions import ClientError, BotoCoreError
+try:
+
+    from botocore.exceptions import ClientError, BotoCoreError
+    imports = True
+except ImportError:
+    requests = None
+    ClientError = None
+    BotoCoreError = None
+    imports = False
 
 
 def Retryable(_func=None, *, max_retries=5, retry_on_exceptions=None, delay=2, verbose=False):
@@ -30,8 +38,9 @@ def Retryable(_func=None, *, max_retries=5, retry_on_exceptions=None, delay=2, v
 
     :return: The result of the decorated function, if it succeeds within the allowed retries.
     """
-    from ..Tools.WrenchLogger import _logger_
-    logger = _logger_()
+    require_module(imports, 'aws', ['requests', 'botocore'])
+    from WrenchCL.Tools.ccLogBase import logger
+    
 
     if retry_on_exceptions is None:
         retry_on_exceptions = (Exception,)
@@ -39,7 +48,7 @@ def Retryable(_func=None, *, max_retries=5, retry_on_exceptions=None, delay=2, v
     def log_message(level, message):
         if verbose:
             if level == "warning":
-                logger._internal_log(message)
+                logger.debug(message)
             elif level == "error":
                 logger.error(message)
         else:

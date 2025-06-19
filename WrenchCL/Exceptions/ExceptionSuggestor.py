@@ -100,13 +100,15 @@ class ExceptionSuggestor:
             if isinstance(obj, pd.DataFrame):
                 return True
         except ImportError:
+            pd = None
             pass
 
         try:
-            from your_module.mock_pandas import MockPandas  # Adjust import
-            if isinstance(obj, MockPandas.DataFrame):
+            from WrenchCL._Internal._MockPandas import _MockPandas  # Adjust import
+            if isinstance(obj, _MockPandas.DataFrame):
                 return True
         except ImportError:
+            _MockPandas = None
             pass
 
         return False

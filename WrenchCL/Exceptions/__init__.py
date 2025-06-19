@@ -135,3 +135,19 @@ __all__ = [
     'InvalidPayloadException',
     'SecurityViolationException',
 ]
+
+
+class GuardedResponseTrigger(Exception):
+    """Custom exception to signal early exit from the Lambda function."""
+
+    def __init__(self, response):
+        self.response = response
+
+    def get_response(self):
+        """
+        Retrieves the response associated with this exception.
+
+        :returns: The response dictionary associated with this exception.
+        :rtype: dict
+        """
+        return self.response

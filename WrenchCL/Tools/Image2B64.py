@@ -6,7 +6,6 @@
 import base64
 import hashlib
 from io import BytesIO
-
 import requests
 
 

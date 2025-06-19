@@ -3,21 +3,35 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
 import json
-import psycopg2
+
 from typing import Optional, Union
+try:
+    import psycopg2
+    from mypy_boto3_lambda.client import LambdaClient
+    from mypy_boto3_rds import RDSClient
+    from mypy_boto3_s3.client import S3Client
+    from mypy_boto3_secretsmanager.client import SecretsManagerClient
+    from WrenchCL._Internal._ConfigurationManager import _ConfigurationManager
+    from WrenchCL._Internal._SshTunnelManager import _SshTunnelManager
+    from WrenchCL._Internal._boto_cache import _get_boto3_session, _fetch_secret_from_secretsmanager
+    imports = True
+except ImportError:
+    psycopg2 = None
+    LambdaClient = None
+    RDSClient = None
+    S3Client = None
+    SecretsManagerClient = None
+    _ConfigurationManager = None
+    _SshTunnelManager = None
+    _get_boto3_session = None
+    _fetch_secret_from_secretsmanager = None
+    imports = False
 
-from mypy_boto3_lambda.client import LambdaClient
-from mypy_boto3_rds import RDSClient
-from mypy_boto3_s3.client import S3Client
-from mypy_boto3_secretsmanager.client import SecretsManagerClient
+from WrenchCL.Decorators.SingletonClass import SingletonClass
+from WrenchCLExceptions import InvalidConfigurationException
+from WrenchCL._Internal.require_module import require_module
+from WrenchCLTools.ccLogBase import logger
 
-from ..Decorators.SingletonClass import SingletonClass
-from ..Exceptions import InvalidConfigurationException
-from ..Tools.WrenchLogger import _logger_
-logger = _logger_()
-from .._Internal._ConfigurationManager import _ConfigurationManager
-from .._Internal._SshTunnelManager import _SshTunnelManager
-from .._Internal._boto_cache import _get_boto3_session, _fetch_secret_from_secretsmanager
 
 @SingletonClass
 class AwsClientHub:
@@ -40,18 +54,18 @@ class AwsClientHub:
         self.__db_client: Optional[RDSClient] = None
         self.__lambda = None
         self.__initialized = False
-        self.__secret_loaded = False
         self.__init_mode = False
 
     def _initialize(self, need_secret=False):
         """Load config and secrets if not already initialized."""
         if not self.__initialized:
+            require_module(imports, 'aws', ['boto3', 'mypy_boto3', 'paramiko', 'psycopg2', '...'])
             try:
                 self.reload_config(env_path=self.__env_path, **self.__kwargs)
                 self.__initialized = True
             except InvalidConfigurationException as e:
                 logger._interal_log(f"AWS Client Hub initialization deferred: {e}")
-        if self.__initialized and not self.__secret_loaded:
+        if self.__initialized:
             if need_secret:
                 self._load_rds_secret()
 
@@ -67,7 +81,7 @@ class AwsClientHub:
         self.__config.initialize(env_path=env_path, **kwargs)
 
     @property
-    def config(self) -> _ConfigurationManager:
+    def config(self) -> "_ConfigurationManager":
         """Loaded configuration object."""
         self._initialize()
         return self.__config
@@ -79,7 +93,7 @@ class AwsClientHub:
         return self.config.construct_db_uri()
 
     @property
-    def db(self) -> RDSClient:
+    def db(self) -> "RDSClient":
         """Postgres connection (via psycopg2) with optional SSH tunnel."""
         self._initialize(True)
         if self.__db_client is None:
@@ -87,19 +101,19 @@ class AwsClientHub:
         return self.__db_client
 
     @property
-    def s3(self) -> S3Client:
+    def s3(self) -> "S3Client":
         """Return a boto3 S3 client."""
         self._initialize()
         return self.session.client("s3", region_name=self.config.region_name)
 
     @property
-    def secretmanager(self) -> SecretsManagerClient:
+    def secretmanager(self) -> "SecretsManagerClient":
         """Return a boto3 SecretsManager client."""
         self._initialize()
         return self.session.client("secretsmanager", region_name=self.config.region_name)
 
     @property
-    def lambda_client(self) -> LambdaClient:
+    def lambda_client(self) -> "LambdaClient":
         """Return a boto3 Lambda client."""
         self._initialize(True)
         if self.__lambda is None:
@@ -116,18 +130,21 @@ class AwsClientHub:
         """
         Load the RDS secret from SecretsManager.
         """
-        secret = _fetch_secret_from_secretsmanager(
+
+        parsed = {}
+        try:
+            secret = _fetch_secret_from_secretsmanager(
             profile=self.__config.aws_profile,
             region=self.__config.region_name,
             secret_arn=self.__config.secret_arn
-        )
-
-        try:
+            )
             parsed = json.loads(secret) if isinstance(secret, str) else secret
-            self.__config.load_rds_secret(parsed)
-        except Exception as e:
-            logger.error(f"Failed to parse secret: {e}")
-            raise
+        finally:
+            configured = self.__config.load_rds_secret(parsed)
+            if not configured:
+                raise InvalidConfigurationException("Missing required RDS configuration values.")
+            else:
+                pass
 
     def _init_rds_client(self):
         """
@@ -161,7 +178,7 @@ class AwsClientHub:
             logger.error(f"Failed to initialize DB client: {e}")
             raise
 
-    def _rds_handle_configuration(self, config: dict) -> psycopg2.extensions.connection:
+    def _rds_handle_configuration(self, config: dict) -> "psycopg2.extensions.connection":
         """
         Establish a psycopg2 connection directly or through an SSH tunnel.
 
@@ -174,7 +191,7 @@ class AwsClientHub:
             try:
                 self.ssh_manager = _SshTunnelManager(config)
                 host, port = self.ssh_manager.start_tunnel()
-                logger._internal_log("SSH Tunnel Connected")
+                logger.debug("SSH Tunnel Connected")
             except Exception as e:
                 logger.error(f"SSH Tunnel failed: {e}")
                 raise
@@ -187,16 +204,16 @@ class AwsClientHub:
             password=config["PGPASSWORD"]
         )
 
-    def get_secret(self, secret_id: Optional[str] = None) -> Union[dict, str, None]:
+    def get_secret(self, secret_id: str = None) -> Union[dict, str, None]:
         """
         Retrieve a secret by ARN or default from config.
 
-        :param secret_id: Optional override for Secret ARN
+        :param secret_id: Secret to fetch
         :return: Parsed dict or raw secret string
         """
         self._initialize()
         try:
-            raw = self.secretmanager.get_secret_value(SecretId=secret_id or self.config.secret_arn)["SecretString"]
+            raw = self.secretmanager.get_secret_value(SecretId=secret_id)["SecretString"]
             try:
                 return json.loads(raw)
             except (json.JSONDecodeError, TypeError):

@@ -6,13 +6,14 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from ..Decorators import SingletonClass
+from Tools import Maybe
+from WrenchCL.Decorators import SingletonClass
 from dotenv import load_dotenv
 
-from ..Exceptions import InvalidConfigurationException
-from ..Tools.WrenchLogger import _logger_
+from WrenchCL.Exceptions import InvalidConfigurationException
+from WrenchCL.Tools.ccLogBase import logger
 
-logger = _logger_()
+
 
 @SingletonClass
 class _ConfigurationManager:
@@ -129,11 +130,15 @@ class _ConfigurationManager:
 
     def load_rds_secret(self, secret_dict: dict):
         """Populate DB connection fields from a secret dictionary."""
-        self.db_user = secret_dict.get("username")
-        self.db_pass = secret_dict.get("password")
-        self.db_name = secret_dict.get("dbname")
-        self.db_host = secret_dict.get("host")
-        self.db_port = int(secret_dict.get("port")) if secret_dict.get("port") else None
+        self.db_user = secret_dict.get("username") or self.db_user
+        self.db_pass = secret_dict.get("password") or self.db_pass
+        self.db_name = secret_dict.get("dbname") or self.db_name
+        self.db_host = secret_dict.get("host") or self.db_host
+        self.db_port = Maybe(secret_dict.get("port")).int().out() if secret_dict.get("port") else None
+        if self.db_user and self.db_pass and self.db_name and self.db_host:
+            return True
+        else:
+            return False
 
     def construct_db_uri(self) -> str:
         """Build a SQLAlchemy/Postgres URI from the current DB config."""

@@ -1,5 +1,3 @@
-from .Tools.WrenchLogger import _logger_
-
-logger: _logger_ = _logger_()
+from .Tools.ccLogBase import logger
 
 __all__ = ['logger']

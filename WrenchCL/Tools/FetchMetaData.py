@@ -7,7 +7,6 @@
 import mimetypes
 import os
 from datetime import datetime
-
 import requests
 
 
@@ -22,6 +21,7 @@ def get_metadata(file_source, is_url=True):
     :return: Dictionary containing metadata
     :rtype: dict
     """
+
     metadata = {}
 
     if is_url:

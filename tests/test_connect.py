@@ -1,10 +1,13 @@
 # tests/test_connect.py
 
-import io
-import pytest
-from unittest.mock import patch, MagicMock, mock_open, PropertyMock
+from unittest.mock import patch, PropertyMock
 
-from WrenchCL.Connect import AwsClientHub, RdsServiceGateway, S3ServiceGateway
+try:
+    from WrenchCL.Connect import AwsClientHub, RdsServiceGateway, S3ServiceGateway
+except ImportError:
+    AwsClientHub = None
+    S3ServiceGateway = None
+    RdsServiceGateway = None
 
 
 # ─────────────────────────────────────────────────────────────
@@ -24,15 +27,12 @@ def test_aws_client_hub_initialization(mock_cfg_cls, mock_boto_session, mock_fet
     mock_cfg_cls.return_value = mock_config
 
     mock_fetch_secret.return_value = {
-        "username": "u", "password": "p", "host": "h", "port": 5432, "dbname": "d"
-    }
+            "username": "u", "password": "p", "host": "h", "port": 5432, "dbname": "d"
+            }
 
     hub = AwsClientHub(env_path=None, AWS_PROFILE="test-profile", SECRET_ARN="arn:aws:secretsmanager:us-east-1:123456:secret")
     assert hub.db_uri.startswith("postgresql://")
     assert hub.config.secret_arn == "arn:aws:secretsmanager:us-east-1:123456:secret"
-
-
-
 
 
 @patch.object(AwsClientHub, "config", new_callable=PropertyMock)
@@ -54,7 +54,6 @@ def test_get_s3_client(mock_session_prop, mock_config_prop, ):
     hub = AwsClientHub(env_path=None, AWS_PROFILE="p", SECRET_ARN="arn")
     s3_client = hub.s3
     assert s3_client is mock_boto_client
-
 
 
 # ─────────────────────────────────────────────────────────────
@@ -105,8 +104,6 @@ def test_rds_update_tuple_commit(mock_hub_cls):
     svc = RdsServiceGateway(multithreaded=False)
     result = svc.update_database("UPDATE table SET x = %s", payload=("val",), returning=True)
     assert result == [{'id': 1}]
-
-
 
 
 # ─────────────────────────────────────────────────────────────

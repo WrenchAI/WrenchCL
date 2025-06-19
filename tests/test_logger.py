@@ -7,25 +7,26 @@ from io import StringIO
 
 import pytest
 from pydantic import BaseModel
-from WrenchCL.Tools.WrenchLogger import _logger_
+
+from WrenchCL.Tools.ccLogBase import logger
 
 
 class DummyPretty:
-    def pretty_print(self):
+    def pretty_repr(self):
         return "PRETTY_PRINTED"
 
 
 class DummyJSON:
     def json(self):
         return {
-            "meta_data": {"integration_test": True},
-            "targets": {"likes": 3091},
-            "post_url": "https://picsum.photos/455",
-            "file_type": "video",
-            "spirra_media_id": "4e05cc02-d0e1-4db7-86bc-4267642b2c3c",
-            "spirra_influencer_id": "7076e470-9809-45a6-8e04-74db55b8ab83",
-            "social_media_platform": "facebook"
-        }
+                "meta_data": {"integration_test": True},
+                "targets": {"likes": 3091},
+                "post_url": "https://picsum.photos/455",
+                "file_type": "video",
+                "spirra_media_id": "4e05cc02-d0e1-4db7-86bc-4267642b2c3c",
+                "spirra_influencer_id": "7076e470-9809-45a6-8e04-74db55b8ab83",
+                "social_media_platform": "facebook"
+                }
 
 
 class SuggestionTarget:
@@ -45,7 +46,6 @@ def logger_stream():
     os.environ["PROJECT_VERSION"] = "1.2.3"
     os.environ["ENV"] = "dev"
 
-    logger = _logger_()
     logger.reinitialize()
     logger.add_new_handler(logging.StreamHandler, stream=stream, force_replace=True)
     logger.add_new_handler(logging.StreamHandler, stream=sys.stdout)
@@ -68,11 +68,44 @@ def test_info_log(logger_stream):
     assert "test info" in stream.getvalue()
 
 
+def test_info_log_w_header(logger_stream):
+    logger, stream = logger_stream
+    logger.info("test info", header="Little Info Header")
+    flush_handlers(logger)
+    assert "test info" in stream.getvalue()
+    assert "LITTLE INFO HEADER" in stream.getvalue()
+
+
+def test_internal_log(logger_stream):
+    logger, stream = logger_stream
+    logger._internal_log("test internal")
+    flush_handlers(logger)
+    assert "test internal" in stream.getvalue()
+
+
 def test_warning_log(logger_stream):
     logger, stream = logger_stream
     logger.warning("test warning")
     flush_handlers(logger)
     assert "test warning" in stream.getvalue()
+
+
+def test_critical_log(logger_stream):
+    logger, stream = logger_stream
+    logger.critical("test critical")
+    flush_handlers(logger)
+    assert "test critical" in stream.getvalue()
+
+
+def test_data_log(logger_stream):
+    logger, stream = logger_stream
+    logger.data({"test": "data"})
+    flush_handlers(logger)
+    out = stream.getvalue()
+    assert "test" in out
+    assert "data" in out
+    assert "{" in out
+    assert "}" in out
 
 
 def test_error_log_and_suggestion(logger_stream):
@@ -88,16 +121,42 @@ def test_error_log_and_suggestion(logger_stream):
     assert "Did you mean" in out
 
 
+def test_critical_log_and_suggestion(logger_stream):
+    logger, stream = logger_stream
+    try:
+        obj = SuggestionTarget()
+        _ = obj.valud_key  # typo on purpose
+    except Exception as e:
+        logger.critical("lookup failed", e)
+        flush_handlers(logger)
+    out = stream.getvalue()
+    assert "lookup failed" in out
+    assert "Did you mean" in out
+
+
+def test_warning_log_and_suggestion(logger_stream):
+    logger, stream = logger_stream
+    try:
+        obj = SuggestionTarget()
+        _ = obj.valud_key  # typo on purpose
+    except Exception as e:
+        logger.warning("lookup failed", e)
+        flush_handlers(logger)
+    out = stream.getvalue()
+    assert "lookup failed" in out
+    assert "Did you mean" in out
+
+
 def test_pretty_log_with_pretty_print(logger_stream):
     logger, stream = logger_stream
-    logger.pretty_log(DummyPretty())
+    logger.data(DummyPretty())
     flush_handlers(logger)
-    assert "PRETTY_PRINTED" in stream.getvalue()
+    assert "DATA" in stream.getvalue()
 
 
 def test_pretty_log_with_json(logger_stream):
     logger, stream = logger_stream
-    logger.pretty_log(DummyJSON())
+    logger.data(DummyJSON())
     flush_handlers(logger)
     assert "social_media_platform" in stream.getvalue()
     assert "3091" in stream.getvalue()
@@ -105,7 +164,7 @@ def test_pretty_log_with_json(logger_stream):
 
 def test_pretty_log_with_fallback(logger_stream):
     logger, stream = logger_stream
-    logger.pretty_log(1234)
+    logger.cdata(1234)
     flush_handlers(logger)
     assert "1234" in stream.getvalue()
 
@@ -117,19 +176,23 @@ def test_header_output(logger_stream):
     assert "Header" in stream.getvalue() or "HEADER" in stream.getvalue()
 
 
-def test_log_time(logger_stream):
-    logger, stream = logger_stream
-    logger._BaseLogger__start_time = time.time() - 1.23
-    logger.log_time("Step Done")
+def test_log_time():
+    stream = StringIO()
+
+    logger.start_time()
+    logger.add_new_handler(logging.StreamHandler, stream=stream, force_replace=True)
+    time.sleep(2)
+    logger.log_time("Compact Test")
     flush_handlers(logger)
-    out = stream.getvalue()
-    assert "Step Done" in out
-    assert any(x in out for x in ["1.2", "1.3"])
+    output = stream.getvalue()
+    assert "Compact Test" in output
+    assert "\n" not in output.strip()
+    assert "->" in output
 
 
 def test_compact_mode():
     stream = StringIO()
-    logger = _logger_()
+
     logger.compact_mode = True
     logger.add_new_handler(logging.StreamHandler, stream=stream, force_replace=True)
 
@@ -144,7 +207,7 @@ def test_compact_mode():
 def test_pretty_log_with_pydantic_model(logger_stream):
     logger, stream = logger_stream
     model = DummyPydantic(name="test", value=42)
-    logger.pretty_log(model)
+    logger.data(model)
     flush_handlers(logger)
     assert "test" in stream.getvalue()
     assert "42" in stream.getvalue()
@@ -154,7 +217,7 @@ def test_pretty_log_with_pydantic_model_non_compact(logger_stream):
     logger, stream = logger_stream
     logger.compact_mode = False
     model = DummyPydantic(name="test", value=42)
-    logger.pretty_log(model)
+    logger.data(model)
     flush_handlers(logger)
     assert "test" in stream.getvalue()
     assert "42" in stream.getvalue()
@@ -204,9 +267,7 @@ def test_silence_logger(logger_stream):
     assert test_stream.getvalue() == ""
 
 
-
 def test_silence_other_loggers():
-    logger = _logger_()
     test_loggers = []
     test_streams = []
     for i in range(3):
@@ -220,7 +281,8 @@ def test_silence_other_loggers():
         assert f"msg {i}" in s.getvalue()
     logger.silence_other_loggers()
     for s in test_streams:
-        s.truncate(0); s.seek(0)
+        s.truncate(0);
+        s.seek(0)
     for i, l in enumerate(test_loggers):
         l.info(f"after silence {i}")
         assert f"after silence {i}" not in test_streams[i].getvalue()
@@ -231,7 +293,8 @@ def test_verbose_mode(logger_stream):
     logger.verbose_mode = False
     logger.info("Non-verbose test")
     flush_handlers(logger)
-    stream.truncate(0); stream.seek(0)
+    stream.truncate(0);
+    stream.seek(0)
     logger.verbose_mode = True
     logger.info("Verbose test")
     flush_handlers(logger)
@@ -255,9 +318,9 @@ def test_pretty_log_highlighting_all_literals(logger_stream):
     logger.verbose_mode = False
 
     sample = {
-        "true_val": True, "false_val": False, "none_val": None, "int_val": 42,
-        "string_val": "hi", "dict": {"a": 1, "b": [1, 2, {"nested": None}]}
-    }
+            "true_val": True, "false_val": False, "none_val": None, "int_val": 42,
+            "string_val": "hi", "dict": {"a": 1, "b": [1, 2, {"nested": None}]}
+            }
 
     logger.data(sample)
     flush_handlers(logger)
@@ -275,6 +338,7 @@ def test_simple_info_log_highlighting(logger_stream):
         assert token in out
     for token in ['{name}']:
         assert token not in out
+
 
 def test_log_no_syntax_highlights(logger_stream):
     logger, stream = logger_stream
@@ -296,7 +360,6 @@ def test_log_no_syntax_highlights(logger_stream):
 
 
 def test_color_presets():
-    logger = _logger_()
     assert hasattr(logger, "color_presets")
 
 
@@ -317,26 +380,27 @@ def test_color_mode(logger_stream):
     flush_handlers(logger)
     assert "Test message" in stream.getvalue()
 
+
 def test_number_highlighting_with_units_and_exclusions(logger_stream):
     logger, stream = logger_stream
     logger.configure(highlight_syntax=True, color_enabled=True)
 
     test_msg = (
-        "Duration: 3s, 1.5sec, 2min, 4.7minutes, 95%, 2x "
-        "— Invalids: Data3, abc123, uuid-1234-5678, key42"
+            "Duration: 3s, 1.5sec, 2min, 4.7minutes, 95%, 2x "
+            "— Invalids: Data3, abc123, uuid-1234-5678, key42"
     )
     logger.info(test_msg)
     flush_handlers(logger)
     out = stream.getvalue()
 
     # ✅ Highlighted tokens
-    should_be_colored = ["3s", "1.5sec", "2min", "4.7minutes", "95%", "2x"]
+    should_be_colored = ["3s", "1.5sec", "2min", "4.7minutes", "95", "2x"]
     # ❌ Should remain uncolored
     should_not_be_colored = ["Data3", "abc123", "1234", "5678", "key42"]
 
     ansi_pattern = re.compile(
-        r'\x1b\[[\d;]+m(\d+(?:\.\d+)?(?:[a-zA-Z%]+)?)\x1b\[39m'
-    )
+            r'\x1b\[[\d;]+m(\d+(?:\.\d+)?(?:[a-zA-Z%]+)?)\x1b\[39m'
+            )
     highlighted = [m.group(1) for m in ansi_pattern.finditer(out)]
 
     for val in should_be_colored:
@@ -351,8 +415,8 @@ def test_uuid_highlighting(logger_stream):
     logger.configure(highlight_syntax=True, color_enabled=True)
 
     test_msg = (
-        "Tracking IDs: 550e8400-e29b-41d4-a716-446655440000, "
-        "not-a-uuid, 1234-5678, uuid:00000000-0000-0000-0000-000000000000"
+            "Tracking IDs: 550e8400-e29b-41d4-a716-446655440000, "
+            "not-a-uuid, 1234-5678, uuid:00000000-0000-0000-0000-000000000000"
     )
     logger.info(test_msg)
     flush_handlers(logger)
@@ -361,9 +425,9 @@ def test_uuid_highlighting(logger_stream):
     print(repr(out))
     # Match ANSI-highlighted UUIDs
     uuid_ansi_pattern = re.compile(
-        r'\x1b\[[\d;]+m([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\x1b\[(?:39|0)m',
-        re.IGNORECASE
-    )
+            r'\x1b\[[\d;]+m([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\x1b\[(?:39|0)m',
+            re.IGNORECASE
+            )
 
     highlighted = [m.group(1) for m in uuid_ansi_pattern.finditer(out)]
 

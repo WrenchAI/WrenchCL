@@ -10,41 +10,41 @@ def examples():
     Fixture to provide test examples with nested and complex JSON structures.
     """
     examples = {
-        "valid_nested_json": {
-            "Payload": '{"status": "ok", "details": "{\\"level1\\": \\"{\\\\\\"level2\\\\\\": \\\\\\"{\\\\\\\\\\\\\\"level3\\\\\\\\\\\\\\": \\\\\\\\\\\\\\"value\\\\\\\\\\\\\\"}\\\\\\"}\\"}"}',
-            "Metadata": {
-                "info": '{"timestamp": "2025-01-28T12:34:56Z", "history": "[{\\"action\\": \\"created\\", \\"time\\": \\"2025-01-28T11:00:00Z\\"}]"}'
+            "valid_nested_json": {
+                    "Payload": '{"status": "ok", "details": "{\\"level1\\": \\"{\\\\\\"level2\\\\\\": \\\\\\"{\\\\\\\\\\\\\\"level3\\\\\\\\\\\\\\": \\\\\\\\\\\\\\"value\\\\\\\\\\\\\\"}\\\\\\"}\\"}"}',
+                    "Metadata": {
+                            "info": '{"timestamp": "2025-01-28T12:34:56Z", "history": "[{\\"action\\": \\"created\\", \\"time\\": \\"2025-01-28T11:00:00Z\\"}]"}'
+                            }
+                    },
+            "json_with_list_of_mixed_types": {
+                    "Payload": '{"status": "success", "results": "[{\\"id\\": 1, \\"value\\": \\"{\\\\\\"nested\\\\\\": \\\\\\"{\\\\\\\\\\\\\\"key\\\\\\\\\\\\\\": 42}\\\\\\"}\\"}, \\"raw string\\"]"}',
+                    "Metadata": {
+                            "history": '[{"event": "start", "data": "simple"}, "non-json-string", {"event": "end", "data": "{\\"nested\\": \\"deep\\"}"}]'
+                            }
+                    },
+            "malformed_json_in_payload": {
+                    "Payload": '{"data": "{\\"level1\\": \\"{\\\\\\"level2\\\\\\": \\\\\\"{\\\\\\\\\\\\\\"stream\\\\\\\\\\\\\\": \\\\\\\\\\\\\\"raw text\\\\\\\\\\\\\\"}\\\\\\"}\\"}"}',
+                    "Metadata": {
+                            "info": '{"timestamp": "2025-01-28T12:34:56Z", "details": "{\\"status\\": \\"malformed\\", \\"data\\": [{\\"key\\": 1}, \\"malformed-string\\"]}"}',
+                            "tags": ["simple", '{"complex": "{\\"key\\": \\"value\\"}"}']
+                            }
+                    },
+            "json_with_list": {
+                    "Payload": '[{"id": 1, "data": "{\\"nested\\": \\"{\\\\\\"key\\\\\\": \\\\\\"value\\\\\\"}\\"}"}, {"id": 2, "data": "plain text"}]',
+                    "Metadata": '{"history": "[{\\"event\\": \\"start\\"}, {\\"event\\": \\"end\\", \\"data\\": \\"{\\\\\\"nested\\\\\\": \\\\\\"deep\\\\\\"}\\"}]"}'
+                    },
+            "recursive_abort": {},  # Cyclic reference set below
+            "malformed_escape": {
+                    "Payload": '{"level1": "{\\"level2\\": \\"{\\\\\\"level3\\\\\\": \\\\\\"{\\\\\\\\\\\"key\\\\\\\\\": \\\\\\\\\\\"{\\\\\\\\\\\\\\\\\\\\\\\\"malformed\\\\\\\\\\\\\\\\\\\\\\\\"}\\\\\\\\\\\\"}\\"}\\"}"}',
+                    "Metadata": {
+                            "data": [
+                                    '{"key": "value"}',
+                                    '{"malformed_json": "{\\"missing_end"}',
+                                    '{"nested_list": "[{\\"key\\": 1}, {\\"key\\": 2}]"}'
+                                    ]
+                            }
+                    }
             }
-        },
-        "json_with_list_of_mixed_types": {
-            "Payload": '{"status": "success", "results": "[{\\"id\\": 1, \\"value\\": \\"{\\\\\\"nested\\\\\\": \\\\\\"{\\\\\\\\\\\\\\"key\\\\\\\\\\\\\\": 42}\\\\\\"}\\"}, \\"raw string\\"]"}',
-            "Metadata": {
-                "history": '[{"event": "start", "data": "simple"}, "non-json-string", {"event": "end", "data": "{\\"nested\\": \\"deep\\"}"}]'
-            }
-        },
-        "malformed_json_in_payload": {
-            "Payload": '{"data": "{\\"level1\\": \\"{\\\\\\"level2\\\\\\": \\\\\\"{\\\\\\\\\\\\\\"stream\\\\\\\\\\\\\\": \\\\\\\\\\\\\\"raw text\\\\\\\\\\\\\\"}\\\\\\"}\\"}"}',
-            "Metadata": {
-                "info": '{"timestamp": "2025-01-28T12:34:56Z", "details": "{\\"status\\": \\"malformed\\", \\"data\\": [{\\"key\\": 1}, \\"malformed-string\\"]}"}',
-                "tags": ["simple", '{"complex": "{\\"key\\": \\"value\\"}"}']
-            }
-        },
-        "json_with_list": {
-            "Payload": '[{"id": 1, "data": "{\\"nested\\": \\"{\\\\\\"key\\\\\\": \\\\\\"value\\\\\\"}\\"}"}, {"id": 2, "data": "plain text"}]',
-            "Metadata": '{"history": "[{\\"event\\": \\"start\\"}, {\\"event\\": \\"end\\", \\"data\\": \\"{\\\\\\"nested\\\\\\": \\\\\\"deep\\\\\\"}\\"}]"}'
-        },
-        "recursive_abort": {},  # Cyclic reference set below
-        "malformed_escape": {
-            "Payload": '{"level1": "{\\"level2\\": \\"{\\\\\\"level3\\\\\\": \\\\\\"{\\\\\\\\\\\"key\\\\\\\\\": \\\\\\\\\\\"{\\\\\\\\\\\\\\\\\\\\\\\\"malformed\\\\\\\\\\\\\\\\\\\\\\\\"}\\\\\\\\\\\\"}\\"}\\"}"}',
-            "Metadata": {
-                "data": [
-                    '{"key": "value"}',
-                    '{"malformed_json": "{\\"missing_end"}',
-                    '{"nested_list": "[{\\"key\\": 1}, {\\"key\\": 2}]"}'
-                ]
-            }
-        }
-    }
 
     # Create a cyclic reference for Example 5
     example_5 = {}
@@ -54,25 +54,29 @@ def examples():
 
     return examples
 
+
 @pytest.mark.parametrize("example_name", [
-    "valid_nested_json",
-    "json_with_list_of_mixed_types",
-    "malformed_json_in_payload",
-    "json_with_list",
-    "recursive_abort",
-    "malformed_escape"
-])
+        "valid_nested_json",
+        "json_with_list_of_mixed_types",
+        "malformed_json_in_payload",
+        "json_with_list",
+        "recursive_abort",
+        "malformed_escape"
+        ])
 def test_parse_response(example_name, examples, caplog):
     """
     Test the parse_response function with various nested and complex examples.
     """
     example_data = examples[example_name]
     logger.setLevel("DEBUG")
+    logger.configure(mode='terminal')
 
     logger._internal_log(f"Processing {example_name}")
     try:
         parsed = parse_json(example_data)
+        logger.info(f"Parsed response has type {type(parsed)}")
         logger.data(parsed)
+        logger.cdata(parsed)
         # Validate the parsed response based on the example
         if example_name == "valid_nested_json":
             assert isinstance(parsed, dict)
@@ -155,18 +159,18 @@ def test_list_loader_valid_and_malformed():
     Test the list_loader function with mixed valid and malformed inputs.
     """
     test_list = [
-        '{"key": 1}',
-        '{"key": "malformed',
-        "not a json",
-        '{"nested": {"key": "value"}}'
-    ]
+            '{"key": 1}',
+            '{"key": "malformed',
+            "not a json",
+            '{"nested": {"key": "value"}}'
+            ]
     parsed = list_loader(test_list)
     assert parsed == [
-        {"key": 1},
-        '{"key": "malformed',
-        "not a json",
-        {"nested": {"key": "value"}}
-    ]
+            {"key": 1},
+            '{"key": "malformed',
+            "not a json",
+            {"nested": {"key": "value"}}
+            ]
 
 
 def test_max_recursion_depth():
@@ -186,7 +190,6 @@ def test_large_json():
     parsed = parse_json(large_json)
     assert len(parsed["key"]) == 1000
     assert parsed["key"][0] == {"nested": 0}
-
 
 
 if __name__ == "__main__":

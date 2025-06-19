@@ -1,3 +1,4 @@
+import contextvars
 import importlib
 import inspect
 import logging
@@ -7,23 +8,159 @@ import sys
 import time
 import json
 import warnings
+from contextvars import Context
+from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
+from io import TextIOBase
 from logging import Handler
+from pprint import pformat
 from types import TracebackType
-from typing import Any, Optional, Union, Literal, Type, IO, Dict, Callable
+from typing import Any, Optional, Union, Literal, Type, IO, Callable, Set, List, Tuple
 from difflib import get_close_matches
 from contextlib import contextmanager
 import threading
 
-from .._Internal._MockPandas import _MockPandas
-from ..Decorators.Deprecated import Deprecated
-from ..Decorators.SingletonClass import SingletonClass
+from WrenchCL._Internal.require_module import require_module
+from WrenchCL._Internal._MockPandas import _MockPandas
+from WrenchCL.Decorators.SingletonClass import SingletonClass
 
 try:
     import pandas as pd
 except ImportError:
     pd = _MockPandas()
 
+_exc_info_type = None | bool | tuple[Type[BaseException], BaseException, TracebackType | None] | tuple[
+    None, None, None] | BaseException
+
+class LogLevel(str, Enum):
+    """
+    Defines LogLevel, an enumeration for logging levels.
+
+    The LogLevel class provides a specialized enumeration type for different logging
+    levels, supporting standard, alias, and mapped values. It also provides convenient
+    methods for resolving string and integer representations of log levels and for
+    mapping custom aliases to specific log levels.
+
+    :ivar DEBUG: Represents the DEBUG logging level.
+    :type DEBUG: str
+    :ivar INFO: Represents the INFO logging level.
+    :type INFO: str
+    :ivar WARNING: Represents the WARNING logging level.
+    :type WARNING: str
+    :ivar ERROR: Represents the ERROR logging level.
+    :type ERROR: str
+    :ivar CRITICAL: Represents the CRITICAL logging level.
+    :type CRITICAL: str
+    """
+    DEBUG = "DEBUG"  # noqa
+    INFO = "INFO"  # noqa
+    WARNING = "WARNING"  # noqa
+    ERROR = "ERROR"  # noqa
+    CRITICAL = "CRITICAL"  # noqa
+
+    __aMap__: dict[str, str] = {
+        "WARN": "WARNING",
+        "ERR": "ERROR",
+        "CRI": "CRITICAL",
+        "INTERNAL": "INTERNAL",
+        "DATA": "DATA",
+        "HEADER": "HEADER"
+    }
+
+    __byMap__: dict[str, str] = {"INTERNAL": "INFO", "DATA": "INFO", "HEADER": "INFO"}
+
+    @classmethod
+    def _missing_(cls, value: Union[str, int]):
+        if value is None:
+            return None
+        if issubclass(type(value), Enum):
+            value = value.value
+        if isinstance(value, int):
+            value = logging.getLevelName(value)
+        value = str(value).upper()
+        alias = cls.__aMap__.get(value, value)  # noqa
+
+        if alias in cls.__byMap__:
+            obj = str.__new__(cls, alias)
+            obj._name_ = alias
+            obj._value_ = alias
+            return obj
+
+        if alias in cls._value2member_map_:
+            return cls._value2member_map_[alias]
+
+        raise ValueError(f"Invalid log level: {value} (allowed: {[e for e in cls]})")
+
+    def __int__(self) -> int:
+        return getattr(logging, self.__byMap__.get(self.value, self.value)) # noqa
+
+logLevels = Union[int, str, LogLevel]
+"""
+Represents a log level input accepted across the logging system.
+
+Accepted Forms:
+
+- int: Standard Python log levels (e.g., 10, 20, logging.WARNING)
+- str: Case-insensitive log level names (see below)
+
+Standard Levels:
+
+- "DEBUG"
+
+- "INFO"
+
+- "WARNING"
+
+- "ERROR"
+
+- "CRITICAL"
+
+Alias Str Inputs (automatically normalized):
+
+- "WARN": "WARNING"
+
+- "ERR": "ERROR"
+
+- "CRI": "CRITICAL"
+"""
+
+@dataclass
+class LoggerConfig:
+    mode: str = 'terminal'              # 'terminal', 'json', or 'compact'
+    highlight_syntax: bool = True
+    verbose: bool = False
+    deployed: bool = False
+    dd_trace_enabled: bool = False
+    color_enabled: bool = True
+
+@dataclass
+class LogOptions:
+    """Configuration options for logging behavior and formatting."""
+    no_format: bool = False
+    no_color: bool = False
+    stack_info: bool = False
+
+    def __new__(cls, opts=None):
+        """Create LogOptions from dict, LogOptions instance, or None."""
+        if opts is None:
+            return super().__new__(cls)
+        elif isinstance(opts, dict):
+            return super().__new__(cls)
+        elif isinstance(opts, LogOptions):
+            return opts
+        else:
+            raise TypeError(f"LogOptions expects dict, LogOptions, or None, got {type(opts)}")
+
+    def __init__(self, opts=None, no_format=False, no_color=False, stack_info=False):
+        if isinstance(opts, dict):
+            self.no_format = opts.get('no_format', no_format)
+            self.no_color = opts.get('no_color', no_color)
+            self.stack_info = opts.get('stack_info', stack_info)
+        elif opts is None:
+            self.no_format = no_format
+            self.no_color = no_color
+            self.stack_info = stack_info
 
 class _ExceptionSuggestor:
     @staticmethod
@@ -73,6 +210,7 @@ class ColorPresets:
     WARNING = None
     ERROR = None
     CRITICAL = None
+    DATA = None
     HEADER = None
     BRIGHT = None
     NORMAL = None
@@ -85,6 +223,7 @@ class ColorPresets:
     COLOR_NONE = None
     COLOR_NUMBER = None
     COLOR_UUID = None
+    COLOR_KEY = None
 
     COLOR_BRACE_OPEN = None
     COLOR_BRACE_CLOSE = None
@@ -107,6 +246,7 @@ class ColorPresets:
         super().__setattr__('ERROR', getattr(self._color_class, 'RED', ''))
         super().__setattr__('CRITICAL', getattr(self._color_class, 'MAGENTA', ''))
         super().__setattr__('HEADER', getattr(self._color_class, 'CYAN', ''))
+        super().__setattr__('DATA', getattr(self._color_class, 'BLUE', ''))
 
         super().__setattr__('BRIGHT', getattr(self._style_class, 'BRIGHT', ''))
         super().__setattr__('NORMAL', getattr(self._style_class, 'NORMAL', ''))
@@ -118,15 +258,16 @@ class ColorPresets:
         super().__setattr__('COLOR_FALSE', getattr(self._color_class, 'RED', ''))
         super().__setattr__('COLOR_NONE', getattr(self._color_class, 'WHITE', ''))
         super().__setattr__('COLOR_NUMBER', getattr(self._color_class, 'YELLOW', ''))
-        super().__setattr__('COLOR_UUID', getattr(self._color_class, 'MAGENTA', ''))
+        super().__setattr__('COLOR_UUID', getattr(self._color_class, 'BLUE', ''))
+        super().__setattr__('COLOR_KEY', getattr(self._color_class, 'BLUE', ''))
 
         # Syntax colors
         super().__setattr__('COLOR_BRACE_OPEN', getattr(self._color_class, 'CYAN', ''))     # {
         super().__setattr__('COLOR_BRACE_CLOSE', getattr(self._color_class, 'CYAN', ''))    # }
-        super().__setattr__('COLOR_BRACKET_OPEN', getattr(self._color_class, 'BLUE', ''))      # [
-        super().__setattr__('COLOR_BRACKET_CLOSE', getattr(self._color_class, 'BLUE', ''))     # ]
-        super().__setattr__('COLOR_PAREN_OPEN', getattr(self._color_class, 'BLUE', ''))        # (
-        super().__setattr__('COLOR_PAREN_CLOSE', getattr(self._color_class, 'BLUE', ''))       # )
+        super().__setattr__('COLOR_BRACKET_OPEN', getattr(self._color_class, 'CYAN', ''))      # [
+        super().__setattr__('COLOR_BRACKET_CLOSE', getattr(self._color_class, 'CYAN', ''))     # ]
+        super().__setattr__('COLOR_PAREN_OPEN', getattr(self._color_class, 'CYAN', ''))        # (
+        super().__setattr__('COLOR_PAREN_CLOSE', getattr(self._color_class, 'CYAN', ''))       # )
         super().__setattr__('COLOR_COLON', getattr(self._color_class, 'MAGENTA', ''))           # :
         super().__setattr__('COLOR_COMMA', getattr(self._color_class, 'MAGENTA', ''))            # ,
 
@@ -152,31 +293,26 @@ class ColorPresets:
         name = name.upper()
         super().__setattr__(name, value)
 
-    def get_color_by_level(self, level: Union[str, int]):
-        if isinstance(level, int):
-            str_name = logging.getLevelName(level)
-        else:
-            str_name = level.upper()
-        if str_name == 'INTERNAL':
+    def get_color_by_level(self, level: logLevels):
+        level = LogLevel(level)
+        if level == 'INTERNAL':
             return self._INTERNAL_DIM_COLOR
-        return getattr(self, str_name, '')
+        return getattr(self, level, '')
 
 
-    def get_level_style(self, level: Union[str, int]):
-        if isinstance(level, int):
-            str_name = logging.getLevelName(level)
-        else:
-            str_name = level.upper()
-        if str_name in ['INFO', 'DEBUG']:
+    def get_level_style(self, level: logLevels):
+        level = LogLevel(level)
+        if level in ['INFO', 'DEBUG']:
             return self.NORMAL
-        elif str_name in ['WARNING', 'ERROR', 'CRITICAL', 'HEADER']:
+        elif level in ['WARNING', 'ERROR', 'CRITICAL', 'HEADER']:
             return self.BRIGHT
-        elif str_name == 'INTERNAL':
+        elif level == 'INTERNAL':
             return self._INTERNAL_DIM_STYLE
         else:
             return self.NORMAL
 
-    def get_message_color(self, level: Union[str, int]):
+    def get_message_color(self, level: logLevels):
+        level = LogLevel(level)
         if isinstance(level, int):
             str_name = logging.getLevelName(level)
         else:
@@ -212,91 +348,124 @@ class _CustomFormatter(logging.Formatter):
 
 
 class _JSONLogFormatter(logging.Formatter):
-    def __init__(self, env_metadata: dict, forced_color: bool, highlight_func: Callable):
+    def __init__(self, env_metadata: dict, forced_color: bool, highlight_func: Callable, traced: bool = False, deployed: bool = False):
         super().__init__()
         self.env_metadata = env_metadata
         self.color_mode = forced_color
         self.highlight_func = highlight_func
+        self.traced = traced
+        self.deployed = deployed
 
-
-    def _extract_generic_context(self) -> dict:
+    @staticmethod
+    def _extract_generic_context(metadata:Optional[dict] = None) -> dict:
         """
-        Scan all active ContextVars for common keys like user_id, client_id, or organization_id.
-        Supports deeply nested dicts and custom objects.
+        Extract known context values (user_id, organization_id, service_name) from:
+        - os.environ
+        - contextvars
+        - deeply nested dicts or object trees
         """
-
-
         context_data = {}
-        user_keys = {'user_id', 'usr_id', 'entity_id', 'user_entity_id'}
-        org_keys = {'client_id', 'org_id', 'organization_id'}
 
-        def scan_dict(d: dict):
+        user_keys = {
+            'user_id', 'usr_id', 'entity_id', 'user_entity_id', 'subject_id',
+            'client_id', 'user_name', 'username'
+        }
+        org_keys = {
+            'client_id', 'org_id', 'organization_id', 'tenant_id',
+            'team_id', 'workspace_id', 'project_id'
+        }
+        service_keys = {
+            'service_id', 'service_name', 'application', 'app_name', 'dd_service',
+            'aws_function_name', 'aws_service', 'lambda_name', 'lambda_function',
+            'aws_function', 'project_name', 'project'
+        }
+
+        def check_keys(key: str, value: Any) -> dict:
+            result = {}
+            key = key.lower()
+
+            if key in user_keys:
+                result['user_id'] = value
+            elif key in org_keys:
+                result['organization_id'] = value
+            elif key in service_keys:
+                result['service_name'] = value
+
+            # Recursive descent
+            if isinstance(value, dict):
+                result.update(scan_dict(value))
+            elif hasattr(value, '__dict__'):
+                result.update(scan_dict(vars(value)))
+
+            return result
+
+        def scan_dict(data: dict) -> dict:
             found = {}
-            try:
-                for k, v in d.items():
-                    key_lower = k.lower()
-                    if key_lower in user_keys:
-                        found['user_id'] = v
-                    elif key_lower in org_keys:
-                        found['organization_id'] = v
-                    elif isinstance(v, dict):
-                        found.update(scan_dict(v))
-                    elif hasattr(v, '__dict__'):
-                        found.update(scan_dict(vars(v)))
-            finally:
-                return found
+            for k, v in data.items():
+                found.update(check_keys(k, v))
+            return found
 
-        try:
-            import contextvars
-            ctx = contextvars.copy_context()
+        def scan_ctx(ctx: Context) -> dict:
+            found = {}
             for var in ctx:
-                val = var.get()
-                if isinstance(val, dict):
-                    context_data.update(scan_dict(val))
-                elif hasattr(val, '__dict__'):
-                    context_data.update(scan_dict(vars(val)))
-        finally:
-            return context_data
+                value = ctx.get(var)
+                found.update(check_keys(var.name, value))
+            return found
 
+        # Aggregate from all sources
+        context_data.update(scan_ctx(contextvars.copy_context()))
+        return context_data
 
 
     def format(self, record: logging.LogRecord) -> str:
+        ctx = {}
+        dd = {
+            "dd.env": self.env_metadata.get("env"),
+            "dd.service": self.env_metadata.get("project") or ctx.get('service_name'),
+            "dd.version": self.env_metadata.get("project_version")
+        }
+        ctx.update(self._extract_generic_context())
+
+        if self.traced:
+            dd.update({
+            "dd.trace_id": str(getattr(record, "dd.trace_id")),
+            "dd.span_id": str(getattr(record, "dd.span_id"))})
+
         log_record = {
             "level": record.levelname,
-            "logger": record.name,
-            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%SZ"),
-            "module": record.module,
-            "function": record.funcName,
-            "line": record.lineno,
             "message": record.getMessage(),
-
-            # Required for Datadog log correlation
-            "dd.env": self.env_metadata.get("env"),
-            "dd.service": self.env_metadata.get("project"),
-            "dd.version": self.env_metadata.get("project_version"),
-            "dd.trace_id": str(getattr(record, "dd.trace_id", "")),
-            "dd.span_id": str(getattr(record, "dd.span_id", "")),
+            "source" : {
+                "module": record.module,
+                "function": record.funcName,
+                "line": record.lineno,
+            },
+            "log_info": {
+                "logger": record.name,
+                "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%SZ"),
+            }
         }
 
+        if dd:
+            log_record['trace'] = dd
         if record.exc_info:
             log_record["exception"] = self.formatException(record.exc_info)
-
-        ctx = self._extract_generic_context()
         if len(ctx) > 0:
-            log_record.update(ctx)
+            log_record['context'] = ctx
 
-        dumped_json = json.dumps(log_record, default=str, ensure_ascii=False)
+        if self.deployed:
+            dumped_json = json.dumps(log_record, default=str, ensure_ascii=False)
+        else:
+            dumped_json = json.dumps(log_record, default=str, ensure_ascii=False, indent=2)
 
-        if self.color_mode:
-            dumped_json = self.highlight_func(dumped_json, True)
+        if self.color_mode is True and not self.deployed:
+            dumped_json = self.highlight_func(dumped_json)
 
         return dumped_json
 
-_exc_info_type = None | bool | tuple[Type[BaseException], BaseException, TracebackType | None] | tuple[
-    None, None, None] | BaseException
 
-
-class _BaseLogger:
+# noinspection PyUnusedFunction,PySameParameterValue
+@SingletonClass
+class ccLogBase:
     """
     WrenchCL's structured, colorized, and extensible logger.
 
@@ -308,7 +477,7 @@ class _BaseLogger:
     • Colorized output with environment-aware fallback (e.g., AWS Lambda disables color).
     • Smart exception suggestion engine for attribute errors.
     • Thread-safe across logging, handler updates, and reconfiguration.
-    • Singleton-safe with `_logger_()` for consistent usage across modules.
+    • Singleton-safe with `logger()` for consistent usage across modules.
 
     Initialization:
     ---------------
@@ -341,10 +510,10 @@ class _BaseLogger:
     ```
     """
 
-
-    def __init__(self, level: str = 'INFO') -> None:
+    def __init__(self) -> None:
         # Thread safety lock
-
+        self._Style = None
+        self._Color = None
         self.__lock = threading.RLock()
         self.__logger_instance = logging.getLogger('WrenchCL')
         # Basic logger state
@@ -352,38 +521,32 @@ class _BaseLogger:
         self.__force_markup = False
         self.__initialized = False
         self.run_id = self.__generate_run_id()
-        self.__base_level = 'DEBUG'
+        self.__base_level = 'INFO'
 
         # Mode flags (simplified to a single dictionary)
-        self.__config = {
-            'mode': 'terminal',      # 'terminal', 'json', or 'compact'
-            'highlight_syntax': True,
-            'verbose': False,
-            'deployed': False,
-            'dd_trace_enabled': False,
-            'color_enabled': True
-        }
+        self.__config = LoggerConfig()
 
         # Initialize objects
         self.__start_time = None
         self.__dd_log_flag = False
         self.presets = ColorPresets(None, None)
         self.__env_metadata = self.__fetch_env_metadata()
+        self.__strip_ansi_fn: Optional[Callable] = None
 
         # Read environment variables
-        self.__config['dd_trace_enabled'] = os.environ.get("LOG_DD_TRACE", "false").lower() == "true"
-        self.__config['color_enabled'] = os.environ.get("COLOR_MODE", "true").lower() == "true"
+        self.__config.dd_trace_enabled = os.environ.get("LOG_DD_TRACE", "false").lower() == "true"
+        self.__config.color_enabled = os.environ.get("COLOR_MODE", "true").lower() == "true"
         self.__from_context = False
         # Set up logger instance
         self.__setup()
         self.reinitialize()
-        self._internal_log(f"Logger -> Color:{self.__config['color_enabled']} | Mode:{self.__config['mode'].capitalize()} | Deployment:{self.__config['deployed']}")
+        self._internal_log(f"Logger -> Color:{self.__config.color_enabled} | Mode:{self.__config.mode.capitalize()} | Deployment:{self.__config.deployed}")
 
     # ---------------- Public Configuration API ----------------
 
     def configure(self,
                   mode: Optional[Literal['terminal', 'json', 'compact']] = None,
-                  level: Optional[str] = None,
+                  level: Optional[logLevels] = None,
                   color_enabled: Optional[bool] = None,
                   highlight_syntax: Optional[bool] = None,
                   verbose: Optional[bool] = None,
@@ -429,35 +592,38 @@ class _BaseLogger:
             if not suppress_autoconfig:
                 self.__check_deployment()
             if mode is not None:
-                self.__config['mode'] = mode
+                self.__config.mode = mode
+                if mode == 'json':
+                    # Backup Fallback for json deployment mode (can be overridden)
+                    self.__config.deployed = True
             if highlight_syntax is not None:
-                self.__config['highlight_syntax'] = highlight_syntax
+                self.__config.highlight_syntax = highlight_syntax
             if level is not None:
                 self.setLevel(level)
             if color_enabled is not None:
-                self.__config['color_enabled'] = color_enabled
+                self.__config.color_enabled = color_enabled
             if verbose is not None:
-                self.__config['verbose'] = verbose
+                self.__config.verbose = verbose
             if deployment_mode is not None:
-                self.__config['deployed'] = deployment_mode
+                self.__config.deployed = deployment_mode
             if trace_enabled is not None:
-                self.__config['dd_trace_enabled'] = trace_enabled
+                self.__config.dd_trace_enabled = trace_enabled
                 try:
-                    import ddtrace
+                    import ddtrace # noqa
                     ddtrace.patch(logging=True)
                     self._internal_log("Datadog trace injection enabled via ddtrace.patch(logging=True)")
                     os.environ["DD_TRACE_ENABLED"] = "true"
                 except ImportError:
-                    self.__config['dd_trace_enabled'] = False
-                    self._internal_log("   Datadog trace injection disabled: `ddtrace` module not available.")
-            if self.__config.get('dd_trace_enabled') and self.__config['mode'] != 'json':
+                    self.__config.dd_trace_enabled = False
+                    require_module(True, 'trace', 'ddtrace', False)
+            if self.__config.dd_trace_enabled and self.__config.mode != 'json':
                 self._internal_log("   Trace injection requested, but trace_id/span_id only appear in JSON mode.")
             self.__check_color()
             self.__env_metadata = self.__fetch_env_metadata()
 
     def reinitialize(self, verbose = False):
         """
-        Reinitializes the current environment state by rechecking deployment
+        Reinitialized the current environment state by rechecking deployment
         configuration, color scheme, and fetching updated metadata for the
         environment. Optionally logs the internal state if verbose is enabled.
 
@@ -490,7 +656,7 @@ class _BaseLogger:
         with self.__lock:
             self.presets.update(**kwargs)
 
-    def setLevel(self, level: Union[Literal["DEBUG", "INFO", 'WARNING', 'ERROR', 'CRITICAL'], int]) -> None:
+    def setLevel(self, level: logLevels) -> None:
         """
         Sets the logging level for the application, determining the severity of messages
         that should be handled. This method updates the logging configuration by flushing
@@ -501,9 +667,10 @@ class _BaseLogger:
             or "CRITICAL". These levels regulate which log messages are processed.
         :return: None
         """
+        level = LogLevel(level)
         with self.__lock:
             self.flush_handlers()
-            self.__logger_instance.setLevel(self.__get_level(level))
+            self.__logger_instance.setLevel(int(level))
 
     def initiate_new_run(self):
         """
@@ -521,71 +688,138 @@ class _BaseLogger:
             self.run_id = self.__generate_run_id()
 
     # ---------------- Core Logging Methods ----------------
-
-    def info(self, *args, exc_info: _exc_info_type = None, **kwargs) -> None:
+    def info(
+        self,
+        *args: Any,
+        header: Optional[str] = None,
+        log_opts: Optional[Union[LogOptions, dict]] = None,
+    ) -> None:
         """
         Logs an INFO-level message.
 
-        :param args: Strings or objects to log
-        :param exc_info: Optional exception info
-        :param no_format: If True, disables structured formatting
+        :param args: Strings or objects to log. Multiple values are joined with line breaks.
+        :param header: Optional text to prepend as a stylized header.
+        :param log_opts: Logging options (no_format, no_color, stack_info). Can be LogOptions instance or dict.
         """
-        self.__log(logging.INFO, *args, exc_info=exc_info, **kwargs)
+        opts = LogOptions(log_opts)
 
-    def warning(self, *args, exc_info: _exc_info_type = None, **kwargs) -> None:
-        """
-        Logs a WARNING-level message.
+        self.__log(level="INFO", args=args, no_format=opts.no_format, no_color=opts.no_color, stack_info=opts.stack_info, header=header)
 
-        :param args: Strings or objects to log
-        :param exc_info: Optional exception info
-        :param no_format: If True, disables structured formatting
-        """
-        self.__log(logging.WARNING, *args, exc_info=exc_info, **kwargs)
-
-    def error(self, *args, exc_info: _exc_info_type = True, **kwargs) -> None:
-        """
-        Logs an ERROR-level message.
-
-        :param args: Strings or objects to log
-        :param exc_info: Exception info (defaults to True)
-        :param no_format: If True, disables structured formatting
-        """
-        self.__log(logging.ERROR, *args, exc_info=exc_info, **kwargs)
-
-    def critical(self, *args, exc_info: _exc_info_type = None, **kwargs) -> None:
-        """
-        Logs a CRITICAL-level message.
-
-        :param args: Strings or objects to log
-        :param exc_info: Optional exception info
-        :param no_format: If True, disables structured formatting
-        """
-        self.__log(logging.CRITICAL, *args, exc_info=exc_info, **kwargs)
-
-    def debug(self, *args, exc_info: _exc_info_type = None, **kwargs) -> None:
+    def debug(
+        self,
+        *args: Any,
+        log_opts: Optional[Union[LogOptions, dict]] = None,
+    ) -> None:
         """
         Logs a DEBUG-level message.
 
-        :param args: Strings or objects to log
-        :param exc_info: Optional exception info
-        :param no_format: If True, disables structured formatting
+        :param args: Strings or objects to log. Multiple values are joined with line breaks.
+        :param log_opts: Logging options (no_format, no_color, stack_info). Can be LogOptions instance or dict.
         """
-        self.__log(logging.DEBUG, *args, exc_info=exc_info, **kwargs)
+        opts = LogOptions(log_opts)
 
-    def exception(self, *args, exc_info: _exc_info_type = True, **kwargs) -> None:
-        """
-        Logs an ERROR-level message with exception info.
+        self.__log(level="DEBUG", args=args, no_format=opts.no_format, no_color=opts.no_color, stack_info=opts.stack_info)
 
-        :param args: Strings or objects to log
-        :param exc_info: Exception info (defaults to True)
-        :param no_format: If True, disables structured formatting
+    def warning(
+        self,
+        *args: Any,
+        header: Optional[str] = None,
+        log_opts: Optional[Union[LogOptions, dict]] = None,
+        **kwargs,
+    ) -> None:
         """
-        self.__log(logging.ERROR, *args, exc_info=exc_info, **kwargs)
+        Logs a WARNING-level message.
+
+        :param args: Strings or objects to log. Multiple values are joined with line breaks.
+        :param exc_info: [DEPRECATED] Exception context. Raw exceptions in args are auto-detected.
+        :param header: Optional text to prepend as a stylized header.
+        :param log_opts: Logging options (no_format, no_color, stack_info). Can be LogOptions instance or dict.
+        """
+        opts = LogOptions(log_opts)
+        if isinstance(kwargs.get('exc_info', ''), (Exception, BaseException)):
+            args = args + (kwargs.get('exc_info'),)
+
+        self.__log(level="WARNING", args=args, no_format=opts.no_format, no_color=opts.no_color, stack_info=opts.stack_info, header=header)
+
+    def error(
+        self,
+        *args: Any,
+        header: Optional[str] = None,
+        log_opts: Optional[Union[LogOptions, dict]] = None,
+        **kwargs: Any
+    ) -> None:
+        """
+        Logs an ERROR-level message.
+
+        :param args: Strings or objects to log. Multiple values are joined with line breaks.
+        :param header: Optional text to prepend as a stylized header.
+        :param log_opts: Logging options (no_format, no_color, stack_info). Can be LogOptions instance or dict.
+        :param kwargs: [Legacy Support for depreciated exc_info] Additional keyword args passed to the underlying logger.
+        """
+        if log_opts is None:
+            log_opts = LogOptions()
+        elif isinstance(log_opts, dict):
+            log_opts = LogOptions(**log_opts)
+
+        if isinstance(kwargs.get('exc_info', ''), (Exception, BaseException)):
+            args = args + (kwargs.get('exc_info'),)
+
+        self.__log(level="ERROR", args=args, no_format=log_opts.no_format, no_color=log_opts.no_color, stack_info=log_opts.stack_info, header=header)
+
+    def critical(
+        self,
+        *args: Any,
+        header: Optional[str] = None,
+        log_opts: Optional[Union[LogOptions, dict]] = None,
+        **kwargs: Any
+    ) -> None:
+        """
+        Logs a CRITICAL-level message.
+
+        :param args: Strings or objects to log. Multiple values are joined with line breaks.
+        :param header: Optional text to prepend as a stylized header.
+        :param log_opts: Logging options (no_format, no_color, stack_info). Can be LogOptions instance or dict.
+        :param kwargs: [Legacy Support for depreciated exc_info] Additional keyword args passed to the underlying logger.
+        """
+        if log_opts is None:
+            log_opts = LogOptions()
+        elif isinstance(log_opts, dict):
+            log_opts = LogOptions(**log_opts)
+
+        if isinstance(kwargs.get('exc_info', ''), (Exception, BaseException)):
+            args = args + (kwargs.get('exc_info'),)
+
+        self.__log(level="CRITICAL", args=args, no_format=log_opts.no_format, no_color=log_opts.no_color, stack_info=log_opts.stack_info, header=header)
+
+    def exception(
+        self,
+        *args: Any,
+        header: Optional[str] = None,
+        log_opts: Optional[Union[LogOptions, dict]] = None,
+        **kwargs
+    ) -> None:
+        """
+        Logs an ERROR-level message with optional exception context.
+
+        :param args: Strings or objects to log. Multiple values are joined with line breaks.
+        :param header: Optional text to prepend as a stylized header.
+        :param log_opts: Logging options (no_format, no_color, stack_info). Can be LogOptions instance or dict.
+        :param kwargs: [Legacy Support for depreciated exc_info] Additional keyword args passed to the underlying logger.
+        """
+        opts = LogOptions(log_opts)
+        if isinstance(kwargs.get('exc_info', ''), (Exception, BaseException)):
+            args = args + (kwargs.get('exc_info'),)
+
+        self.__log(level="ERROR", args=args, no_format=opts.no_format, no_color=opts.no_color, stack_info=opts.stack_info, header=header)
+
+    # Aliases
+    success = info
+
 
     def _internal_log(self, *args) -> None:
         """Internal logging method for logger infrastructure messages."""
         if not self.__from_context:
-            self.__log(logging.WARNING, *args, color_flag="INTERNAL")
+            self.__log("INTERNAL", args=args)
 
     # ---------------- Additional Logging Features ----------------
 
@@ -620,54 +854,59 @@ class _BaseLogger:
         """
         if self.__start_time:
             elapsed = time.time() - self.__start_time
-            self._internal_log(f"{message}: {elapsed:.2f}s")
+            self.info(f"{message}: {elapsed:.2f}s")
 
-    def header(self, text: str, size:int =None, compact=False) -> None:
+    def header(self, text: str, size:int = None, compact = False, return_repr = False, level: logLevels = 'HEADER') -> Optional[str]:
         """
-        Formats and logs a text message as a header with optional size and compact
-        mode settings.
+        Formats and optionally logs or returns a header string based on the provided text
+        and specified formatting options. The header can be adjusted for size, compactness,
+        and can be returned as a string if needed.
 
-        The method processes the provided text by replacing underscores and
-        hyphens with spaces, trimming whitespace, and capitalizing the first
-        letter. Depending on the compact mode or configuration, it formats the
-        header differently and centers it within the given size width. Then it
-        logs the formatted header.
+        The text serves as the base for creating the header, and additional options allow
+        for customization such as compact styling, size adjustment, or whether the method
+        returns the formatted string or logs it.
 
-        :param text: The text to be formatted and logged as a header.
-        :param size: Optional size of the output header's width for centering the
-            text. If not provided, defaults to 40 for compact mode or 80 otherwise.
-        :param compact: A boolean flag that determines whether to use compact
-            mode formatting. This also overrides the global configuration's
-            compact mode setting. Defaults to False.
-        :return: None
+        :param text: The text to format as a header.
+        :type text: str
+        :param size: Optional size for the formatted header. If not provided, defaults depend
+            on the mode (compact or regular).
+        :type size: int, optional
+        :param compact: Determines whether the header should follow compact formatting. Defaults
+            to False, or can be affected by the current configuration mode.
+        :type compact: bool
+        :param return_repr: If True, the method returns the formatted string instead of logging it.
+        :type return_repr: bool
+        :return: The formatted header string if `repr` is True, otherwise None.
+        :rtype: Optional[str]
         """
-        text = text.replace('_', ' ').replace('-', ' ').strip().capitalize()
-        if compact or self.__config['mode'] == 'compact':
-            size = size or 40
-            formatted = self.__apply_color(text, self.presets.HEADER).center(size, "-")
+
+        if not level:
+            level = 'HEADER'
+        compact = compact or self.__config.mode == 'compact'
+        level = LogLevel(level)
+        color = self.presets.get_color_by_level(level)
+        text = text.replace('_', ' ').replace('-', ' ').strip().upper()
+        char = self.__get_safe_char("─", '-')
+        size = size or (40 if compact else 80)
+        formatted = f"{self.presets.RESET}"+ self.__apply_color(text, color).center(size, char)
+        if not compact:
+            formatted = f"\n" + formatted
+        if not return_repr:
+            self.__log("HEADER", args=(formatted,), no_format=True, no_color=True)
         else:
-            size = size or 80
-            formatted = "\n" + self.__apply_color(text, self.presets.HEADER).center(size, "-")
-        self.__log("INFO", formatted, no_format=True, no_color=True)
+            return formatted
 
-    def pretty_log(self, obj: Any, indent=4, **kwargs) -> None:
+    def __pretty_log(self, obj: Any, indent=2, compact: bool = False, **kwargs) -> None:
         """
-        Logs a given object in a visually formatted manner, handling various object types including
-        pandas DataFrames, objects with custom serialization methods, dictionaries, and JSON strings.
-        The method includes options for indentation and keyword arguments for customization.
+        Logs a given object in a visually formatted manner.
 
-        :param obj: The object to be logged. Can be of type `pandas.DataFrame`, a dictionary, JSON
-            string, or an object with methods like `pretty_print`, `model_dump_json`, `dump_json_schema`,
-            or `json`.
-        :type obj: Any
-        :param indent: Indentation level for pretty printing JSON or similar structures.
-            Defaults to 4.
-        :type indent: int
-        :param kwargs: Additional keyword arguments passed to specific serialization methods based
-            on the object type.
-        :type kwargs: dict
-        :return: None
+        :param obj: Object to log.
+        :param indent: Indentation for JSON formatting.
+        :param compact: If True, uses pprint for more compact array formatting.
+        :param kwargs: Passed to json.dumps or model_dump_json
         """
+        obj = self.__ensure_str(obj)
+        output = obj
         try:
             if isinstance(obj, pd.DataFrame):
                 prefix_str = f"DataType: {type(obj).__name__} | Shape: {obj.shape[0]} rows | {obj.shape[1]} columns"
@@ -678,27 +917,41 @@ class _BaseLogger:
                     'display.max_colwidth', 50,
                     'display.colheader_justify', 'center'
                 )
-                output = str(obj)
-            elif hasattr(obj, 'pretty_print'):
-                output = obj.pretty_print(**kwargs)
+                if not self.__config.mode == 'json':
+                    output = f"{prefix_str}\n{obj}"
+                else:
+                    output = obj.to_json(orient='records', indent=indent, **kwargs)
+            elif isinstance(obj, dict):
+                output = json.dumps(obj, indent=indent, ensure_ascii=False, **kwargs) if not compact else pformat(obj, compact=True)
             elif hasattr(obj, 'model_dump_json'):
                 output = obj.model_dump_json(indent=indent, **kwargs)
             elif hasattr(obj, 'dump_json_schema'):
                 output = obj.dump_json_schema(indent=indent, **kwargs)
+            elif hasattr(obj, 'pretty_repr'):
+                output = obj.pretty_repr(**kwargs)
             elif hasattr(obj, 'json'):
-                output = json.dumps(obj.json(), indent=indent, ensure_ascii=False, **kwargs)
-            elif isinstance(obj, dict):
-                output = json.dumps(obj, indent=indent, ensure_ascii=False, **kwargs)
-            elif isinstance(obj, str):
+                raw = obj.json()
+                output = json.dumps(raw, indent=indent, ensure_ascii=False, **kwargs) if not compact else pformat(raw, compact=compact)
+            elif isinstance(obj, str) or hasattr(obj, '__repr__') or hasattr(obj, '__str__'):
                 try:
-                    output = json.dumps(json.loads(obj), indent=indent, ensure_ascii=False, **kwargs, default=str)
+                    parsed = json.loads(obj)
+                    output = json.dumps(parsed, indent=indent, ensure_ascii=False, default=str, **kwargs) if not compact else pformat(parsed, compact=True)
                 except Exception:
-                    output = str(obj)
+                    output = obj
+            elif hasattr(obj, '__dict__'):
+                raw = str(obj.__dict__)
+                output = json.dumps(raw, indent=indent, ensure_ascii=False, **kwargs) if not compact else pformat(raw, compact=compact)
             else:
-                output = str(obj)
+                output = pformat(obj, compact=compact)
         except Exception:
-            output = str(obj)
-        self.__log(logging.INFO, output, exc_info=False, color_flag="DATA")
+            output = obj
+        finally:
+            if self.__config.mode == 'json' and isinstance(output, str):
+                try:
+                    output = json.loads(output)
+                except Exception:
+                    pass
+        self.__log("DATA", args=(output,))
 
     # ---------------- Resource Management ----------------
 
@@ -730,9 +983,6 @@ class _BaseLogger:
         This method ensures that all resources associated with logging handlers are properly
         released. If any errors occur while closing a handler, they are logged to standard
         error, but the process continues to ensure other handlers are also cleaned up.
-
-        :return: None
-        :rtype: None
         """
         with self.__lock:
             self.flush_handlers()
@@ -759,8 +1009,8 @@ class _BaseLogger:
     def add_new_handler(
         self,
         handler_cls: Type[logging.Handler] = logging.StreamHandler,
-        stream: Optional[IO[str]] = None,
-        level: Union[str, int] = None,
+        stream: Optional[TextIOBase] = None,
+        level: logLevels = None,
         formatter: Optional[logging.Formatter] = None,
         force_replace: bool = False,
     ) -> logging.Handler:
@@ -792,13 +1042,10 @@ class _BaseLogger:
         with self.__lock:
             if not level:
                 level = self.__base_level
-
-            level = self.__get_level(level)
-
             if issubclass(handler_cls, logging.StreamHandler):
                 if stream is None:
                     raise ValueError("StreamHandler requires a valid `stream` argument.")
-                handler = handler_cls(stream)
+                handler = handler_cls(stream) # noqa
             else:
                 handler = handler_cls()
 
@@ -814,14 +1061,23 @@ class _BaseLogger:
             self.__logger_instance.addHandler(handler)
             return handler
 
-    def add_rotating_file_handler(
+    class __FileLogFormatter(logging.Formatter):
+        def __init__(self, base_formatter: logging.Formatter):
+            super().__init__(base_formatter._fmt, base_formatter.datefmt)
+            self._base_formatter = base_formatter
+
+        def format(self, record: logging.LogRecord) -> str:
+            raw = self._base_formatter.format(record)
+            return ccLogBase._remove_ansi_codes(raw)
+
+    def enable_file_logging(
         self,
         filename: str,
         max_bytes: int = 10485760,  # 10MB default
         backup_count: int = 5,
-        level: Union[str, int] = None,
+        level: logLevels = None,
         formatter: Optional[logging.Formatter] = None,
-    ) -> logging.Handler:
+    ) -> Optional[logging.Handler]:
         """
         Adds a rotating file handler to the logger instance. This handler writes log
         messages to a file, creating new files when the current file reaches a
@@ -838,34 +1094,29 @@ class _BaseLogger:
             If not provided, the default formatter for the logger is used.
         :return: The newly created rotating file handler instance.
         """
-        try:
-            from logging.handlers import RotatingFileHandler
-        except ImportError:
-            self.error("Rotating file handler requires Python's logging.handlers module")
-            return None
+        from logging.handlers import RotatingFileHandler
 
         with self.__lock:
             handler = RotatingFileHandler(
                 filename=filename,
                 maxBytes=max_bytes,
                 backupCount=backup_count,
-                delay=True  # Only create file when first log written
+                delay=True,
+                encoding="utf-8"  # Ensures proper handling of non-ASCII characters
             )
+            level = level or self.__base_level
+            handler.setLevel(level)
 
-            if not level:
-                level = self.__base_level
-            handler.setLevel(self.__get_level(level))
-
-            if not formatter:
-                formatter = self.__get_formatter(level)
-            handler.setFormatter(formatter)
+            # Use ANSI-stripping formatter if none provided
+            handler.setFormatter(formatter or self.__FileLogFormatter(self.__get_formatter(level)))
 
             self.__logger_instance.addHandler(handler)
+            self._internal_log(f"File handler added to logger instance: {filename}")
             return handler
 
     # ---------------- Global Configuration ----------------
 
-    def attach_global_stream(self, level: str = "INFO", silence_others: bool = False, stream = sys.stdout) -> None:
+    def attach_global_stream(self, level: logLevels, silence_others: bool = False, stream = sys.stdout) -> None:
         """
         Attaches a global stream handler to the root logger, setting its level and
         silencing other loggers if specified. This method overwrites existing handlers
@@ -877,13 +1128,11 @@ class _BaseLogger:
         :type silence_others: bool
         :param stream: The stream to which log messages will be written, default is sys.stdout.
         :type stream: `io.TextIOBase`
-        :return: None
-        :rtype: None
         """
         with self.__lock:
             self.flush_handlers()
             root_logger = logging.getLogger()
-            root_logger.setLevel(self.__base_level)
+            root_logger.setLevel(level or self.__base_level)
 
             handler = self.add_new_handler(
                 logging.StreamHandler,
@@ -899,11 +1148,29 @@ class _BaseLogger:
                 self.silence_other_loggers()
 
             self.__global_stream_configured = True
+            # Diagnostic output
+            active_loggers = [
+                name for name in logging.root.manager.loggerDict
+                if isinstance(logging.getLogger(name), logging.Logger)
+            ]
+            handler_count = len(root_logger.handlers)
+            root_loggers = sorted({v.split('.')[0] for v in active_loggers})
+            if len(root_loggers) > 10:
+                joined_loggers = ', '.join(root_loggers[:10]) + f'...<{len(root_loggers) - 10} more>'
+            else:
+                joined_loggers = ', '.join(root_loggers)
+
+            self._internal_log(
+                f"✅ Global stream attached to root logger with {handler_count} handler(s).\n"
+                f"🔎 Active loggers detected: {len(active_loggers)}\n"
+                f"📝 Accessible root loggers: {joined_loggers}"
+                f"---Get a full list of active loggers with `active_loggers` property---"
+            )
 
         # Log outside the lock
         self._internal_log(" Global stream configured successfully.")
 
-    def set_named_logger_level(self, logger_name: str, level: Optional[int] = None) -> None:
+    def set_named_logger_level(self, logger_name: str, level: logLevels = 'INFO') -> None:
         """
         Sets the logging level for a named logger. If no logging level is provided, the
         level is set to a custom level above CRITICAL (CRITICAL + 1). This method ensures
@@ -915,23 +1182,37 @@ class _BaseLogger:
         :type logger_name: str
         :param level: The logging level to set for the specified logger. Defaults to None,
             which sets the level to CRITICAL + 1.
-        :type level: Optional[int]
+        :type level: Optional[logLevels]
         :return: None
         """
-        if not level:
-            level = logging.CRITICAL + 1
-
+        level = LogLevel(level)
         with self.__lock:
-            if not self.__global_stream_configured:
-                logger = logging.getLogger(logger_name)
-                for h in logger.handlers:
-                    h.flush()
-                logger.handlers = [logging.NullHandler()]
-                logger.setLevel(level)
-                if level >= logging.CRITICAL + 1:
-                    logger.propagate = False
+            loggers = logging.root.manager.loggerDict
+            name_map = {name.lower(): name for name in loggers}
+            normalized_name = logger_name.lower()
+            if normalized_name not in name_map:
+                log_string = f"⚠️ Logger '{logger_name}' not found (case-insensitive match). "
+                matches = get_close_matches(normalized_name, name_map, n=1, cutoff=0.6)
+                if matches:
+                    log_string += f"\n Did you mean '{matches[0]}'?"
+                else:
+                    log_string += f"\nAvailable loggers: {', '.join(sorted(loggers.keys()))}"
+                self._internal_log(log_string)
+                return
 
-    def set_attached_handler_level(self, handler_name:str, level: Optional[int] = None) -> None:
+            actual_name = name_map[normalized_name]
+            logger = logging.getLogger(actual_name)
+            logger.setLevel(int(level))
+
+            if int(level) > logging.CRITICAL:
+                logger.handlers = [logging.NullHandler()]
+                logger.propagate = False
+                self._internal_log(f"🔇 Logger '{actual_name}' silenced (level={level})")
+            else:
+                logger.propagate = True
+                self._internal_log(f"🔧 Logger '{actual_name}' set to level {level}")
+
+    def set_attached_handler_level(self, handler_name:str, level: Optional[logLevels] = None) -> None:
         """
         Sets the logging level and formatter of an attached handler identified
         by its name. If the level is not provided, the current logger level is used.
@@ -940,13 +1221,16 @@ class _BaseLogger:
         :type handler_name: str
         :param level: The logging level to set for the handler. If None, the
                       level of the logger is used.
-        :type level: Optional[int]
+        :type level: logLevels
         :return: None
         """
+        if not level:
+            level = self.__base_level
+        level = LogLevel(level)
         if handler_name in self.attached_loggers:
             for h in self.logger_instance.handlers:
                 if h.name == handler_name:
-                    h.setLevel(self.__get_level(level))
+                    h.setLevel(int(level))
                     if level is None:
                         h.setFormatter(self.__get_formatter(self.level))
                     else:
@@ -963,7 +1247,7 @@ class _BaseLogger:
         :return: This method does not return anything.
         :rtype: None
         """
-        level = logging.CRITICAL + 1
+        level = logging.CRITICAL
         self.set_named_logger_level(logger_name, level)
 
     def silence_other_loggers(self) -> None:
@@ -1018,24 +1302,25 @@ class _BaseLogger:
                 colorama.init(strip=False, convert=False)
                 sys.stdout = colorama.AnsiToWin32(sys.stdout).stream
                 sys.stderr = colorama.AnsiToWin32(sys.stderr).stream
-                if self.__force_markup and self.__config['deployed']:
+                if self.__force_markup and self.__config.deployed:
                     warnings.warn("Forcing Markup in deployment mode is not recommended and will cause issues in external parsers like cloudwatch and Datadog", category=RuntimeWarning, stacklevel=5)
                 # Update color presets and reconfigure formatters
                 self.presets = ColorPresets(self._Color, self._Style)
                 self.flush_handlers()
-                if self.__config['mode'] == 'json':
+                if self.__config.mode == 'json':
                     self.__use_json_logging()
                 else:
                     for handler in self.__logger_instance.handlers:
-                        handler.setFormatter(self.__get_formatter(self.__logger_instance.level))
+                        handler.setFormatter(self.__get_formatter(logging.getLevelName(self.__logger_instance.level)))
 
                 if self.__global_stream_configured:
                     root_logger = logging.getLogger()
                     for handler in root_logger.handlers:
-                        handler.setFormatter(self.__get_formatter(root_logger.level))
+                        handler.setFormatter(self.__get_formatter(logging.getLevelName(root_logger.level)))
 
             self._internal_log("Forced color output enabled.")
         except ImportError:
+            require_module(True, "color", 'colorama', False)
             self.warning("Colorama is not installed; cannot force color output.")
 
     def enable_color(self):
@@ -1050,15 +1335,15 @@ class _BaseLogger:
         try:
             with self.__lock:
                 colorama = importlib.import_module("colorama")
-                self.__config['color_enabled'] = True
-                self.__config['highlight_syntax'] = True if self.__config['highlight_syntax'] is not False else False
+                self.__config.color_enabled = True
+                self.__config.highlight_syntax = True if self.__config.highlight_syntax is not False else False
                 self._Color = colorama.Fore
                 self._Style = colorama.Style
                 self.presets = ColorPresets(self._Color, self._Style)
                 colorama.deinit()
                 colorama.init(strip=False, autoreset=False)
         except ImportError:
-            self._internal_log("Colorama not installed. Cannot enable color output.")
+            require_module(True, "color", 'colorama', False)
             self.disable_color()
 
     def disable_color(self):
@@ -1077,8 +1362,8 @@ class _BaseLogger:
         with self.__lock:
             self._Color = _MockColorama
             self._Style = _MockColorama
-            self.__config['color_enabled'] = False
-            self.__config['highlight_syntax'] = False
+            self.__config.color_enabled = False
+            self.__config.highlight_syntax = False
             try:
                 colorama = importlib.import_module("colorama")
                 colorama.deinit()
@@ -1106,7 +1391,7 @@ class _BaseLogger:
     @contextmanager
     def temporary(
         self,
-        level: Optional[Union[str, int]] = None,
+        level: Optional[logLevels] = None,
         mode: Optional[Literal['terminal', 'json', 'compact']] = None,
         color_enabled: Optional[bool] = None,
         verbose: Optional[bool] = None,
@@ -1117,7 +1402,7 @@ class _BaseLogger:
         """
         Temporarily override logger configuration within a scoped context.
 
-        :param level: Log level (e.g. 'DEBUG', 'INFO', or int).
+        :param level: logLevels.
         :param mode: Output mode ('terminal', 'json', 'compact').
         :param color_enabled: Enables or disables ANSI color output.
         :param verbose: Enables verbose logging.
@@ -1132,21 +1417,23 @@ class _BaseLogger:
             # Handle level separately
             if level is not None:
                 original_values['level'] = self.level
-                self.setLevel(level)
+                self.setLevel(LogLevel(level))
 
             # Save existing config values
             if mode is not None:
-                original_values['mode'] = self.__config['mode']
+                original_values['mode'] = self.__config.mode
+                if mode == 'json' and deployed is None:
+                    deployed = True
             if color_enabled is not None:
-                original_values['color_enabled'] = self.__config['color_enabled']
+                original_values['color_enabled'] = self.__config.color_enabled
             if verbose is not None:
-                original_values['verbose'] = self.__config['verbose']
+                original_values['verbose'] = self.__config.verbose
             if trace_enabled is not None:
-                original_values['dd_trace_enabled'] = self.__config['dd_trace_enabled']
+                original_values['dd_trace_enabled'] = self.__config.dd_trace_enabled
             if highlight_syntax is not None:
-                original_values['highlight_syntax'] = self.__config['highlight_syntax']
+                original_values['highlight_syntax'] = self.__config.highlight_syntax
             if deployed is not None:
-                original_values['deployed'] = self.__config['deployed']
+                original_values['deployed'] = self.__config.deployed
 
             # Apply changes
             self.configure(
@@ -1164,7 +1451,7 @@ class _BaseLogger:
         finally:
             with self.__lock:
                 if 'level' in original_values:
-                    self.setLevel(original_values['level'])
+                    self.setLevel(LogLevel(original_values['level']))
 
                 self.configure(
                     mode=original_values.get('mode'),
@@ -1181,6 +1468,27 @@ class _BaseLogger:
     # ---------------- Properties (SIMPLIFIED) ----------------
 
     @property
+    def active_loggers(self) -> List[str]:
+        """
+        Retrieves a list of active loggers from the logging system.
+
+        This property gathers all the active logger names currently managed
+        by the logging module. It filters logger names from the root logger's
+        manager dictionary to include only valid instances of `logging.Logger`.
+
+        :return: A list of active logger names.
+        :rtype: List[str]
+        """
+        if not self.__global_stream_configured:
+            return ['WrenchCL']
+        else:
+            active_loggers = [
+                    name for name in logging.root.manager.loggerDict
+                    if isinstance(logging.getLogger(name), logging.Logger)
+            ]
+            return active_loggers
+
+    @property
     def mode(self) -> str:
         """
         Gets the value of the 'mode' configuration.
@@ -1191,7 +1499,7 @@ class _BaseLogger:
         :return: The current mode setting from the configuration.
         :rtype: str
         """
-        return self.__config.get('mode', 'terminal')
+        return self.__config.mode
 
     @property
     def attached_loggers(self):
@@ -1211,7 +1519,7 @@ class _BaseLogger:
         return return_dict
 
     @property
-    def level(self) -> str:
+    def level(self) -> LogLevel:
         """
         Provides access to the logging level of the associated logger instance.
 
@@ -1222,7 +1530,7 @@ class _BaseLogger:
             logging level.
         :rtype: str
         """
-        return logging.getLevelName(self.__logger_instance.level)
+        return LogLevel(logging.getLevelName(self.__logger_instance.level))
 
     @property
     def logger_instance(self) -> logging.Logger:
@@ -1266,16 +1574,16 @@ class _BaseLogger:
         :rtype: dict
         """
         return {
-            "Logging Level": self.level,
+            "Logging Level": self.level.value,
             "Run Id": self.run_id,
-            "Mode": self.__config['mode'],
+            "Mode": self.__config.mode,
             "Environment Metadata": self.__env_metadata,
             "Configuration": {
-                "Color Enabled": self.__config['color_enabled'],
-                "Highlight Syntax": self.__config['highlight_syntax'],
-                "Verbose": self.__config['verbose'],
-                "Deployment Mode": self.__config['deployed'],
-                "DD Trace Enabled": self.__config['dd_trace_enabled'],
+                "Color Enabled": self.__config.color_enabled,
+                "Highlight Syntax": self.__config.highlight_syntax,
+                "Verbose": self.__config.verbose,
+                "Deployment Mode": self.__config.deployed,
+                "DD Trace Enabled": self.__config.dd_trace_enabled,
                 "Global Stream Configured": self.__global_stream_configured
             },
             "Handlers": [type(h).__name__ for h in self.__logger_instance.handlers],
@@ -1304,41 +1612,67 @@ class _BaseLogger:
         :return: A boolean value indicating if syntax highlighting is enabled
         :rtype: bool
         """
-        return self.__config['highlight_syntax']
+        return self.__config.highlight_syntax
 
     # ---------------- Internals ----------------
 
-    def __log(self, level: Union[int, str], *args: str, exc_info: _exc_info_type = None,
-              color_flag: Optional[Literal['INTERNAL', 'DATA']] = None, **kwargs) -> None:
-        """Thread-safe logging implementation."""
+    def __log(self, level: Union[LogLevel, logLevels], args,
+            no_format: bool =False, no_color: bool =False, stack_info: bool =False, header: Optional[str] = None) -> None:
+        """Thread-safe logging implementation.
+        :param no_format:
+        :param no_color:
+        :param stack_info:
+        :param header:
+        """
+        if not isinstance(level, LogLevel):
+            level = LogLevel(level)
+        
+        markup_flag = (
+            self.__config.highlight_syntax
+            and self.__config.color_enabled
+            and not no_color
+            and not (self.__force_markup and self.__config.mode == 'json')
+        )
+    
+        single_line_flag = self.__config.mode in ('compact',) or self.__config.deployed
+    
+        # Convert args to list and process them
         args = list(args)
+        args = [self.__ensure_str(arg) for arg in args if arg is not None]
+        
+        # Extract exceptions from args
+        exc_info = None
         for idx, a in enumerate(args):
-            if isinstance(a, Exception) or isinstance(a, BaseException):
+            if isinstance(a, (Exception, BaseException)):
                 exc_info = args.pop(idx)
-
-        if self.__config['mode'] == 'terminal':
+                break
+    
+        if self.__config.mode == 'terminal':
             suggestion = self.__suggest_exception(exc_info)
             if suggestion:
-                suggestion = f"{self.presets.ERROR}{suggestion}{self.presets.RESET}"
                 args.append(suggestion)
-
+    
         args = tuple(args)
+        # This will strip ansi codes so no formatting before this!
         msg = '\n'.join(str(arg) for arg in args)
-
-        if self.__config['highlight_syntax'] and self.__config['color_enabled'] and not self.__config['mode'] == 'json':
-            msg = self.__highlight_literals(msg, data=color_flag == 'DATA')
-
-        # Format based on mode
-        if self.__config['mode'] == 'compact' or self.__config['deployed'] or self.__config['mode'] == 'json':
-            lines = msg.splitlines()
-            msg = ' '.join([line.strip() for line in lines if len(line.strip()) > 0])
-            msg = msg.replace('\n', ' ').replace('\r', '').strip()
-
-        if color_flag == 'INTERNAL':
-            level = "INTERNAL"
-        elif color_flag == 'DATA':
-            level = "DATA"
-
+        if markup_flag:
+            msg = self.__highlight_literals(msg)
+    
+        if header and markup_flag:
+            header_str = self.header(header, level=level, compact=True, return_repr=True)
+            msg = f"{header_str}\n{msg}"
+    
+        if not no_format:
+            if single_line_flag:
+                lines = msg.splitlines()
+                msg = ' '.join([line.strip() for line in lines if len(line.strip()) > 0])
+                msg = msg.replace('\n', ' ').replace('\r', '').strip()
+            elif exc_info or level == 'DATA':
+                msg = self.__add_data_markers(msg, level, True)
+        
+        if level not in ['ERROR', 'CRITICAL']:
+            exc_info = None
+    
         # Use lock for handler configuration
         with self.__lock:
             self.flush_handlers()
@@ -1346,122 +1680,178 @@ class _BaseLogger:
                 if not isinstance(handler, logging.NullHandler):
                     handler.setFormatter(self.__get_formatter(
                         level,
-                        no_format=kwargs.get('no_format', False)
+                        no_format=no_format,
+                        no_color=no_color
                     ))
-
-            # Process multi-line messages
-            lines = msg.splitlines()
-            if len(lines) > 1:
-                msg = "    " + "\n    ".join(lines)
-            if exc_info:
-                msg = "\n".join(lines)
-
-            if isinstance(level, str):
-                level = self.__get_level(level)
+    
+        if not no_format:
+            if len(msg.strip().splitlines()) > 1 and not msg.startswith('\n'):
+                msg = '\n' + msg
+        
         # Actual logging outside the lock to prevent deadlocks
         self.__logger_instance.log(
-            level,
+            int(level),
             msg,
             exc_info=exc_info,
-            stack_info=kwargs.get('stack_info', False),
-            stacklevel=self.__get_depth(internal = color_flag == 'INTERNAL')
+            stack_info=stack_info,
+            stacklevel=self.__get_depth(internal=level == 'INTERNAL')
         )
 
     @staticmethod
-    def __remove_ansi_codes(text: str) -> str:
-        """Remove any existing ANSI escape codes from the text."""
-        return re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', text)
+    def __ensure_str(val: bytes | str) -> str:
+        return val.decode("utf-8") if isinstance(val, bytes) else val
 
-    def __highlight_literals(self, msg: str, data: bool = False) -> str:
-        """Add syntax highlighting to literals in log messages."""
-        msg = self.__remove_ansi_codes(msg)
+    def __add_data_markers(self, msg: str, level: LogLevel, head = False) -> str:
+        if len(msg.strip().splitlines()) <= 1:
+            return msg
 
-        if self.__force_markup:
+        is_data = level == "DATA"
+        header = head and not is_data
+        color = self.presets.get_color_by_level(level)
+        style = self.presets.get_level_style(level)
+        reset = self.presets.RESET
+
+        indent_size = 4
+        pad = ' ' * indent_size
+        lines = msg.splitlines(keepends=True)
+        content_width = max(len(self._remove_ansi_codes(line.strip())) for line in lines)
+
+        total_width = content_width + (indent_size * 2)
+
+        arm_len = min(indent_size * 10, max(1, content_width // 2))
+        bar_len = total_width - arm_len
+
+        def get_spacer(word: str, length: int, char:str = '─') -> str:
+            if not char:
+                char = self.__get_safe_char('─')
+            if len(word) >= length:
+                return char * length
+
+            length = (length - len(word)) // 2
+            return char * length + word + char * length
+
+        top_bar = (self.__get_safe_char('─') * total_width)
+        bot_bar = (self.__get_safe_char('─') * total_width)
+        right_corner = self.__get_safe_char('┐')
+        left_corner = self.__get_safe_char('└')
+        markup = f"{color}{style}"
+
+        if is_data:
+            top_bar = get_spacer("DATA", arm_len) + ' ' * bar_len
+            bot_bar = ' ' * bar_len + get_spacer("END", arm_len)
+            right_corner = ' '
+            left_corner = ' '
+        elif header:
+            top_bar = get_spacer(level, total_width)
+
+        top_border = f"{reset}{markup}{self.__get_safe_char('┌')}{top_bar}{right_corner}"
+        if is_data:
+            top_border = f"{markup}{self.__get_safe_char('┌')}{top_bar}{right_corner}{reset}"
+        bottom_border = f"{markup}{left_corner}{bot_bar}{self.__get_safe_char('┘')}{reset}"
+
+
+        content = ''.join(f"{pad}{line}" for line in lines)
+        if not content.endswith('\n'):
+            content += '\n'
+        if not content.startswith('\n'):
+            content = '\n' + content
+
+        return top_border + content + bottom_border
+
+
+    def _remove_ansi_codes(self, text: str) -> str:
+        """
+        Remove ANSI escape sequences from the input string.
+        """
+        if not self.__strip_ansi_fn:
+            self.__set_ansi_fn()
+        try:
+            from ftfy import fix_text
+            text = fix_text(text)
+        except:
             pass
-        elif not self.__config['color_enabled'] or not self.__config['highlight_syntax'] or self.__config['deployed']:
+        return self.__strip_ansi_fn(text)
+
+    def __set_ansi_fn(self):
+        try:
+            from ansi2txt import Ansi2Text
+            _ansi = Ansi2Text()
+            def _strip_ansi(text: str) -> str:
+                return _ansi.convert(text)
+        except Exception:
+            _ansi_re = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+            def _strip_ansi(text: str) -> str:
+                return _ansi_re.sub('', text)
+        finally:
+            self.__strip_ansi_fn = _strip_ansi
+
+    def __highlight_literals(self, msg: str) -> str:
+        msg = self._remove_ansi_codes(msg)
+        if not self.__force_markup and (
+            not self.__config.color_enabled
+            or not self.__config.highlight_syntax
+            or self.__config.deployed
+        ):
             return msg
 
         c = self.presets
 
         # Highlight numbers
-        msg = re.sub(
-            r'(?<![\w-])'            # no word char or hyphen before
-            r'(\d+(?:\.\d+)?[a-zA-Z%]*)'  # number with optional decimal and unit suffix
-            r'(?=\s|$|\)|(?=\W\s))',  # end must be space, end-of-line, closing paren, or punctuation+space
-            lambda m: f"{c.COLOR_NUMBER}{m.group(1)}{c.RESET_FORE}",
-            msg
-        )
+        msg = re.sub(r'(?<![\w-])(\d+(?:\.\d+)?[a-zA-Z%]*)\b',
+                     lambda m: f"{c.COLOR_NUMBER}{m.group(1)}{c.RESET_FORE}", msg)
 
-        # Boolean/None literals — match as full words
-        msg = re.sub(r'\btrue\b', lambda m: f"{c.COLOR_TRUE}{m.group(0)}{c.RESET_FORE}", msg, flags=re.IGNORECASE)
-        msg = re.sub(r'\bfalse\b', lambda m: f"{c.COLOR_FALSE}{m.group(0)}{c.RESET_FORE}", msg, flags=re.IGNORECASE)
-        msg = re.sub(r'\bnone\b', lambda m: f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}", msg, flags=re.IGNORECASE)
-        msg = re.sub(r'\bnull\b', lambda m: f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}", msg, flags=re.IGNORECASE)
-        msg = re.sub(r'\bnan\b', lambda m: f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}", msg, flags=re.IGNORECASE)
-
-        msg = re.sub(
-            r'^[ \t]*\[(.*?)\]',  # only literal spaces/tabs allowed
-            lambda m: f"{c.COLOR_COLON}[{m.group(1)}]{c.RESET_FORE}",
-            msg
-        )
-
-        # Highlight %s and %{}s placeholders
-        msg = re.sub(
-            r'%\{?[a-zA-Z0-9]*[s]\}?\b',  # Match %s and %{xxc}s
-            lambda m: f"{c.COLOR_COLON}{m.group(0)}{c.RESET_FORE}",
-            msg
-        )
-
-        # Highlight only the literal curly braces and |
-        msg = re.sub(
-            r'(?<!\\)([\{\}\|])',
-            lambda m: f"{c.COLOR_COLON}{m.group(1)}{c.RESET_FORE}",
-            msg
-        )
-
-        #Highlight UUID
+        # Highlight UUIDs
         msg = re.sub(
             r'\b([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\b',
             lambda m: f"{c.COLOR_UUID}{m.group(1)}{c.RESET_FORE}",
-            msg,
-            flags=re.IGNORECASE
-        )
+            msg, flags=re.IGNORECASE)
 
-        if data and not self.__config['mode'] == 'json':
+        # Highlight placeholders like %s or %{name}s
+        msg = re.sub(r'%\{?[a-zA-Z0-9_]*s}?\b',
+                     lambda m: f"{c.COLOR_COLON}{m.group(0)}{c.RESET_FORE}", msg)
+
+        # Highlight square brackets (at line start/end only)
+        msg = re.sub(r'(?<=\n)(\s*)\[', lambda m: f"{m.group(1)}{c.COLOR_BRACKET_OPEN}[{c.RESET_FORE}", msg)
+        msg = re.sub(r'](?=\n)', lambda m: f"{c.COLOR_BRACKET_CLOSE}]{c.RESET_FORE}", msg)
+
+        # Highlight braces, parens, pipes
+        msg = re.sub(r'(?<!\\)([{}|])', lambda m: f"{c.COLOR_COLON}{m.group(1)}{c.RESET_FORE}", msg)
+
+        # Highlight literals: true, false, null, none, nan
+        msg = re.sub(r'\b(true|false|null|none|nan)\b', lambda m: {
+            "true": f"{c.COLOR_TRUE}{m.group(0)}{c.RESET_FORE}",
+            "false": f"{c.COLOR_FALSE}{m.group(0)}{c.RESET_FORE}",
+            "null": f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}",
+            "none": f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}",
+            "nan": f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}"
+        }[m.group(0).lower()], msg, flags=re.IGNORECASE)
+
+        if self.__config.mode != 'json':
             msg = self.__highlight_data(msg)
-        if self.__config['mode'] == 'json' and self.__force_markup:
-            msg = self.__highlight_literals_json(msg)
-
+        elif self.__config.mode == 'json' and not self.__config.deployed:
+             msg = self.__highlight_literals_json(msg)
         return msg
+
 
     def __highlight_literals_json(self, msg: str) -> str:
         c = self.presets
 
-        # Highlight log level terms
+        # Highlight log levels
         level_keywords = {
-            "DEBUG": c.DEBUG,
-            "INFO": c.INFO,
-            "WARNING": c.WARNING,
-            "WARN": c.WARNING,
-            "ERROR": c.ERROR,
-            "CRITICAL": c.CRITICAL
+            "DEBUG": c.DEBUG, "INFO": c.INFO, "WARNING": c.WARNING,
+            "WARN": c.WARNING, "ERROR": c.ERROR, "CRITICAL": c.CRITICAL
         }
         for keyword, color in level_keywords.items():
-            msg = re.sub(
-                rf'\b{keyword}\b',
-                lambda m: f"{color}{m.group(0)}{c.RESET_FORE}",
-                msg,
-                flags=re.IGNORECASE
-            )
+            msg = re.sub(rf'\b{keyword}\b', f"{color}{keyword}{c.RESET_FORE}", msg, flags=re.IGNORECASE)
 
-        # Highlight JSON-style keys (with optional whitespace before colon)
+        # Highlight string keys with double quotes
         msg = re.sub(
             r'(?P<key>"[^"]+?")(?P<colon>\s*:)',
-            lambda m: f"{c.COLOR_NUMBER}{m.group('key')}{c.RESET_FORE}{c.COLOR_COLON}{m.group('colon')}{c.RESET_FORE}",
+            lambda m: f"{c.COLOR_KEY}{m.group('key')}{c.RESET_FORE}{c.COLOR_COLON}{m.group('colon')}{c.RESET_FORE}",
             msg
         )
 
-        # Highlight brackets, braces, commas, colons
+        # Highlight brackets/braces/commas
         msg = msg.replace('{', f"{c.COLOR_BRACE_OPEN}{{{c.RESET_FORE}")
         msg = msg.replace('}', f"{c.COLOR_BRACE_CLOSE}}}{c.RESET_FORE}")
         msg = msg.replace('(', f"{c.COLOR_PAREN_OPEN}({c.RESET_FORE}")
@@ -1469,23 +1859,22 @@ class _BaseLogger:
         msg = msg.replace(':', f"{c.COLOR_COLON}:{c.RESET_FORE}")
         msg = msg.replace(',', f"{c.COLOR_COMMA},{c.RESET_FORE}")
 
-        # Brackets: only color when at line-start or line-end to avoid nested breakage
         msg = re.sub(r'(?<=\n)(\s*)\[', lambda m: f"{m.group(1)}{c.COLOR_BRACKET_OPEN}[{c.RESET_FORE}", msg)
-        msg = re.sub(r'\](?=\n)', lambda m: f"{c.COLOR_BRACKET_CLOSE}]{c.RESET_FORE}", msg)
+        msg = re.sub(r'](?=\n)', lambda m: f"{c.COLOR_BRACKET_CLOSE}]{c.RESET_FORE}", msg)
 
         return msg
 
 
-    def __highlight_data(self, msg):
-        # Match string keys (only if followed by colon)
+    def __highlight_data(self, msg: str) -> str:
         c = self.presets
+
+        # Python style dicts: support both 'key' and "key"
         msg = re.sub(
-            r'(?P<key>"[^"]+?")(?P<colon>\s*:)',  # `"key":` only
+            r'(?P<key>[\'"][^\'"]+[\'"])(?P<colon>\s*:)',
             lambda m: f"{c.INFO}{m.group('key')}{c.RESET_FORE}{c.COLOR_COLON}{m.group('colon')}{c.RESET_FORE}",
             msg
         )
 
-        # Brackets, braces, parens
         msg = msg.replace('{', f"{c.COLOR_BRACE_OPEN}{{{c.RESET_FORE}")
         msg = msg.replace('}', f"{c.COLOR_BRACE_CLOSE}}}{c.RESET_FORE}")
         msg = msg.replace('(', f"{c.COLOR_PAREN_OPEN}({c.RESET_FORE}")
@@ -1493,37 +1882,38 @@ class _BaseLogger:
         msg = msg.replace(':', f"{c.COLOR_COLON}:{c.RESET_FORE}")
         msg = msg.replace(',', f"{c.COLOR_COMMA},{c.RESET_FORE}")
 
-        # Brackets: only color when at line-start or line-end to avoid nested breakage
         msg = re.sub(r'(?<=\n)(\s*)\[', lambda m: f"{m.group(1)}{c.COLOR_BRACKET_OPEN}[{c.RESET_FORE}", msg)
-        msg = re.sub(r'\](?=\n)', lambda m: f"{c.COLOR_BRACKET_CLOSE}]{c.RESET_FORE}", msg)
+        msg = re.sub(r'](?=\n)', lambda m: f"{c.COLOR_BRACKET_CLOSE}]{c.RESET_FORE}", msg)
+
         return msg
+
 
     def __get_env_prefix(self, dimmed_color, dimmed_style, color, style) -> str:
         """Generate environment prefix for log messages."""
         meta = self.__env_metadata
-        if not self.__config['color_enabled'] or self.__config['deployed'] or self.__config['mode'] == 'json':
+        if not self.__config.color_enabled or self.__config.deployed or self.__config.mode == 'json':
             dimmed_color = ''
             dimmed_style = ''
             color = ''
             style = ''
 
         prefix = []
-        verbose = self.__config['verbose']
+        verbose = self.__config.verbose
         first_color_flag = False
-        if meta.get('project', None) is not None and (self.__config['deployed'] or verbose):
+        if meta.get('project', None) is not None and (self.__config.deployed or verbose):
             prefix.append(f"{color}{style}{meta['project'].upper()}{self.presets.RESET}")
             first_color_flag = True
-        if meta.get('env', None) is not None and (self.__config['deployed'] or verbose):
+        if meta.get('env', None) is not None and (self.__config.deployed or verbose):
             if first_color_flag:
                 prefix.append(f"{dimmed_color}{dimmed_style}{meta['env'].upper()}{self.presets.RESET}")
             else:
                 prefix.append(f"{color}{style}{meta['env'].upper()}{self.presets.RESET}")
-        if meta.get('project_version', None) is not None and (self.__config['deployed'] or verbose):
+        if meta.get('project_version', None) is not None and (self.__config.deployed or verbose):
             if first_color_flag:
                 prefix.append(f"{dimmed_color}{dimmed_style}{meta['project_version']}{self.presets.RESET}")
             else:
                 prefix.append(f"{color}{style}{meta['project_version']}{self.presets.RESET}")
-        if meta.get('run_id', None) is not None and (self.__config['deployed'] or verbose):
+        if meta.get('run_id', None) is not None and (self.__config.deployed or verbose):
             if first_color_flag:
                 prefix.append(f"{dimmed_color}{dimmed_style}{meta['run_id'].upper()}{self.presets.RESET}")
             else:
@@ -1534,17 +1924,19 @@ class _BaseLogger:
         else:
             return ''
 
-    def __get_depth(self, internal = False) -> int:
+    @staticmethod
+    def __get_depth(internal = False) -> int:
         """Get stack depth to determine log source."""
         for i, frame in enumerate(inspect.stack()):
-            if frame.filename.endswith("WrenchLogger.py") or 'WrenchCL' in frame.filename or frame.filename == '<string>':
+            if frame.filename.endswith("ccLogBase.py") or 'WrenchCL' in frame.filename or frame.filename == '<string>':
                 if internal:
                     return i + 2
                 else:
                     continue
             return i
 
-    def __suggest_exception(self, args) -> Optional[str]:
+    @staticmethod
+    def __suggest_exception(args) -> Optional[str]:
         """Generate improvement suggestions for certain exceptions."""
         suggestion = None
         if not hasattr(args, '__iter__') and args is not None:
@@ -1560,42 +1952,51 @@ class _BaseLogger:
                 break
         return suggestion
 
+    def __get_safe_char(self, char:str, backup:str = None) -> str:
+        """Get safe character to use in log messages."""
+        if not backup:
+            backup = '-'
+        safe_mode = not (self.__config.mode == 'terminal' and self.__config.color_enabled)
+        return char if not safe_mode else backup
+
+
+
     def __apply_color(self, text: str, color: Optional[str]) -> str:
         """Apply ANSI colors to text if color mode is enabled."""
-        return f"{color}{self.presets.BRIGHT}{text}{self.presets.RESET}" if color else text
+        return f"{self.presets.BRIGHT}{color} {text} {self.presets.RESET}" if color else text
 
     def __check_deployment(self, log = True):
         """Detect deployment environment and adjust settings accordingly."""
         if os.environ.get("AWS_LAMBDA_FUNCTION_NAME") is not None:
-            self.__config['color_enabled'] = False
-            self.__config['deployed'] = True
+            self.__config.color_enabled = False
+            self.__config.deployed = True
             self.disable_color()
             if log:
                 self._internal_log("Detected Lambda deployment. Set color mode to False.")
-            self.__config['mode'] = 'json'
+            self.__config.mode = 'json'
 
         if os.environ.get("AWS_EXECUTION_ENV") is not None:
-            self.__config['color_enabled'] = False
-            self.__config['deployed'] = True
+            self.__config.color_enabled = False
+            self.__config.deployed = True
             self.disable_color()
             if log:
                 self._internal_log("Detected AWS deployment. Set color mode to False.")
-            self.__config['mode'] = 'json'
+            self.__config.mode = 'json'
 
         if os.environ.get("COLOR_MODE") is not None:
             if os.environ.get("COLOR_MODE").lower() == "false":
-                self.__config['color_enabled'] = False
+                self.__config.color_enabled = False
             else:
-                self.__config['color_enabled'] = True
+                self.__config.color_enabled = True
 
         if os.environ.get("LOG_DD_TRACE") is not None:
             val = os.environ.get("LOG_DD_TRACE", "false").lower()
-            self.__config['dd_trace_enabled'] = val == "true"
-            state = "enabled" if self.__config['dd_trace_enabled'] else "disabled"
+            self.__config.dd_trace_enabled = val == "true"
+            state = "enabled" if self.__config.dd_trace_enabled else "disabled"
             if log:
                 self._internal_log(f"LOG_DD_TRACE detected — Datadog tracing {state}. | Mode Json")
-            if self.__config['dd_trace_enabled']:
-                self.__config['mode'] = 'json'
+            if self.__config.dd_trace_enabled:
+                self.__config.mode = 'json'
 
     def __fetch_env_metadata(self) -> dict:
         """
@@ -1626,12 +2027,11 @@ class _BaseLogger:
         """
         Check if color output is available and configure accordingly.
         """
-        if self.__config['color_enabled']:
+        if self.__config.color_enabled:
             try:
                 self.enable_color()
                 return
             except ImportError:
-                self._internal_log("Color mode not available. Disabling.")
                 pass
         self.disable_color()
 
@@ -1639,7 +2039,8 @@ class _BaseLogger:
         """
         Configure the logger for JSON-structured output.
         """
-        formatter = _JSONLogFormatter(self.__env_metadata, self.__force_markup, self.__highlight_literals)
+
+        formatter = _JSONLogFormatter(self.__env_metadata, self.__force_markup, self.__highlight_literals, self.__config.dd_trace_enabled, self.__config.deployed)
 
         if not self.__logger_instance.handlers:
             self.add_new_handler(logging.StreamHandler, stream=sys.stdout, formatter=formatter, force_replace=True)
@@ -1658,7 +2059,7 @@ class _BaseLogger:
 
     def __log_setup_summary(self) -> None:
         """Log a summary of the current logger configuration."""
-        if self.__config["mode"] == "json":
+        if self.__config.mode == "json":
             self._internal_log(json.dumps(self.__config, indent=2, default=str))
             return
 
@@ -1676,109 +2077,90 @@ class _BaseLogger:
 
         self._internal_log(msg)
 
-
     @staticmethod
     def __generate_run_id() -> str:
         """Generate a unique run ID for this logger instance."""
         now = datetime.now()
         return f"R-{os.urandom(1).hex().upper()}{now.strftime('%m%d')}{os.urandom(1).hex().upper()}"
 
-    def __get_level(self, level: Union[str, int]) -> int:
-        """Convert a level name to its numeric value."""
-        if isinstance(level, str) and hasattr(logging, level.upper()):
-            return getattr(logging, level.upper())
-        elif isinstance(level, int):
-            return level
-        elif level == 'INTERNAL':
-            return logging.DEBUG
-        return logging.INFO
-
-    def __get_formatter(self, level: Union[str, int], no_format=False) -> logging.Formatter:
+    def __get_formatter(self, level: logLevels, no_format=False, no_color=False) -> logging.Formatter:
         """Get the appropriate formatter based on log level and mode."""
+        if not isinstance(level, LogLevel):
+            level = LogLevel(level)
 
-        if self.__config['mode'] == 'json' and level != 'INTERNAL':
-            return _JSONLogFormatter(self.__env_metadata, self.__force_markup, self.__highlight_literals)
+        if no_format and no_color:
+            return logging.Formatter(fmt='%(message)s')
 
-        color = self.presets.get_color_by_level(level)
-        style = self.presets.get_level_style(level)
-        message_color = self.presets.get_message_color(level)
+        active_preset = self.presets
+        if no_color:
+            active_preset = ColorPresets(_MockColorama, _MockColorama)
 
-        if isinstance(level, int):
-            str_name = logging.getLevelName(level)
+        if self.__config.mode == 'json' and level != 'INTERNAL':
+            return _JSONLogFormatter(self.__env_metadata, self.__force_markup, self.__highlight_literals, self.__config.dd_trace_enabled, self.__config.deployed)
+
+        color = active_preset.get_color_by_level(level)
+        style = active_preset.get_level_style(level)
+        message_color = active_preset.get_message_color(level)
+
+        if level in ['ERROR', 'CRITICAL', 'WARNING']:
+            dimmed_color = active_preset.get_color_by_level(level)
         else:
-            str_name = level.upper()
+            dimmed_color = active_preset.get_color_by_level(LogLevel('INTERNAL'))
 
-        if str_name in ['ERROR', 'CRITICAL', 'WARNING']:
-            dimmed_color = self.presets.get_color_by_level(level)
-        else:
-            dimmed_color = self.presets.get_color_by_level('INTERNAL')
-
-        dimmed_style = self.presets.get_level_style('INTERNAL')
+        dimmed_style = active_preset.get_level_style(LogLevel('INTERNAL'))
 
         if level == 'INTERNAL':
-            color = self.presets.CRITICAL
-            style = self.presets.get_level_style('INTERNAL')
+            color = active_preset.CRITICAL
+            style = active_preset.get_level_style(LogLevel('INTERNAL'))
 
 
-        file_section = f"{dimmed_color}{dimmed_style}%(filename)s:%(funcName)s:%(lineno)d]{self.presets.RESET}"
-        verbose_section = f"{dimmed_color}{dimmed_style}[%(asctime)s|{file_section}{self.presets.RESET}"
+        file_section = f"{dimmed_color}{dimmed_style}%(filename)s:%(funcName)s:%(lineno)d]{active_preset.RESET}"
+        verbose_section = f"{dimmed_color}{dimmed_style}[%(asctime)s|{file_section}{active_preset.RESET}"
         app_env_section = self.__get_env_prefix(dimmed_color, dimmed_style, color, style)
-        level_name_section = f"{color}{style}%(levelname)-8s{self.presets.RESET}"
-        colored_arrow_section = f"{color}{style} -> {self.presets.RESET}"
-        message_section = f"{style}{message_color}%(message)s{self.presets.RESET}"
+        level_name_section = f"{color}{style}%(levelname)-8s{active_preset.RESET}"
+        colored_arrow_section = f"{color}{style} -> {active_preset.RESET}"
+        message_section = f"{style}{message_color}%(message)s{active_preset.RESET}"
 
         if self.__global_stream_configured:
-            name_section = f"{color}{style}[%(name)s] - {self.presets.RESET}"
+            name_section = f"{color}{style}[%(name)s] - {active_preset.RESET}"
         else:
             name_section = f""
 
         if level == "INTERNAL":
-            level_name_section = f"{color}{style}  WrenchCLInternal{self.presets.RESET}"
+            level_name_section = f"{color}{style}  WrenchCLInternal{active_preset.RESET}"
         elif level == "DATA":
-            level_name_section = f"{color}{style}DATA    {self.presets.RESET}"
+            level_name_section = f"{color}{style}DATA    {active_preset.RESET}"
 
-        if self.__config['mode'] == 'compact':
+        if self.__config.mode == 'compact':
             fmt = f"{level_name_section}{file_section}{colored_arrow_section}{message_section}"
         elif no_format:
             fmt = "%(message)s"
-        if level == 'INTERNAL':
+        elif level == 'INTERNAL':
             fmt = f"{level_name_section}{colored_arrow_section}{message_section}"
         else:
             fmt = f"{app_env_section}{name_section}{level_name_section}{verbose_section}{colored_arrow_section}{message_section}"
 
-        fmt = f"{self.presets.RESET}{fmt}{self.presets.RESET}"
+        fmt = f"{active_preset.RESET}{fmt}{active_preset.RESET}"
 
         return _CustomFormatter(fmt, datefmt='%H:%M:%S', presets=self.presets)
 
     # ---------------- Aliases/Shortcuts ----------------
 
-    def data(self, data, **kwargs):
+    data = __pretty_log
+
+    def cdata(self, data: Any, **kwargs) -> None:
         """
-        Formats and logs the given data and additional keyword arguments.
+        Logs the provided data in a compact and human-readable format.
 
-        This method is responsible for processing input data and additional
-        keyword arguments, formatting them appropriately, and logging
-        the formatted result. It delegates the operation to the `pretty_log`
-        method, ensuring the data is displayed in a well-structured format.
+        This method is responsible for processing the given data and formatting
+        it into a compact, human-readable log.
+        It accepts additional keyword arguments to configure logging behavior.
 
-        :param data: The input data to be logged.
+        :param data: Input data to be logged in a compact format.
         :type data: Any
-        :param kwargs: Additional keyword arguments passed to the logging operation.
-        :type kwargs: dict
-        :return: The result of the `pretty_log` method after formatting and logging the input.
-        :rtype: Any
+        :param kwargs: Additional keyword arguments for logging configuration.
         """
-        return self.pretty_log(data, **kwargs)
+        return self.__pretty_log(data, compact=True, **kwargs)
 
 
-@SingletonClass
-class _logger_(_BaseLogger):
-    __doc__ = """Singleton thread-safe instance of BaseLogger.""" + _BaseLogger.__doc__
-
-    def __init__(self):
-        super().__init__()
-
-    @property
-    def baseClass(self) -> Type[_BaseLogger]:
-        "Returns the base class of this instance."
-        return _BaseLogger
+logger: ccLogBase = ccLogBase()
