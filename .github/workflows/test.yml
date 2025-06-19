@@ -2,9 +2,9 @@ name: Test 🧪
 
 on:
   push:
-    branches: [v3]
+    branches: [release]
   pull_request:
-    branches: [v3]
+    branches: [v4]
 
 permissions:
   contents: read
