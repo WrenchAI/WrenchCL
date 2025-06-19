@@ -13,7 +13,8 @@ from .MaybeMonad import *  # Import all symbols from MaybeMonad
 from .TypeChecker import *  # Import all symbols from TypeChecker
 from .StandardizeNone import standardize_none
 from .JsonParser import parse_json, safe_json_loader, list_loader, show_json_tree
+from .ccLogBase import LogOptions
 __all__ = ['coalesce', 'get_file_type', 'image_to_base64', 'Maybe',
            'typechecker', 'get_metadata', 'robust_serializer',
            'validate_base64', 'single_quote_decoder', 'parse_json',
-           'safe_json_loader', 'list_loader', 'show_json_tree']
+           'safe_json_loader', 'list_loader', 'show_json_tree', 'LogOptions']
