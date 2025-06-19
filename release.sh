@@ -52,13 +52,9 @@ function bump_version() {
 
 function update_version_in_file() {
   local new_version="$1"
-  if [[ "$DRY_RUN" == "1" ]]; then
-    log "🔍 DRY RUN: Would update version to $new_version in $PYPROJECT_FILE"
-  else
-    sed -i.bak -E "s/^version = \".*\"/version = \"$new_version\"/" "$PYPROJECT_FILE"
-    rm "${PYPROJECT_FILE}.bak"
-    log "✅ Updated $PYPROJECT_FILE to version $new_version"
-  fi
+  sed -i.bak -E "s/^version = \".*\"/version = \"$new_version\"/" "$PYPROJECT_FILE"
+  rm "${PYPROJECT_FILE}.bak"
+  log "✅ Updated $PYPROJECT_FILE to version $new_version"
 }
 
 function do_release() {
