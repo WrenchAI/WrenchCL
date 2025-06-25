@@ -27,6 +27,7 @@ def Retryable(_func=None, *, max_retries=5, retry_on_exceptions=None, delay=2, v
     retries the function up to `max_retries` times, and logs warnings and errors based on verbosity. If the maximum number of retries is reached,
     it raises the last caught exception.
 
+    :param _func:
     :param max_retries: The maximum number of retries before giving up. Default is 5.
     :type max_retries: int
     :param retry_on_exceptions: A tuple of exception classes to retry on. If None, retries on all exceptions.
