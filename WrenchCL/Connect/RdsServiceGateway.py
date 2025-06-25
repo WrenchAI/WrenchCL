@@ -56,7 +56,7 @@ class RdsServiceGateway:
         :param max_pool_size: Maximum number of connections in the pool (only if multithreaded is True).
         :type max_pool_size: int
         """
-        require_module(True, 'aws', ['psycopg2'])
+        require_module(imports, 'aws', ['psycopg2'], raise_exc=True)
         try:
             psycopg2.extras.register_uuid()
         except Exception as e:
