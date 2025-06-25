@@ -17,14 +17,16 @@ def SingletonClass(cls: type) -> type:
     """
     if "__new__" in cls.__dict__:
         raise SvE(cls)
+    if "__cls_instance" in cls.__dict__:
+        raise SvE(cls)
 
     class SingletonWrapper(cls):
-        _instance = None
+        __cls_instance = None
 
         def __new__(cls_, *args, **kwargs):
-            if cls_._instance is None:
-                cls_._instance = super(SingletonWrapper, cls_).__new__(cls_)
-            return cls_._instance
+            if cls_.__cls_instance is None:
+                cls_.__cls_instance = super(SingletonWrapper, cls_).__new__(cls_)
+            return cls_.__cls_instance
 
         def __init__(self, *args, **kwargs):
             if not getattr(self, '__singleton_initialized__', False):
