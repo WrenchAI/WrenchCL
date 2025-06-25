@@ -428,8 +428,8 @@ class _JSONLogFormatter(logging.Formatter):
 
         if self.traced:
             dd.update({
-            "dd.trace_id": str(getattr(record, "dd.trace_id")),
-            "dd.span_id": str(getattr(record, "dd.span_id"))})
+            "dd.trace_id": str(getattr(record, "dd.trace_id", "none")),
+            "dd.span_id": str(getattr(record, "dd.span_id", "none"))})
 
         log_record = {
             "level": record.levelname,
