@@ -49,6 +49,7 @@ def typechecker(
         >>>     print(f"Validation failed: {e}")
 
         # This will raise a TypeError because the age of "Jane" is not an int
+        :param verbose:
     """
 
     # Ensure data is iterable
