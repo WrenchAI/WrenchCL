@@ -29,5 +29,5 @@ def require_module(imports: bool, extra: str, package: Optional[Union[str, List[
         # Force warning visibility and fallback to logger if needed
         try:
             warnings.warn(error_string, category=ImportWarning, stacklevel=2)
-        except Warning as w:
+        except Warning:
             logger.warning(f"Suppressed warning: {error_string}")

@@ -29,6 +29,7 @@ class _ConfigurationManager:
         """
         Initialize config from .env (if provided), environment, and kwargs.
 
+        :param silent:
         :param env_path: Optional path to a .env file.
         :param kwargs: Override variables (e.g. AWS_PROFILE, SSH_SERVER).
         :raises InvalidConfigurationException: If SECRET_ARN is missing.
