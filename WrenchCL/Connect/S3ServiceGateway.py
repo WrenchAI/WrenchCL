@@ -73,7 +73,7 @@ class S3ServiceGateway:
         logger.warning("Test mode activated, s3 will not be modified.")
         self.test_mode = test_mode
 
-    @Retryable()
+
     def upload_file(self, file: Union[str, Path, bytes, BytesIO, "StreamingBody"], bucket_name: str, object_key: str,
             return_url: bool = False) -> Union[None, str]:
         """
@@ -113,6 +113,8 @@ class S3ServiceGateway:
             if not self.test_mode:
                 self.s3_client.upload_fileobj(file_obj, bucket_name, object_key)
         elif hasattr(file, 'read') and callable(file.read):
+            if getattr(file, 'closed', False):
+                raise ValueError("The file-like object is closed.")
             if file.seek(0, 2) == 0:  # Move to the end of the file and check the position
                 raise ValueError("The file-like object is empty.")
             file.seek(0)  # Move back to the beginning of the file

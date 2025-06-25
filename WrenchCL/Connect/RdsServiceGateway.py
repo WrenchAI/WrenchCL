@@ -57,7 +57,10 @@ class RdsServiceGateway:
         :type max_pool_size: int
         """
         require_module(True, 'aws', ['psycopg2'])
-        psycopg2.extras.register_uuid()
+        try:
+            psycopg2.extras.register_uuid()
+        except Exception as e:
+            logger.warning(f"Failed to register UUID type for psycopg2: {e}")
         self.multithreaded = multithreaded
         self.test_mode = False
         self.client_manager = AwsClientHub()
