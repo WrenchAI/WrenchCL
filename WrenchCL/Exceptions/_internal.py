@@ -13,8 +13,8 @@ class _SingletonViolationException(Exception):
         cls_name = getattr(cls, "__name__", "<unknown class>")
         msg = (
             f"Singleton violation in '{cls_name}':\n"
-            f"  Classes decorated with @SingletonClass must not override the '__new__' method.\n"
+            f"  Classes decorated with @SingletonClass must not override the '__new__' method or define a __cls_instance attribute.\n"
             f"  This breaks singleton enforcement and leads to unexpected behavior.\n"
-            f"\n  ➤ Fix: Remove the '__new__' method or do not use the @SingletonClass decorator.\n"
+            f"\n  ➤ Fix: Remove the '__new__' method and __cls_instance attribute or do not use the @SingletonClass decorator.\n"
         )
         super().__init__(msg)
