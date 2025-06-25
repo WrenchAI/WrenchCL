@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from Tools import Maybe
+from WrenchCL.Tools import Maybe
 from WrenchCL.Decorators import SingletonClass
 from dotenv import load_dotenv
 
