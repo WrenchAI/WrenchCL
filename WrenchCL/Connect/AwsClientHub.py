@@ -10,10 +10,6 @@ import WrenchCL.Exceptions
 
 try:
     import psycopg2
-    from mypy_boto3_lambda.client import LambdaClient
-    from mypy_boto3_rds import RDSClient
-    from mypy_boto3_s3.client import S3Client
-    from mypy_boto3_secretsmanager.client import SecretsManagerClient
     from WrenchCL._Internal._ConfigurationManager import _ConfigurationManager
     from WrenchCL._Internal._SshTunnelManager import _SshTunnelManager
     from WrenchCL._Internal._boto_cache import _get_boto3_session, _fetch_secret_from_secretsmanager
@@ -63,7 +59,7 @@ class AwsClientHub:
     def _initialize(self, need_secret=False):
         """Load config and secrets if not already initialized."""
         if not self.__initialized:
-            require_module(imports, 'aws', ['boto3', 'mypy_boto3', 'paramiko', 'psycopg2', '...'])
+            require_module(imports, 'aws', ['boto3', 'paramiko', 'psycopg2', '...'])
             try:
                 self.reload_config(env_path=self.__env_path, **self.__kwargs)
                 self.__initialized = True
@@ -97,7 +93,7 @@ class AwsClientHub:
         return self.config.construct_db_uri()
 
     @property
-    def db(self) -> "RDSClient":
+    def db(self):
         """Postgres connection (via psycopg2) with optional SSH tunnel."""
         self._initialize(True)
         if self.__db_client is None:
@@ -105,19 +101,19 @@ class AwsClientHub:
         return self.__db_client
 
     @property
-    def s3(self) -> "S3Client":
+    def s3(self):
         """Return a boto3 S3 client."""
         self._initialize()
         return self.session.client("s3", region_name=self.config.region_name)
 
     @property
-    def secretmanager(self) -> "SecretsManagerClient":
+    def secretmanager(self):
         """Return a boto3 SecretsManager client."""
         self._initialize()
         return self.session.client("secretsmanager", region_name=self.config.region_name)
 
     @property
-    def lambda_client(self) -> "LambdaClient":
+    def lambda_client(self):
         """Return a boto3 Lambda client."""
         self._initialize(True)
         if self.__lambda is None:

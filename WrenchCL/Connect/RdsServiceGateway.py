@@ -14,12 +14,10 @@ try:
     import psycopg2
     import psycopg2.extensions
     import psycopg2.extras
-    from mypy_boto3_rds.client import RDSClient
     from psycopg2.pool import ThreadedConnectionPool
     imports = True
 except ImportError:
     psycopg2 = None
-    RDSClient = None
     ThreadedConnectionPool = None
     imports = False
 
@@ -72,13 +70,13 @@ class RdsServiceGateway:
             self.pool: Optional[psycopg2.pool] = ThreadedConnectionPool(minconn=min_pool_size, maxconn=max_pool_size, dsn=self.db_uri)
         else:
             # Establish a single connection if multithreading is not enabled
-            self.connection: Optional[RDSClient] = self.client_manager.db
+            self.connection = self.client_manager.db
 
     def set_test_mode(self, test_mode: bool = False):
         logger.warning("Test mode activated, database commits will not be commited.")
         self.test_mode = test_mode
 
-    def get_connection(self) -> Union["psycopg2.extensions.connection", "RDSClient"]:
+    def get_connection(self):
         """
         Retrieves a connection from the connection pool or direct connection based on initialization mode.
 
