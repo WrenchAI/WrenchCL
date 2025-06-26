@@ -382,14 +382,15 @@ class _JSONLogFormatter(logging.Formatter):
 
         def check_keys(key: str, value: Any) -> dict:
             result = {}
-            key = key.lower()
+            if isinstance(key, str):
+                key = key.lower()
 
-            if key in user_keys:
-                result['user_id'] = value
-            elif key in org_keys:
-                result['organization_id'] = value
-            elif key in service_keys:
-                result['service_name'] = value
+                if key in user_keys:
+                    result['user_id'] = value
+                elif key in org_keys:
+                    result['organization_id'] = value
+                elif key in service_keys:
+                    result['service_name'] = value
 
             # Recursive descent
             if isinstance(value, dict):
