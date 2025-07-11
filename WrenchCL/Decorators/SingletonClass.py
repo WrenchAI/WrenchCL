@@ -11,6 +11,8 @@ def SingletonClass(cls: type) -> type:
 
     Prevents the user-defined class from defining its own `__new__`, which would
     conflict with the singleton logic.
+    User can reset the singleton instance by calling `reset_instance` on the class.
+        - This behavior allows for state refreshes during runtime (e.g. Lambda)
 
     :param cls: The class to wrap
     :return: A singleton-enforcing subclass of the original
@@ -30,6 +32,17 @@ def SingletonClass(cls: type) -> type:
             if not getattr(self, '__singleton_initialized__', False):
                 super(SingletonWrapper, self).__init__(*args, **kwargs)
                 setattr(self, '__singleton_initialized__', True)
+
+        # noinspection PyUnusedFunction,PyMethodParameters
+        @classmethod
+        def reset_instance(cls_):
+            """Reset the singleton instance and initialization state. CLS.reset_instance()"""
+            if getattr(cls_, '_instance', None) is not None:
+                # Reset the initialization flag on the instance before clearing it
+                if hasattr(cls_._instance, '__singleton_initialized__'):
+                    setattr(cls_._instance, '__singleton_initialized__', False)
+                # Clear the instance
+                setattr(cls_, '_instance', None)
 
     SingletonWrapper.__name__ = cls.__name__
     SingletonWrapper.__qualname__ = cls.__qualname__
