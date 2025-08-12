@@ -380,7 +380,7 @@ class _JSONLogFormatter(logging.Formatter):
             'aws_function', 'project_name', 'project'
         }
 
-        def check_keys(key: str, value: Any) -> dict:
+        def check_keys(key: str, value: Any, depth: int = 0) -> dict:
             result = {}
             if isinstance(key, str):
                 key = key.lower()
@@ -392,25 +392,26 @@ class _JSONLogFormatter(logging.Formatter):
                 elif key in service_keys:
                     result['service_name'] = value
 
-            # Recursive descent
-            if isinstance(value, dict):
-                result.update(scan_dict(value))
-            elif hasattr(value, '__dict__'):
-                result.update(scan_dict(vars(value)))
+            # Recursive descent with depth limit to prevent infinite recursion
+            if depth < 10:  # Limit recursion depth
+                if isinstance(value, dict):
+                    result.update(scan_dict(value, depth + 1))
+                elif hasattr(value, '__dict__'):
+                    result.update(scan_dict(vars(value), depth + 1))
 
             return result
 
-        def scan_dict(data: dict) -> dict:
+        def scan_dict(data: dict, depth: int = 0) -> dict:
             found = {}
             for k, v in data.items():
-                found.update(check_keys(k, v))
+                found.update(check_keys(k, v, depth))
             return found
 
         def scan_ctx(ctx: Context) -> dict:
             found = {}
             for var in ctx:
                 value = ctx.get(var)
-                found.update(check_keys(var.name, value))
+                found.update(check_keys(var.name, value, 0))
             return found
 
         # Aggregate from all sources
