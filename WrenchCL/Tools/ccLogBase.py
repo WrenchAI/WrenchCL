@@ -23,7 +23,6 @@ from typing import Any, Optional, Union, Literal, Type, Callable, List
 
 from WrenchCL.Decorators.SingletonClass import SingletonClass
 from WrenchCL._Internal._MockPandas import _MockPandas
-from WrenchCL._Internal.require_module import gate_imports
 
 try:
     import pandas as pd
@@ -649,7 +648,7 @@ class ccLogBase:
                     os.environ["DD_TRACE_ENABLED"] = "true"
                 except ImportError:
                     self.__config.dd_trace_enabled = False
-                    gate_imports(True, 'trace', 'ddtrace', False)
+                    self._internal_log("Datadog trace injection disabled due to missing ddtrace dependency")
             if self.__config.dd_trace_enabled and self.__config.mode != 'json':
                 self._internal_log("   Trace injection requested, but trace_id/span_id only appear in JSON mode.")
             self.__check_color()

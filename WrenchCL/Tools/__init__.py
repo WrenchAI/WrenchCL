@@ -1,21 +1,23 @@
-#  Copyright (c) 2024-2025.
-#  Author: Willem van der Schans.
-#  Licensed under the MIT License (https://opensource.org/license/mit).
+"""Utility tools with optional dependencies."""
 
-# Check for Deprecated imports when the module is imported
-# check_import_usage()
-from .Coalesce import *  # Import all symbols from Coalesce
-from .FetchMetaData import *  # Import all symbols from FetchMetaData
-from .FileTyper import *  # Import all symbols from FileTyper
-from .Image2B64 import *  # Import all symbols from Image2B64
+# Always available core tools (depend only on core dependencies)
+from .Coalesce import coalesce
+from .FetchMetaData import get_metadata
+from .FileTyper import get_file_type
+from .Image2B64 import image_to_base64, validate_base64, get_hash
 from .JsonParser import parse_json, safe_json_loader, list_loader, show_json_tree
-from .JsonSerializer import *  # Import all symbols from JsonSerializer
-from .MaybeMonad import *  # Import all symbols from MaybeMonad
+from .JsonSerializer import robust_serializer, single_quote_decoder
+from .MaybeMonad import Maybe
 from .StandardizeNone import standardize_none
-from .TypeChecker import *  # Import all symbols from TypeChecker
-from .ccLogBase import LogOptions
+from .TypeChecker import typechecker
 
-__all__ = ['coalesce', 'get_file_type', 'image_to_base64', 'Maybe',
-           'typechecker', 'get_metadata', 'robust_serializer',
-           'validate_base64', 'single_quote_decoder', 'parse_json',
-           'safe_json_loader', 'list_loader', 'show_json_tree', 'LogOptions']
+# Logger with optional color/trace support (handles its own optional deps internally)
+from .ccLogBase import logger, LogOptions
+
+__all__ = [
+    'coalesce', 'get_file_type', 'image_to_base64', 'Maybe',
+    'typechecker', 'get_metadata', 'robust_serializer',
+    'validate_base64', 'single_quote_decoder', 'parse_json',
+    'safe_json_loader', 'list_loader', 'show_json_tree',
+    'LogOptions', 'logger', 'get_hash', 'standardize_none'
+]
