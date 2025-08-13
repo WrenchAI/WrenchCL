@@ -6,7 +6,7 @@ import asyncio
 import time
 from functools import wraps
 from json import JSONDecodeError
-from WrenchCL._Internal.require_module import require_module
+from WrenchCL._Internal.require_module import report_dependency_issue
 import requests
 try:
 
@@ -19,7 +19,7 @@ except ImportError:
     imports = False
 
 
-def Retryable(_func=None, *, max_retries=5, retry_on_exceptions=None, delay=2, verbose=False):
+def Retryable(_func=None, *, max_retries=2, retry_on_exceptions=None, delay=2, verbose=False):
     """
     A decorator that retries a function call a specified number of times if it raises an exception or if the request status code is not 200.
 
@@ -38,7 +38,7 @@ def Retryable(_func=None, *, max_retries=5, retry_on_exceptions=None, delay=2, v
 
     :return: The result of the decorated function, if it succeeds within the allowed retries.
     """
-    require_module(imports, 'aws', ['requests', 'botocore'])
+    report_dependency_issue(imports, 'aws', ['requests', 'botocore'])
     from WrenchCL.Tools.ccLogBase import logger
     
 
