@@ -16,7 +16,6 @@ authors = [
   { name = "Willem van der Schans", email = "willem@wrench.ai" }
 ]
 maintainers = [
-  { name = "Willem van der Schans", email = "willem@wrench.ai" },
   { name = "Jeong Kim", email = "jeong@wrench.ai" }
 ]
 keywords = ["aws", "openai", "utilities", "database", "cloud", "sdk"]
