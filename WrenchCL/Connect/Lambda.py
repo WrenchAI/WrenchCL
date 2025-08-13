@@ -3,7 +3,7 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
 import json
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from boto3 import client as boto3client

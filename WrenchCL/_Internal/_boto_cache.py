@@ -6,8 +6,7 @@ from functools import lru_cache
 from typing import Optional, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from botocore.config import Config
-    import boto3
+    pass
 
 try:
     from botocore.config import Config as RuntimeConfig

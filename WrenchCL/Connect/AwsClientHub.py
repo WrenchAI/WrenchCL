@@ -10,10 +10,6 @@ if TYPE_CHECKING:
     from WrenchCL._Internal._ConfigurationManager import _ConfigurationManager
     from WrenchCL._Internal._SshTunnelManager import _SshTunnelManager
     from WrenchCL._Internal._boto_cache import _get_boto3_session, _fetch_secret_from_secretsmanager
-    from mypy_boto3_lambda.client import LambdaClient
-    from mypy_boto3_rds.client import RDSClient
-    from mypy_boto3_s3.client import S3Client
-    from mypy_boto3_secretsmanager.client import SecretsManagerClient
 
 # Runtime imports
 try:
