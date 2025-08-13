@@ -8,28 +8,17 @@ import io
 import mimetypes
 from io import BytesIO
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, TYPE_CHECKING
 
-try:
+if TYPE_CHECKING:
     from botocore.config import Config
     from botocore.exceptions import ClientError
     from botocore.response import StreamingBody
-    from WrenchCL._Internal._boto_cache import _get_s3_client
-    imports = True
-except ImportError:
-    Config = None
-    ClientError = None
-    StreamingBody = None
-    _get_s3_client = None
-    imports = False
 
-# Assuming these are your custom modules
-from WrenchCL._Internal.require_module import gate_imports
-from WrenchCL.Decorators.Retryable import Retryable
-from WrenchCL.Decorators.SingletonClass import SingletonClass
-from WrenchCL.Tools.ccLogBase import logger
-
-
+from ._Internal._boto_cache import _get_s3_client
+from ..Decorators.Retryable import Retryable
+from ..Decorators.SingletonClass import SingletonClass
+from WrenchCL import logger
 
 
 @SingletonClass
@@ -43,8 +32,7 @@ class S3ServiceGateway:
         """
         Initializes the S3ServiceGateway by setting up the S3 client using the AwsClientHub.
         """
-        gate_imports(imports, 'aws', 'botocore')
-        from WrenchCL._Internal._ConfigurationManager import _ConfigurationManager
+        from ._Internal._ConfigurationManager import _ConfigurationManager
         state_config: _ConfigurationManager = _ConfigurationManager()
         state_config.initialize(silent=True)
         self.s3_client = _get_s3_client(config=config, profile=state_config.aws_profile, region=state_config.region_name)

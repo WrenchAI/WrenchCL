@@ -1,32 +1,26 @@
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
+
 import json
 import math
 from datetime import datetime, timedelta
-from typing import Optional, Any, Union, List, Tuple
+from typing import Optional, Any, Union, List, Tuple, TYPE_CHECKING
 from uuid import UUID
 
-from WrenchCL._Internal.require_module import gate_imports
-
-try:
-    import psycopg2
-    import psycopg2.extensions
-    import psycopg2.extras
+if TYPE_CHECKING:
     from mypy_boto3_rds.client import RDSClient
-    from psycopg2.pool import ThreadedConnectionPool
-    imports = True
-except ImportError:
-    psycopg2 = None
-    RDSClient = None
-    ThreadedConnectionPool = None
-    imports = False
 
+
+import psycopg2
+import psycopg2.extensions
+import psycopg2.extras
+from psycopg2.pool import ThreadedConnectionPool
 from .AwsClientHub import AwsClientHub
-from WrenchCL.Decorators.SingletonClass import SingletonClass
-from WrenchCL.Tools.ccLogBase import logger
+from ..Decorators.SingletonClass import SingletonClass
+from WrenchCL import logger
 
-from WrenchCL._Internal._MockPandas import _MockPandas
+from .._Internal._MockPandas import _MockPandas
 
 try:
     import pandas as pd
@@ -34,14 +28,13 @@ except ImportError:
     pd = _MockPandas()
 DataFrame = pd.DataFrame
 
+
 @SingletonClass
 class RdsServiceGateway:
     """
     Provides methods to interact with an RDS database, including querying data and updating the database.
     Ensures that a single instance is used throughout the application via the Singleton pattern.
     """
-
-
 
     def __init__(self, multithreaded: bool = False, min_pool_size: int = 1, max_pool_size: int = 10):
         """
@@ -55,7 +48,6 @@ class RdsServiceGateway:
         :param max_pool_size: Maximum number of connections in the pool (only if multithreaded is True).
         :type max_pool_size: int
         """
-        gate_imports(imports, 'aws', ['psycopg2'])
         psycopg2.extras.register_uuid()
         self.multithreaded = multithreaded
         self.test_mode = False

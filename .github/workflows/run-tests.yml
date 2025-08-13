@@ -1,0 +1,35 @@
+name: Python Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+      - release
+      - v4
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python and uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+
+      - name: Create venv and install .[all]
+        run: |
+          uv venv .venv
+          source .venv/bin/activate
+          uv pip install -e ".[all]"
+
+      - name: Run pytest with coverage
+        run: |
+          source .venv/bin/activate
+          pytest --cov=WrenchCL --cov-report=term --cov-report=xml tests/
