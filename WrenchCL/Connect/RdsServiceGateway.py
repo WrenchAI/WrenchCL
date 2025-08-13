@@ -55,8 +55,20 @@ class RdsServiceGateway:
         :param max_pool_size: Maximum number of connections in the pool (only if multithreaded is True).
         :type max_pool_size: int
         """
-        gate_imports(imports, 'aws', ['psycopg2'])
-        psycopg2.extras.register_uuid()
+        gate_imports(imports, 'aws', ['psycopg2'], False)
+        if not imports:
+            logger.warning("AWS dependencies not available. RdsServiceGateway will not be functional.")
+            self.multithreaded = multithreaded
+            self.test_mode = False
+            self.client_manager = None
+            self.config = None
+            self.db_uri = None
+            self.pool = None
+            self.connection = None
+            return
+            
+        if psycopg2 is not None:
+            psycopg2.extras.register_uuid()
         self.multithreaded = multithreaded
         self.test_mode = False
         self.client_manager = AwsClientHub()
