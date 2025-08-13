@@ -7,28 +7,13 @@ from typing import Optional, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import psycopg2
-    from WrenchCL._Internal._ConfigurationManager import _ConfigurationManager
-    from WrenchCL._Internal._SshTunnelManager import _SshTunnelManager
-    from WrenchCL._Internal._boto_cache import _get_boto3_session, _fetch_secret_from_secretsmanager
-
-# Runtime imports
-try:
-    import psycopg2
-    from WrenchCL._Internal._ConfigurationManager import _ConfigurationManager
-    from WrenchCL._Internal._SshTunnelManager import _SshTunnelManager
-    from WrenchCL._Internal._boto_cache import _get_boto3_session, _fetch_secret_from_secretsmanager
-    imports = True
-except ImportError:
-    psycopg2 = None
-    _ConfigurationManager = None
-    _SshTunnelManager = None
-    _get_boto3_session = None
-    _fetch_secret_from_secretsmanager = None
-    imports = False
+    from Connect._Internal._ConfigurationManager import _ConfigurationManager
+    from Connect._Internal._SshTunnelManager import _SshTunnelManager
+    from Connect._Internal._boto_cache import _get_boto3_session, _fetch_secret_from_secretsmanager
 
 from WrenchCL.Decorators.SingletonClass import SingletonClass
 from WrenchCL.Exceptions import InvalidConfigurationException
-from WrenchCL.Tools.ccLogBase import logger
+from WrenchCL import logger
 
 
 @SingletonClass
@@ -46,12 +31,6 @@ class AwsClientHub:
         :param env_path: Optional path to a `.env` file.
         :param kwargs: Override values for configuration (e.g., `AWS_PROFILE`, `SECRET_ARN`, etc.).
         """
-        if not imports:
-            raise ImportError(
-                "AWS functionality requires additional dependencies.\n"
-                "Install with: pip install 'WrenchCL[aws]'"
-            )
-
         self.__config: Optional["_ConfigurationManager"] = None
         self.__env_path = env_path
         self.__kwargs = kwargs

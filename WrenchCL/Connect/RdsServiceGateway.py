@@ -9,26 +9,16 @@ from typing import Optional, Any, Union, List, Tuple, TYPE_CHECKING
 from uuid import UUID
 
 if TYPE_CHECKING:
-    import psycopg2
-    import psycopg2.extensions
-    import psycopg2.extras
     from mypy_boto3_rds.client import RDSClient
-    from psycopg2.pool import ThreadedConnectionPool
 
-try:
-    import psycopg2
-    import psycopg2.extensions
-    import psycopg2.extras
-    from psycopg2.pool import ThreadedConnectionPool
-    imports = True
-except ImportError:
-    psycopg2 = None
-    ThreadedConnectionPool = None
-    imports = False
 
+import psycopg2
+import psycopg2.extensions
+import psycopg2.extras
+from psycopg2.pool import ThreadedConnectionPool
 from .AwsClientHub import AwsClientHub
 from WrenchCL.Decorators.SingletonClass import SingletonClass
-from WrenchCL.Tools.ccLogBase import logger
+from WrenchCL import logger
 
 from WrenchCL._Internal._MockPandas import _MockPandas
 
@@ -58,12 +48,6 @@ class RdsServiceGateway:
         :param max_pool_size: Maximum number of connections in the pool (only if multithreaded is True).
         :type max_pool_size: int
         """
-        if not imports:
-            raise ImportError(
-                "RDS functionality requires additional dependencies.\n"
-                "Install with: pip install 'WrenchCL[aws]'"
-            )
-
         psycopg2.extras.register_uuid()
         self.multithreaded = multithreaded
         self.test_mode = False

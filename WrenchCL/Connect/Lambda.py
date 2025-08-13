@@ -8,17 +8,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from boto3 import client as boto3client
 
-try:
-    from boto3 import client as boto3client
-    imports = True
-except ImportError:
-    boto3client = None
-    imports = False
-
 from WrenchCL.Exceptions import GuardedResponseTrigger
 from WrenchCL.Tools import robust_serializer
 from WrenchCL.Tools.TypeChecker import typechecker
-from WrenchCL.Tools.ccLogBase import logger
+from WrenchCL import logger
 
 
 def handle_lambda_response(code, message, params, response_body=None, client_id=None, entity_id=None):
@@ -56,12 +49,6 @@ def handle_lambda_response(code, message, params, response_body=None, client_id=
 
     :raises GuardedResponseTrigger: Custom exception to signal early exit from the Lambda function.
     """
-    if not imports:
-        raise ImportError(
-            "Lambda response handling requires additional dependencies.\n"
-            "Install with: pip install 'WrenchCL[aws]'"
-        )
-
     code = int(code)
     expected_types = {
         'event': str,
