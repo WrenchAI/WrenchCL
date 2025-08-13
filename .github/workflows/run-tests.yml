@@ -1,7 +1,6 @@
 name: Python Tests
 
 on:
-  push:
   pull_request:
     branches:
       - main
@@ -16,6 +15,11 @@ jobs:
       contents: write  # Needed if you want to push coverage
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
       - name: Run python-action
         uses: rcmdnk/python-action@v3.0.3
         with:
