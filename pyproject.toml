@@ -73,6 +73,7 @@ aws = [
   "sshtunnel>=0.4,<1.0",
   "boto3>=1.28,<2.0",
   "botocore>=1.31,<2.0",
+  "paramiko==3.5.1"
 ]
 all = [
   # Development dependencies
@@ -97,6 +98,7 @@ all = [
   "sshtunnel>=0.4,<1.0",
   "boto3>=1.28,<2.0",
   "botocore>=1.31,<2.0",
+  "paramiko==3.5.1"
 ]
 
 [tool.hatch.version]
