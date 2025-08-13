@@ -13,7 +13,8 @@ pip install WrenchCL[color,aws,trace,dev]
 ```
 
 ```python
-from WrenchCL.Tools import logger
+
+from WrenchCL import logger
 from WrenchCL.Connect import AwsClientHub, RdsServiceGateway
 
 # Beautiful logging out of the box
@@ -149,8 +150,10 @@ ENV=production
 ```
 
 ### **Programmatic Configuration**
+
 ```python
-from WrenchCL.Tools import logger
+
+from WrenchCL import logger
 from WrenchCL.Connect import AwsClientHub
 
 # Configure logger for different environments
@@ -161,9 +164,9 @@ else:
 
 # Configure AWS with custom settings
 hub = AwsClientHub(
-    AWS_PROFILE="production",
-    REGION_NAME="us-west-2"
-)
+        AWS_PROFILE="production",
+        REGION_NAME="us-west-2"
+        )
 ```
 
 ---
@@ -217,30 +220,33 @@ def external_api_call():
 - **Handle Errors**: Use the rich exception hierarchy for robust error handling
 
 ### **Common Patterns**
+
 ```python
 # Recommended application setup
-from WrenchCL.Tools import logger
+from WrenchCL import logger
 from WrenchCL.Connect import AwsClientHub
 from WrenchCL.Exceptions import GuardedResponseTrigger
+
 
 def main():
     try:
         # Configure logging first
         logger.configure(mode="terminal", verbose=True)
         logger.info("Application starting")
-        
+
         # Initialize AWS services
         hub = AwsClientHub()
-        
+
         # Your application logic
         result = run_application(hub)
-        
+
         logger.success("Application completed successfully")
         return result
-        
+
     except Exception as e:
         logger.error("Application failed", e)
         raise
+
 
 if __name__ == "__main__":
     main()
