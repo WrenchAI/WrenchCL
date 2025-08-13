@@ -43,13 +43,7 @@ class S3ServiceGateway:
         """
         Initializes the S3ServiceGateway by setting up the S3 client using the AwsClientHub.
         """
-        gate_imports(imports, 'aws', 'botocore', False)
-        if not imports:
-            logger.warning("AWS dependencies not available. S3ServiceGateway will not be functional.")
-            self.s3_client = None
-            self.test_mode = False
-            return
-            
+        gate_imports(imports, 'aws', 'botocore')
         from WrenchCL._Internal._ConfigurationManager import _ConfigurationManager
         state_config: _ConfigurationManager = _ConfigurationManager()
         state_config.initialize(silent=True)
