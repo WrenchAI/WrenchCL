@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from typing import Optional, Any, Union, List, Tuple
 from uuid import UUID
 
+from WrenchCL.Tools.ccLogBase import logger
+
 from WrenchCL._Internal.require_module import gate_imports
 
 try:
@@ -16,15 +18,15 @@ try:
     from mypy_boto3_rds.client import RDSClient
     from psycopg2.pool import ThreadedConnectionPool
     imports = True
-except ImportError:
+except ImportError as e:
     psycopg2 = None
     RDSClient = None
     ThreadedConnectionPool = None
     imports = False
+    logger.error(f'AWS dependencies not available. RdsServiceGateway will not be functional. {e}')
 
 from .AwsClientHub import AwsClientHub
 from WrenchCL.Decorators.SingletonClass import SingletonClass
-from WrenchCL.Tools.ccLogBase import logger
 
 from WrenchCL._Internal._MockPandas import _MockPandas
 
