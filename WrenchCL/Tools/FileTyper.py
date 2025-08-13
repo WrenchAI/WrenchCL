@@ -10,7 +10,7 @@ from typing import Union, Optional, Tuple
 
 from filetype import filetype
 import requests
-from WrenchCL._Internal.require_module import report_dependency_issue
+from WrenchCL._Internal.require_module import gate_imports
 from .Image2B64 import validate_base64
 
 try:

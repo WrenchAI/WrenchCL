@@ -25,7 +25,7 @@ except ImportError:
     imports = False
 
 # Assuming these are your custom modules
-from WrenchCL._Internal.require_module import report_dependency_issue
+from WrenchCL._Internal.require_module import gate_imports
 from WrenchCL.Decorators.Retryable import Retryable
 from WrenchCL.Decorators.SingletonClass import SingletonClass
 from WrenchCL.Tools.ccLogBase import logger
@@ -44,7 +44,7 @@ class S3ServiceGateway:
         """
         Initializes the S3ServiceGateway by setting up the S3 client using the AwsClientHub.
         """
-        report_dependency_issue(imports, 'aws', 'botocore')
+        gate_imports(imports, 'aws', 'botocore')
         from WrenchCL._Internal._ConfigurationManager import _ConfigurationManager
         state_config: _ConfigurationManager = _ConfigurationManager()
         state_config.initialize(silent=True)

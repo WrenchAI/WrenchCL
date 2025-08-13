@@ -30,7 +30,7 @@ except ImportError:
 
 from WrenchCL.Decorators.SingletonClass import SingletonClass
 from WrenchCL.Exceptions import InvalidConfigurationException
-from WrenchCL._Internal.require_module import report_dependency_issue
+from WrenchCL._Internal.require_module import gate_imports
 from WrenchCL.Tools.ccLogBase import logger
 
 
@@ -61,7 +61,7 @@ class AwsClientHub:
     def _initialize(self, need_secret=False):
         """Load config and secrets if not already initialized."""
         if not self.__initialized:
-            report_dependency_issue(imports, 'aws', ['boto3', 'paramiko', 'psycopg2', '...'])
+            gate_imports(imports, 'aws', ['boto3', 'paramiko', 'psycopg2', '...'])
             try:
                 self.reload_config(env_path=self.__env_path, **self.__kwargs)
                 self.__initialized = True
@@ -177,7 +177,7 @@ class AwsClientHub:
 
                 self.__db_client = self._rds_handle_configuration(config)
             else:
-                raise Exceptions.Initializations.InvalidConfigurationException("Missing required config due to missing dependencies.")
+                raise InvalidConfigurationException("Missing required config due to missing dependencies.")
 
         except Exception as e:
             logger.error(f"Failed to initialize DB client: {e}")

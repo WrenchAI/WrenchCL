@@ -6,7 +6,7 @@ import asyncio
 import time
 from functools import wraps
 from json import JSONDecodeError
-from WrenchCL._Internal.require_module import report_dependency_issue
+from WrenchCL._Internal.require_module import gate_imports
 import requests
 try:
 
@@ -38,7 +38,7 @@ def Retryable(_func=None, *, max_retries=2, retry_on_exceptions=None, delay=2, v
 
     :return: The result of the decorated function, if it succeeds within the allowed retries.
     """
-    report_dependency_issue(imports, 'aws', ['requests', 'botocore'])
+    gate_imports(imports, 'aws', ['requests', 'botocore'])
     from WrenchCL.Tools.ccLogBase import logger
     
 

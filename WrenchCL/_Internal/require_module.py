@@ -5,10 +5,10 @@ import warnings
 from typing import List, Optional, Union
 
 
-def report_dependency_issue(imports: bool, extra: str, package: Optional[Union[str, List[str]]] = None, raise_exc: bool = True):
+def gate_imports(imports_passed: bool, extra: str, package: Optional[Union[str, List[str]]] = None, raise_exc: bool = True):
     from WrenchCL.Tools.ccLogBase import logger
 
-    if imports:
+    if imports_passed:
         return
 
     if package is not None:

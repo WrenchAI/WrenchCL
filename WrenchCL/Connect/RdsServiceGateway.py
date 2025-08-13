@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Any, Union, List, Tuple
 from uuid import UUID
 
-from WrenchCL._Internal.require_module import report_dependency_issue
+from WrenchCL._Internal.require_module import gate_imports
 
 try:
     import psycopg2
@@ -17,8 +17,7 @@ try:
     from mypy_boto3_rds.client import RDSClient
     from psycopg2.pool import ThreadedConnectionPool
     imports = True
-except ImportError as e:
-    print(e)
+except ImportError:
     psycopg2 = None
     RDSClient = None
     ThreadedConnectionPool = None
@@ -57,7 +56,7 @@ class RdsServiceGateway:
         :param max_pool_size: Maximum number of connections in the pool (only if multithreaded is True).
         :type max_pool_size: int
         """
-        report_dependency_issue(imports, 'aws', ['psycopg2'])
+        gate_imports(imports, 'aws', ['psycopg2'])
         psycopg2.extras.register_uuid()
         self.multithreaded = multithreaded
         self.test_mode = False

@@ -21,7 +21,7 @@ from difflib import get_close_matches
 from contextlib import contextmanager
 import threading
 
-from WrenchCL._Internal.require_module import report_dependency_issue
+from WrenchCL._Internal.require_module import gate_imports
 from WrenchCL._Internal._MockPandas import _MockPandas
 from WrenchCL.Decorators.SingletonClass import SingletonClass
 
@@ -649,7 +649,7 @@ class ccLogBase:
                     os.environ["DD_TRACE_ENABLED"] = "true"
                 except ImportError:
                     self.__config.dd_trace_enabled = False
-                    report_dependency_issue(True, 'trace', 'ddtrace', False)
+                    gate_imports(True, 'trace', 'ddtrace', False)
             if self.__config.dd_trace_enabled and self.__config.mode != 'json':
                 self._internal_log("   Trace injection requested, but trace_id/span_id only appear in JSON mode.")
             self.__check_color()
@@ -1354,7 +1354,7 @@ class ccLogBase:
 
             self._internal_log("Forced color output enabled.")
         except ImportError:
-            report_dependency_issue(True, "color", 'colorama', False)
+            gate_imports(True, "color", 'colorama', False)
             self.warning("Colorama is not installed; cannot force color output.")
 
     def enable_color(self):
@@ -1377,7 +1377,7 @@ class ccLogBase:
                 colorama.deinit()
                 colorama.init(strip=False, autoreset=False)
         except ImportError:
-            report_dependency_issue(True, "color", 'colorama', False)
+            gate_imports(True, "color", 'colorama', False)
             self.disable_color()
 
     def disable_color(self):
@@ -1968,7 +1968,7 @@ class ccLogBase:
                 else:
                     continue
             return i
-        return 0
+        return 1
 
     @staticmethod
     def __suggest_exception(args) -> Optional[str]:
