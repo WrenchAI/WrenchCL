@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Any, Union, List, Tuple
 from uuid import UUID
 
-from WrenchCL._Internal.require_module import require_module
+from WrenchCL._Internal.require_module import report_dependency_issue
 
 try:
     import psycopg2
@@ -17,7 +17,8 @@ try:
     from mypy_boto3_rds.client import RDSClient
     from psycopg2.pool import ThreadedConnectionPool
     imports = True
-except ImportError:
+except ImportError as e:
+    print(e)
     psycopg2 = None
     RDSClient = None
     ThreadedConnectionPool = None
@@ -56,7 +57,7 @@ class RdsServiceGateway:
         :param max_pool_size: Maximum number of connections in the pool (only if multithreaded is True).
         :type max_pool_size: int
         """
-        require_module(True, 'aws', ['psycopg2'])
+        report_dependency_issue(imports, 'aws', ['psycopg2'])
         psycopg2.extras.register_uuid()
         self.multithreaded = multithreaded
         self.test_mode = False
@@ -69,7 +70,7 @@ class RdsServiceGateway:
             self.pool: Optional[psycopg2.pool] = ThreadedConnectionPool(minconn=min_pool_size, maxconn=max_pool_size, dsn=self.db_uri)
         else:
             # Establish a single connection if multithreading is not enabled
-            self.connection: Optional[RDSClient] = self.client_manager.db
+            self.connection: Optional["RDSClient"] = self.client_manager.db
 
     def set_test_mode(self, test_mode: bool = False):
         logger.warning("Test mode activated, database commits will not be commited.")

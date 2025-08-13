@@ -30,7 +30,7 @@ except ImportError:
 
 from WrenchCL.Decorators.SingletonClass import SingletonClass
 from WrenchCL.Exceptions import InvalidConfigurationException
-from WrenchCL._Internal.require_module import require_module
+from WrenchCL._Internal.require_module import report_dependency_issue
 from WrenchCL.Tools.ccLogBase import logger
 
 
@@ -61,7 +61,7 @@ class AwsClientHub:
     def _initialize(self, need_secret=False):
         """Load config and secrets if not already initialized."""
         if not self.__initialized:
-            require_module(imports, 'aws', ['boto3', 'paramiko', 'psycopg2', '...'])
+            report_dependency_issue(imports, 'aws', ['boto3', 'paramiko', 'psycopg2', '...'])
             try:
                 self.reload_config(env_path=self.__env_path, **self.__kwargs)
                 self.__initialized = True
