@@ -4,7 +4,7 @@
 
 from sshtunnel import SSHTunnelForwarder
 
-from WrenchCL.Tools.ccLogBase import logger
+from WrenchCL import logger
 
 
 class _SshTunnelManager:

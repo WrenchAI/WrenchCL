@@ -11,9 +11,10 @@ from dotenv import load_dotenv
 from WrenchCL.Decorators import SingletonClass
 from WrenchCL.Exceptions import InvalidConfigurationException
 from WrenchCL.Tools import Maybe
-from WrenchCL.Tools.ccLogBase import logger
+from WrenchCL import logger
 
 
+# noinspection PyAttributeOutsideInit
 @SingletonClass
 class _ConfigurationManager:
     """
