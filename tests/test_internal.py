@@ -2,9 +2,9 @@
 
 from unittest.mock import patch, MagicMock
 
-from WrenchCL._Internal._ConfigurationManager import _ConfigurationManager
+from WrenchCL.Connect._Internal._ConfigurationManager import _ConfigurationManager
 from WrenchCL._Internal._MockPandas import _MockPandas
-from WrenchCL._Internal._SshTunnelManager import _SshTunnelManager
+from WrenchCL.Connect._Internal._SshTunnelManager import _SshTunnelManager
 
 
 def get_cfg(**kwargs):
@@ -83,7 +83,7 @@ def test_mock_isna_and_notnull():
 # Tests for _SshTunnelManager
 # ─────────────────────────────────────────────────────────────
 
-@patch("WrenchCL._Internal._SshTunnelManager.SSHTunnelForwarder")
+@patch("WrenchCL.Connect._Internal._SshTunnelManager.SSHTunnelForwarder")
 def test_ssh_tunnel_start_and_stop(mock_forwarder_class):
     mock_forwarder = MagicMock()
     mock_forwarder.local_bind_port = 7777

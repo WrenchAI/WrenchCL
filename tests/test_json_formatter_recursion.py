@@ -3,7 +3,7 @@ import json
 import logging
 import contextvars
 
-from WrenchCL.Tools.ccLogBase import _JSONLogFormatter
+from _Internal.Logging.Formatters import JSONLogFormatter
 
 
 class FakeVar:
@@ -37,7 +37,7 @@ def make_record(msg="hello"):
 
 def make_formatter(deployed=False, traced=False):
     # No coloring/highlighting needed in test; formatter.format() returns a string
-    return _JSONLogFormatter(
+    return JSONLogFormatter(
         env_metadata={},
         forced_color=False,
         highlight_func=lambda s: s,

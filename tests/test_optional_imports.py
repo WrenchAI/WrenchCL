@@ -99,9 +99,9 @@ class TestOptionalImports:
             'WrenchCL.Connect.S3ServiceGateway',
             'WrenchCL.Connect.Lambda',
             'WrenchCL._Internal',
-            'WrenchCL._Internal._ConfigurationManager',
-            'WrenchCL._Internal._SshTunnelManager',
-            'WrenchCL._Internal._boto_cache'
+            'WrenchCL.Connect._Internal._ConfigurationManager',
+            'WrenchCL.Connect._Internal._SshTunnelManager',
+            'WrenchCL.Connect._Internal._boto_cache'
         ]
 
         for module in modules_to_remove:

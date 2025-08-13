@@ -8,7 +8,7 @@ from io import StringIO
 import pytest
 from pydantic import BaseModel
 
-from WrenchCL.Tools.ccLogBase import logger
+from WrenchCL import logger
 
 
 class DummyPretty:
@@ -181,7 +181,7 @@ def test_log_time():
 
     logger.start_time()
     logger.add_new_handler(logging.StreamHandler, stream=stream, force_replace=True)
-    time.sleep(2)
+    time.sleep(0.1)
     logger.log_time("Compact Test")
     flush_handlers(logger)
     output = stream.getvalue()
