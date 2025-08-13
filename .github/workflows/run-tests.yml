@@ -1,0 +1,41 @@
+name: run-tests.yml
+on:
+  pull_request:
+    branches:
+      - main
+      - release  # Add any other branches you want to protect
+      - v4
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+
+      - name: Create venv and install all dependencies
+        run: |
+          uv venv .venv
+          . .venv/bin/activate
+          uv export --all-extras --no-dev --no-hashes > requirements.txt
+
+      - id: run-tests
+        uses: JotaFan/pycoverage@v1.1.1
+        with:
+          requirements-file: requirements.txt
+          cov-omit-list: tests/*
+          cov-threshold-single: 85
+          cov-threshold-total: 90
+          async-tests: true
+          package-extras: dev
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
