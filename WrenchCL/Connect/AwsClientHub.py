@@ -61,7 +61,10 @@ class AwsClientHub:
     def _initialize(self, need_secret=False):
         """Load config and secrets if not already initialized."""
         if not self.__initialized:
-            gate_imports(imports, 'aws', ['boto3', 'paramiko', 'psycopg2', '...'])
+            gate_imports(imports, 'aws', ['boto3', 'paramiko', 'psycopg2', '...'], False)
+            if not imports:
+                logger.warning("AWS dependencies not available. AwsClientHub will not be functional.")
+                return
             try:
                 self.reload_config(env_path=self.__env_path, **self.__kwargs)
                 self.__initialized = True
