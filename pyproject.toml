@@ -1,21 +1,23 @@
-[build-system]
-requires = ["setuptools>=61.0", "bump-my-version"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "WrenchCL"
-version = "4.0.2"
+version = "4.1.5"
 description = "WrenchCL is a comprehensive library designed to facilitate seamless interactions with AWS services, OpenAI models, and various utility tools. This package aims to streamline the development process by providing robust components for database interactions, cloud storage, and AI-powered functionalities."
-readme = "README.md"
-requires-python = ">=3.11"
 authors = [{ name = "willem@wrench.ai" }]
+requires-python = ">=3.11"
+readme = "README.md"
 license = "MIT"
-keywords = ["aws", "openai", "utilities", "database", "cloud", "sdk"]
+keywords = [
+    "aws",
+    "openai",
+    "utilities",
+    "database",
+    "cloud",
+    "sdk",
+]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-
 dependencies = [
     "python-dotenv>=1.0,<2.0",
     "requests>=2.32,<3.0",
@@ -24,6 +26,37 @@ dependencies = [
     "ftfy>=6.3.1,<7.0.0",
     "requests"
 ]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-mock",
+    "coverage",
+    "pytest-cov",
+    "pyyaml",
+    "pydantic",
+    "pandas",
+]
+color = ["colorama>=0.4,<1.0"]
+trace = ["ddtrace>=3.2.0, <3.3.0"]
+aws = [
+    "psycopg2-binary>=2.9,<3.0",
+    "sshtunnel>=0.4,<1.0",
+    "boto3>=1.28,<2.0",
+    "botocore>=1.31,<2.0",
+    "mypy-boto3-rds>=1.40.3",
+    "mypy-boto3-lambda>=1.40.7",
+    "mypy-boto3-s3>=1.40.0",
+    "mypy-boto3-secretsmanager>=1.40.0",
+    "typing-extensions>=4.0.0"
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "bump-my-version"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv]
+package = false
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -38,25 +71,3 @@ tag = false
 [tool.bumpversion.file."pyproject.toml"]
 search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
-
-[project.optional-dependencies]
-dev = [
-  "pytest",
-  "pytest-mock",
-  "coverage",
-  "pytest-cov",
-  "pyyaml",
-  "pydantic"
-]
-color = ["colorama>=0.4,<1.0"]
-trace = ["ddtrace>=3.2.0, <3.3.0"]
-aws = [
-  "mypy_boto3_rds>=1.34,<2.0",
-  "mypy_boto3_s3>=1.34,<2.0",
-  "mypy-boto3-secretsmanager>=1.34,<2.0",
-  "mypy_boto3_lambda>=1.34,<2.0",
-  "psycopg2-binary>=2.9,<3.0",
-  "sshtunnel>=0.4,<1.0",
-  "boto3>=1.28,<2.0",
-  "botocore>=1.31,<2.0"
-]
