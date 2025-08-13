@@ -1,73 +1,63 @@
+[build-system]
+requires = [
+  "hatchling>=1.24.2",
+  "hatch-vcs>=0.4.0"
+]
+build-backend = "hatchling.build"
+
 [project]
 name = "WrenchCL"
-version = "4.2.0"
-description = "WrenchCL is a comprehensive library designed to facilitate seamless interactions with AWS services, OpenAI models, and various utility tools. This package aims to streamline the development process by providing robust components for database interactions, cloud storage, and AI-powered functionalities."
-authors = [{ name = "willem@wrench.ai" }]
-requires-python = ">=3.11"
+dynamic = ["version"]
+description = "WrenchCL is a comprehensive library designed to facilitate seamless interactions with AWS services, OpenAI models, and various utility tools."
 readme = "README.md"
+requires-python = ">=3.11"
 license = "MIT"
-keywords = [
-    "aws",
-    "openai",
-    "utilities",
-    "database",
-    "cloud",
-    "sdk",
+authors = [
+  { name = "Willem van der Schans", email = "willem@wrench.ai" }
 ]
+keywords = ["aws", "openai", "utilities", "database", "cloud", "sdk"]
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
 ]
 dependencies = [
-    "python-dotenv>=1.0,<2.0",
-    "requests>=2.32,<3.0",
-    "filetype>=1.2,<2.0",
-    "ansi2txt>=0.2.0,<1.0.0",
-    "ftfy>=6.3.1,<7.0.0",
-    "requests"
+  "python-dotenv>=1.0,<2.0",
+  "requests>=2.32,<3.0",
+  "filetype>=1.2,<2.0",
+  "ansi2txt>=0.2.0,<1.0.0",
+  "ftfy>=6.3.1,<7.0.0"
 ]
 
 [dependency-groups]
 dev = [
-    "pytest",
-    "pytest-mock",
-    "coverage",
-    "pytest-cov",
-    "pyyaml",
-    "pydantic",
-    "pandas",
+  "pytest",
+  "pytest-mock",
+  "coverage",
+  "pytest-cov",
+  "pyyaml",
+  "pydantic",
+  "pandas"
 ]
 color = ["colorama>=0.4,<1.0"]
-trace = ["ddtrace>=3.2.0, <3.3.0"]
+trace = ["ddtrace>=3.2.0,<3.3.0"]
 aws = [
-    "psycopg2-binary>=2.9,<3.0",
-    "sshtunnel>=0.4,<1.0",
-    "boto3>=1.28,<2.0",
-    "botocore>=1.31,<2.0",
-    "mypy-boto3-rds>=1.40.3",
-    "mypy-boto3-lambda>=1.40.7",
-    "mypy-boto3-s3>=1.40.0",
-    "mypy-boto3-secretsmanager>=1.40.0",
-    "typing-extensions>=4.0.0"
+  "psycopg2-binary>=2.9,<3.0",
+  "sshtunnel>=0.4,<1.0",
+  "boto3>=1.28,<2.0",
+  "botocore>=1.31,<2.0",
+  "mypy-boto3-rds>=1.40.3",
+  "mypy-boto3-lambda>=1.40.7",
+  "mypy-boto3-s3>=1.40.0",
+  "mypy-boto3-secretsmanager>=1.40.0",
+  "typing-extensions>=4.0.0"
 ]
 
-[build-system]
-requires = ["setuptools>=61.0", "bump-my-version"]
-build-backend = "setuptools.build_meta"
+[tool.hatch.version]
+source = "vcs"
+tag-pattern = "^v(?P<version>\\d+\\.\\d+\\.\\d+)$"
 
-[tool.uv]
-package = false
+[tool.hatch.build.targets.sdist]
+include = ["WrenchCL", "pyproject.toml", "README.md"]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["WrenchCL*"]
-exclude = ["tests", "tests.*"]
-
-[tool.bumpversion]
-current_version = "0.0.0"
-commit = true
-tag = false
-
-[tool.bumpversion.file."pyproject.toml"]
-search = 'version = "{current_version}"'
-replace = 'version = "{new_version}"'
+[tool.hatch.build.targets.wheel]
+packages = ["WrenchCL"]
