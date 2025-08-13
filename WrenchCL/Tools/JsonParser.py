@@ -5,7 +5,7 @@
 import json
 from typing import Union, Any
 
-from .ccLogBase import logger
+from WrenchCL import logger
 
 
 def parse_json(response: Union[str, dict], max_depth: int = 25, verbose=False, print_tree=False) -> dict:

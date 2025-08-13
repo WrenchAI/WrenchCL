@@ -6,7 +6,7 @@
 
 from typing import Any, Dict, List, Type, Union, Iterable
 
-from .ccLogBase import logger
+from WrenchCL import logger
 
 
 def typechecker(
