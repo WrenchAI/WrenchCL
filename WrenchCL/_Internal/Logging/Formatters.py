@@ -197,7 +197,7 @@ class FormatterFactory:
     This factory encapsulates all the complex formatter creation logic
     that was previously scattered throughout cLogger.
     """
-    from _Internal.Logging.ColorService import ColorService
+    from .ColorService import ColorService
 
     def __init__(self, color_service: ColorService):
         self.color_service = color_service
@@ -340,7 +340,7 @@ class FormatterFactory:
     def _get_highlight_function(self):
         """Get the highlight function - this would be injected from markup processor."""
         # This would be provided by a MarkupProcessor service
-        from _Internal.Logging.MarkupHandlers import highlight_literals
+        from .MarkupHandlers import highlight_literals
         return highlight_literals
 
 

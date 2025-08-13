@@ -433,8 +433,8 @@ class cLogger:
         :param compact: If True, uses pprint for more compact array formatting.
         :param kwargs: Passed to json.dumps or model_dump_json
         """
-        from _Internal.Logging.logging_utils import ensure_str
-        from _Internal import pd
+        from ._Internal.Logging.logging_utils import ensure_str
+        from ._Internal import pd
         import json
         from pprint import pformat
 

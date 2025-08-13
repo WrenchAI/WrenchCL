@@ -61,7 +61,7 @@ def suggest_exception(args) -> Optional[str]:
         if isinstance(a, Exception) or isinstance(a, BaseException):
             ex = a
             if hasattr(ex, 'args') and ex.args and isinstance(ex.args[0], str):
-                from _Internal._ExceptionSuggestor import _ExceptionSuggestor
+                from .._ExceptionSuggestor import _ExceptionSuggestor
                 suggestion = _ExceptionSuggestor.suggest_similar(ex)
             break
     return suggestion

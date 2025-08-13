@@ -62,7 +62,7 @@ def highlight_literals_json(msg: str, preset: ColorPresets) -> str:
 
 
 def highlight_literals(msg: str, preset: ColorPresets) -> str:
-    from _Internal.Logging.logging_utils import remove_ansi
+    from .logging_utils import remove_ansi
     msg = remove_ansi(msg)
 
     c = preset
@@ -124,7 +124,7 @@ def add_data_markers(msg: str, preset: ColorPresets, level: LogLevel, head = Fal
     indent_size = 4
     pad = ' ' * indent_size
     lines = msg.splitlines(keepends=True)
-    from _Internal.Logging.logging_utils import remove_ansi
+    from .logging_utils import remove_ansi
     content_width = max(len(remove_ansi(line.strip())) for line in lines)
 
     total_width = content_width + (indent_size * 2)

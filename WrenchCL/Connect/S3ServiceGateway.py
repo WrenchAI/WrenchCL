@@ -32,7 +32,7 @@ class S3ServiceGateway:
         """
         Initializes the S3ServiceGateway by setting up the S3 client using the AwsClientHub.
         """
-        from Connect._Internal._ConfigurationManager import _ConfigurationManager
+        from ._Internal._ConfigurationManager import _ConfigurationManager
         state_config: _ConfigurationManager = _ConfigurationManager()
         state_config.initialize(silent=True)
         self.s3_client = _get_s3_client(config=config, profile=state_config.aws_profile, region=state_config.region_name)
