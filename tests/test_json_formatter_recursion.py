@@ -3,7 +3,7 @@ import json
 import logging
 import contextvars
 
-from _Internal.Logging.Formatters import JSONLogFormatter
+from WrenchCL._Internal.Logging.Formatters import JSONLogFormatter
 
 
 class FakeVar:

@@ -1,7 +1,6 @@
 import pytest
 import sys
 from unittest.mock import patch, MagicMock
-import importlib
 import builtins
 from WrenchCL import logger
 
