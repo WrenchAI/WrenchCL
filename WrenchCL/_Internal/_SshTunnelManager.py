@@ -7,7 +7,7 @@ try:
     from sshtunnel import SSHTunnelForwarder
 except ImportError:
     SSHTunnelForwarder = None
-    require_module(True, 'aws', 'sshtunnel')
+    require_module(False, 'aws', 'sshtunnel')
 
 from WrenchCL.Tools.ccLogBase import logger
 
