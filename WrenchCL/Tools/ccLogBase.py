@@ -21,7 +21,7 @@ from difflib import get_close_matches
 from contextlib import contextmanager
 import threading
 
-from WrenchCL._Internal.require_module import require_module
+from WrenchCL._Internal.require_module import report_dependency_issue
 from WrenchCL._Internal._MockPandas import _MockPandas
 from WrenchCL.Decorators.SingletonClass import SingletonClass
 
@@ -357,62 +357,96 @@ class _JSONLogFormatter(logging.Formatter):
         self.deployed = deployed
 
     @staticmethod
-    def _extract_generic_context(metadata:Optional[dict] = None) -> dict:
+    def _extract_generic_context(metadata: Optional[dict] = None) -> dict:
         """
         Extract known context values (user_id, organization_id, service_name) from:
         - os.environ
         - contextvars
-        - deeply nested dicts or object trees
+        - deeply nested dicts or object trees (with cycle protection & depth limit)
         """
-        context_data = {}
+        context_data: dict = {}
 
         user_keys = {
-            'user_id', 'usr_id', 'entity_id', 'user_entity_id', 'subject_id',
-            'client_id', 'user_name', 'username'
+            "user_id", "usr_id", "entity_id", "user_entity_id", "subject_id",
+            "client_id", "user_name", "username",
         }
         org_keys = {
-            'client_id', 'org_id', 'organization_id', 'tenant_id',
-            'team_id', 'workspace_id', 'project_id'
+            "client_id", "org_id", "organization_id", "tenant_id",
+            "team_id", "workspace_id", "project_id",
         }
         service_keys = {
-            'service_id', 'service_name', 'application', 'app_name', 'dd_service',
-            'aws_function_name', 'aws_service', 'lambda_name', 'lambda_function',
-            'aws_function', 'project_name', 'project'
+            "service_id", "service_name", "application", "app_name", "dd_service",
+            "aws_function_name", "aws_service", "lambda_name", "lambda_function",
+            "aws_function", "project_name", "project",
         }
 
-        def check_keys(key: str, value: Any) -> dict:
-            result = {}
-            key = key.lower()
+        # Prevent infinite recursion on cyclic structures; keep traversal shallow.
+        MAX_DEPTH = 4
+        seen: set[int] = set()
 
-            if key in user_keys:
-                result['user_id'] = value
-            elif key in org_keys:
-                result['organization_id'] = value
-            elif key in service_keys:
-                result['service_name'] = value
+        def check_keys(key: str, value: object, depth: int) -> dict:
+            result: dict = {}
+            if not isinstance(key, str):
+                try:
+                    key = str(key)
+                except Exception:
+                    key = ""
+            k = key.lower()
 
-            # Recursive descent
-            if isinstance(value, dict):
-                result.update(scan_dict(value))
-            elif hasattr(value, '__dict__'):
-                result.update(scan_dict(vars(value)))
+            if k in user_keys:
+                result["user_id"] = value
+            elif k in org_keys:
+                result["organization_id"] = value
+            elif k in service_keys:
+                result["service_name"] = value
+
+            if depth >= MAX_DEPTH:
+                return result
+
+            try:
+                if isinstance(value, dict):
+                    oid = id(value)
+                    if oid in seen:
+                        return result
+                    seen.add(oid)
+                    result.update(scan_dict(value, depth + 1))
+                elif hasattr(value, "__dict__"):
+                    oid = id(value)
+                    if oid in seen:
+                        return result
+                    seen.add(oid)
+                    try:
+                        result.update(scan_dict(vars(value), depth + 1))
+                    except Exception:
+                        pass
+            except Exception:
+                pass
 
             return result
 
-        def scan_dict(data: dict) -> dict:
-            found = {}
-            for k, v in data.items():
-                found.update(check_keys(k, v))
+        def scan_dict(data: dict, depth: int) -> dict:
+            found: dict = {}
+            try:
+                items = data.items()
+            except Exception:
+                return found
+            for k, v in items:
+                found.update(check_keys(k, v, depth))
             return found
 
-        def scan_ctx(ctx: Context) -> dict:
-            found = {}
-            for var in ctx:
-                value = ctx.get(var)
-                found.update(check_keys(var.name, value))
+        def scan_ctx(ctx: "Context") -> dict:
+            found: dict = {}
+            try:
+                for var in ctx:
+                    try:
+                        value = ctx.get(var)
+                    except Exception:
+                        continue
+                    found.update(check_keys(var.name, value, depth=0))
+            except Exception:
+                pass
             return found
 
-        # Aggregate from all sources
         context_data.update(scan_ctx(contextvars.copy_context()))
         return context_data
 
@@ -615,7 +649,7 @@ class ccLogBase:
                     os.environ["DD_TRACE_ENABLED"] = "true"
                 except ImportError:
                     self.__config.dd_trace_enabled = False
-                    require_module(True, 'trace', 'ddtrace', False)
+                    report_dependency_issue(True, 'trace', 'ddtrace', False)
             if self.__config.dd_trace_enabled and self.__config.mode != 'json':
                 self._internal_log("   Trace injection requested, but trace_id/span_id only appear in JSON mode.")
             self.__check_color()
@@ -1320,7 +1354,7 @@ class ccLogBase:
 
             self._internal_log("Forced color output enabled.")
         except ImportError:
-            require_module(True, "color", 'colorama', False)
+            report_dependency_issue(True, "color", 'colorama', False)
             self.warning("Colorama is not installed; cannot force color output.")
 
     def enable_color(self):
@@ -1343,7 +1377,7 @@ class ccLogBase:
                 colorama.deinit()
                 colorama.init(strip=False, autoreset=False)
         except ImportError:
-            require_module(True, "color", 'colorama', False)
+            report_dependency_issue(True, "color", 'colorama', False)
             self.disable_color()
 
     def disable_color(self):
@@ -1934,6 +1968,7 @@ class ccLogBase:
                 else:
                     continue
             return i
+        return 0
 
     @staticmethod
     def __suggest_exception(args) -> Optional[str]:
