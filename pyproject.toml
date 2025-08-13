@@ -15,6 +15,10 @@ license = "MIT"
 authors = [
   { name = "Willem van der Schans", email = "willem@wrench.ai" }
 ]
+maintainers = [
+  { name = "Willem van der Schans", email = "willem@wrench.ai" },
+  { name = "Jeong Kim", email = "jeong@wrench.ai" }
+]
 keywords = ["aws", "openai", "utilities", "database", "cloud", "sdk"]
 classifiers = [
   "Programming Language :: Python :: 3",
@@ -28,7 +32,20 @@ dependencies = [
   "ftfy>=6.3.1,<7.0.0"
 ]
 
-[dependency-groups]
+# Project URLs
+[project.urls]
+"Homepage" = "https://github.com/WrenchAI/WrenchCL"
+"Repository" = "https://github.com/WrenchAI/WrenchCL"
+"Bug Tracker" = "https://github.com/WrenchAI/WrenchCL/issues"
+"Documentation" = "https://github.com/WrenchAI/WrenchCL#readme"
+"PyPI" = "https://pypi.org/project/WrenchCL/"
+"Changelog" = "https://github.com/WrenchAI/WrenchCL/blob/main/CHANGELOG.md"
+"Author GitHub" = "https://github.com/Kydoimos97"
+"Author PyPI" = "https://pypi.org/user/Kydoimos97/"
+"Maintainer GitHub" = "https://github.com/dalmad2"
+"Maintainer PyPI" = "https://pypi.org/user/sot232/"
+
+[project.optional-dependencies]
 dev = [
   "pytest",
   "pytest-mock",
@@ -36,20 +53,50 @@ dev = [
   "pytest-cov",
   "pyyaml",
   "pydantic",
-  "pandas"
-]
-color = ["colorama>=0.4,<1.0"]
-trace = ["ddtrace>=3.2.0,<3.3.0"]
-aws = [
-  "psycopg2-binary>=2.9,<3.0",
-  "sshtunnel>=0.4,<1.0",
-  "boto3>=1.28,<2.0",
-  "botocore>=1.31,<2.0",
+  "pandas",
+  # Type stubs for better IDE/mypy support
   "mypy-boto3-rds>=1.40.3",
   "mypy-boto3-lambda>=1.40.7",
   "mypy-boto3-s3>=1.40.0",
   "mypy-boto3-secretsmanager>=1.40.0",
-  "typing-extensions>=4.0.0"
+  "mypy>=1.0.0",
+]
+color = [
+  "colorama>=0.4,<1.0",
+]
+trace = [
+  "ddtrace>=3.2.0,<3.3.0",
+]
+aws = [
+  # Runtime AWS dependencies only
+  "psycopg2-binary>=2.9,<3.0",
+  "sshtunnel>=0.4,<1.0",
+  "boto3>=1.28,<2.0",
+  "botocore>=1.31,<2.0",
+]
+all = [
+  # Development dependencies
+  "pytest",
+  "pytest-mock",
+  "coverage",
+  "pytest-cov",
+  "pyyaml",
+  "pydantic",
+  "pandas",
+  "mypy-boto3-rds>=1.40.3",
+  "mypy-boto3-lambda>=1.40.7",
+  "mypy-boto3-s3>=1.40.0",
+  "mypy-boto3-secretsmanager>=1.40.0",
+  "mypy>=1.0.0",
+  # Color support
+  "colorama>=0.4,<1.0",
+  # Tracing support
+  "ddtrace>=3.2.0,<3.3.0",
+  # AWS support
+  "psycopg2-binary>=2.9,<3.0",
+  "sshtunnel>=0.4,<1.0",
+  "boto3>=1.28,<2.0",
+  "botocore>=1.31,<2.0",
 ]
 
 [tool.hatch.version]
