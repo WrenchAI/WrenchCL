@@ -64,3 +64,7 @@ class _MockPandas:
         """Mock pandas.options."""
         self.options = {}
 
+try:
+    import pandas as pd
+except ImportError:
+    pd = _MockPandas()
