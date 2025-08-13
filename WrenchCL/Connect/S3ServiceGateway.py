@@ -15,9 +15,9 @@ if TYPE_CHECKING:
     from botocore.exceptions import ClientError
     from botocore.response import StreamingBody
 
-from Connect._Internal._boto_cache import _get_s3_client
-from WrenchCL.Decorators.Retryable import Retryable
-from WrenchCL.Decorators.SingletonClass import SingletonClass
+from ._Internal._boto_cache import _get_s3_client
+from ..Decorators.Retryable import Retryable
+from ..Decorators.SingletonClass import SingletonClass
 from WrenchCL import logger
 
 

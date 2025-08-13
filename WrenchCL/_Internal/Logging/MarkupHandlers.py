@@ -3,8 +3,8 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 import re
 
-from _Internal.Logging.ColorService import ColorPresets
-from _Internal.Logging.DataClasses import LogLevel
+from .ColorService import ColorPresets
+from .DataClasses import LogLevel
 
 
 def highlight_data(msg: str, preset: ColorPresets) -> str:

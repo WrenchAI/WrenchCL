@@ -8,9 +8,9 @@ from typing import Optional
 
 from dotenv import load_dotenv
 
-from WrenchCL.Decorators import SingletonClass
-from WrenchCL.Exceptions import InvalidConfigurationException
-from WrenchCL.Tools import Maybe
+from ...Decorators import SingletonClass
+from ...Exceptions import InvalidConfigurationException
+from ...Tools import Maybe
 from WrenchCL import logger
 
 

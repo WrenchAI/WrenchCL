@@ -17,10 +17,10 @@ import psycopg2.extensions
 import psycopg2.extras
 from psycopg2.pool import ThreadedConnectionPool
 from .AwsClientHub import AwsClientHub
-from WrenchCL.Decorators.SingletonClass import SingletonClass
+from ..Decorators.SingletonClass import SingletonClass
 from WrenchCL import logger
 
-from WrenchCL._Internal._MockPandas import _MockPandas
+from .._Internal._MockPandas import _MockPandas
 
 try:
     import pandas as pd

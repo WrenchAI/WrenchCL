@@ -4,10 +4,10 @@
 
 from typing import Optional
 
-from _Internal.Logging.DataClasses import LogLevel, logLevels
-from _Internal.Logging.LoggerConfigState import LoggerConfigState
-from _Internal.Logging.MarkupHandlers import highlight_literals, highlight_data, highlight_literals_json, add_data_markers
-from _Internal.Logging.logging_utils import ensure_str, suggest_exception
+from .DataClasses import LogLevel, logLevels
+from .LoggerConfigState import LoggerConfigState
+from .MarkupHandlers import highlight_literals, highlight_data, highlight_literals_json, add_data_markers
+from .logging_utils import ensure_str, suggest_exception
 
 
 class MarkupProcessor:

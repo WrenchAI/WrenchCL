@@ -9,9 +9,9 @@ from difflib import get_close_matches
 from io import TextIOBase
 from typing import List, Dict, Optional, Type
 
-from _Internal.Logging.DataClasses import LogLevel, logLevels
-from _Internal.Logging.Formatters import FileLogFormatter
-from _Internal.Logging.LoggerConfigState import LoggerConfigState
+from .DataClasses import LogLevel, logLevels
+from .Formatters import FileLogFormatter
+from .LoggerConfigState import LoggerConfigState
 
 
 class GlobalLoggerManager:

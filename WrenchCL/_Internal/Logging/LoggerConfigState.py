@@ -7,7 +7,7 @@ import threading
 from dataclasses import replace, dataclass
 from typing import Optional, Literal, Dict, Any
 
-from _Internal.Logging.DataClasses import LogLevel, logLevels
+from .DataClasses import LogLevel, logLevels
 
 
 @dataclass(frozen=True)  # Immutable config state

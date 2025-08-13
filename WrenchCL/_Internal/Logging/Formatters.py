@@ -7,8 +7,8 @@ import logging
 from contextvars import Context
 from typing import Optional, Callable, Dict
 
-from _Internal.Logging.ColorService import ColorService, ColorPresets, MockColorama
-from _Internal.Logging.DataClasses import logLevels, LogLevel
+from .ColorService import ColorService, ColorPresets, MockColorama
+from .DataClasses import logLevels, LogLevel
 
 
 class CustomFormatter(logging.Formatter):

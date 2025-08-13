@@ -13,14 +13,14 @@ from logging import Handler
 from typing import Optional, Literal, Any, Union, Type, List
 
 # Import existing modules (unchanged)
-from Decorators import SingletonClass
-from _Internal.Logging.DataClasses import LogLevel, LogOptions, logLevels
-from _Internal.Logging.ColorService import ColorService
-from _Internal.Logging.Formatters import FormatterFactory
-from _Internal.Logging.LogManagers import GlobalLoggerManager, HandlerManager
-from _Internal.Logging.LoggerConfigState import ConfigManager
-from _Internal.Logging.MessageProcessors import MarkupProcessor, MessageProcessor
-from _Internal.Logging.logging_utils import get_depth, generate_run_id
+from .Decorators import SingletonClass
+from ._Internal.Logging.DataClasses import LogLevel, LogOptions, logLevels
+from ._Internal.Logging.ColorService import ColorService
+from ._Internal.Logging.Formatters import FormatterFactory
+from ._Internal.Logging.LogManagers import GlobalLoggerManager, HandlerManager
+from ._Internal.Logging.LoggerConfigState import ConfigManager
+from ._Internal.Logging.MessageProcessors import MarkupProcessor, MessageProcessor
+from ._Internal.Logging.logging_utils import get_depth, generate_run_id
 
 
 @SingletonClass

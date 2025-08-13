@@ -7,12 +7,12 @@ from typing import Optional, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import psycopg2
-    from Connect._Internal._ConfigurationManager import _ConfigurationManager
-    from Connect._Internal._SshTunnelManager import _SshTunnelManager
-    from Connect._Internal._boto_cache import _get_boto3_session, _fetch_secret_from_secretsmanager
 
-from WrenchCL.Decorators.SingletonClass import SingletonClass
-from WrenchCL.Exceptions import InvalidConfigurationException
+from ._Internal._boto_cache import _get_boto3_session, _fetch_secret_from_secretsmanager
+from ._Internal._ConfigurationManager import _ConfigurationManager
+from ._Internal._SshTunnelManager import _SshTunnelManager
+from ..Decorators.SingletonClass import SingletonClass
+from ..Exceptions import InvalidConfigurationException
 from WrenchCL import logger
 
 

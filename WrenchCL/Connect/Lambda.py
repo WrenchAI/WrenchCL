@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from boto3 import client as boto3client
 
-from WrenchCL.Exceptions import GuardedResponseTrigger
-from WrenchCL.Tools import robust_serializer
-from WrenchCL.Tools.TypeChecker import typechecker
+from ..Exceptions import GuardedResponseTrigger
+from ..Tools import robust_serializer
+from ..Tools.TypeChecker import typechecker
 from WrenchCL import logger
 
 

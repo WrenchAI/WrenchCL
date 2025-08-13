@@ -3,7 +3,7 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 import logging
 
-from _Internal.Logging.DataClasses import logLevels, LogLevel
+from .DataClasses import logLevels, LogLevel
 
 
 class MockColorama:
