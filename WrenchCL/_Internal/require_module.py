@@ -5,7 +5,7 @@ import warnings
 from typing import List, Optional, Union
 
 
-def require_module(imports: bool, extra: str, package: Optional[Union[str, List[str]]] = None, raise_exc: bool = True):
+def report_dependency_issue(imports: bool, extra: str, package: Optional[Union[str, List[str]]] = None, raise_exc: bool = True):
     from WrenchCL.Tools.ccLogBase import logger
 
     if imports:
