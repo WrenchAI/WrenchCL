@@ -12,6 +12,7 @@ def test_internal_import():
         pytest.fail(f"Importing WrenchCL._Internal failed: {e}")
 
 
+
 def test_connect_import():
     try:
         from WrenchCL.Connect import S3ServiceGateway, RdsServiceGateway, AwsClientHub

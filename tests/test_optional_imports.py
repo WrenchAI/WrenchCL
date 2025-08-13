@@ -3,7 +3,7 @@ import sys
 from unittest.mock import patch, MagicMock
 import importlib
 import builtins
-
+from WrenchCL import logger
 
 def create_comprehensive_boto_mocks():
     """Create comprehensive mocks for the entire boto3/botocore ecosystem."""
@@ -147,6 +147,7 @@ class TestOptionalImports:
             assert "AWS functionality requires additional dependencies" in error_msg
             assert "pip install 'WrenchCL[aws]'" in error_msg
             assert "boto3" in error_msg
+            logger.error(error_msg)
 
     def test_aws_import_fails_missing_psycopg2(self, clean_imports):
         """Test import fails when psycopg2 is missing."""
@@ -165,6 +166,7 @@ class TestOptionalImports:
             assert "AWS functionality requires additional dependencies" in error_msg
             assert "pip install 'WrenchCL[aws]'" in error_msg
             assert "psycopg2" in error_msg
+            logger.error(error_msg)
 
     def test_tools_always_available(self, clean_imports):
         """Test that Tools module works without optional dependencies."""
@@ -227,6 +229,7 @@ class TestOptionalImports:
 
             error_msg = str(exc_info.value)
             assert "pip install 'WrenchCL[aws]'" in error_msg
+            logger.error(error_msg)
 
 
 class TestImportIntegration:
@@ -242,6 +245,7 @@ class TestImportIntegration:
         logger.info("Test message")
         assert coalesce(None, "works") == "works"
         assert Maybe(42).value == 42
+
 
 
 class TestRealWorldScenarios:
@@ -265,6 +269,7 @@ class TestRealWorldScenarios:
             logger.info(f"AWS available: {aws_available}")
             assert Maybe(42).value == 42
             assert aws_available is True  # Should be available with mocks
+            
 
     def test_graceful_import_pattern_failure(self):
         """Test the pattern users would actually use when deps are missing."""
