@@ -1,15 +1,24 @@
-import json
-
-from WrenchCL.Exceptions import GuardedResponseTrigger
-from WrenchCL.Tools import robust_serializer
-from WrenchCL.Tools.TypeChecker import typechecker  # Update this to the correct import path
-from WrenchCL.Tools.ccLogBase import logger
-from WrenchCL._Internal.require_module import gate_imports
-
-
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
+
+import json
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from boto3 import client as boto3client
+
+try:
+    from boto3 import client as boto3client
+    imports = True
+except ImportError:
+    boto3client = None
+    imports = False
+
+from WrenchCL.Exceptions import GuardedResponseTrigger
+from WrenchCL.Tools import robust_serializer
+from WrenchCL.Tools.TypeChecker import typechecker
+from WrenchCL.Tools.ccLogBase import logger
 
 
 def handle_lambda_response(code, message, params, response_body=None, client_id=None, entity_id=None):
@@ -47,18 +56,18 @@ def handle_lambda_response(code, message, params, response_body=None, client_id=
 
     :raises GuardedResponseTrigger: Custom exception to signal early exit from the Lambda function.
     """
-    try:
-        from boto3 import client as boto3client
-    except ImportError:
-        boto3client = None
-        gate_imports(False, 'aws', 'boto3')
+    if not imports:
+        raise ImportError(
+            "Lambda response handling requires additional dependencies.\n"
+            "Install with: pip install 'WrenchCL[aws]'"
+        )
 
     code = int(code)
     expected_types = {
         'event': str,
         'context': str,
         'start_time': (int, float),
-        'lambda_client': boto3client,
+        'lambda_client': object,  # Use generic object type since we just need to check if it exists
     }
 
     try:
@@ -99,12 +108,14 @@ def handle_lambda_response(code, message, params, response_body=None, client_id=
     # Log the error with the internal custom code
     if code in custom_error_messages:
         logger.error(
-            f"Custom Code = {code} | {custom_error_messages[code]} | [Client ID: {client_id}, Entity ID: {entity_id}] | Status Message: {message}"
-        ,exc_info=True)
+            f"Custom Code = {code} | {custom_error_messages[code]} | [Client ID: {client_id}, Entity ID: {entity_id}] | Status Message: {message}",
+            exc_info=True
+        )
     else:
         logger.error(
-            f"Custom Code = {code} | Unrecognized Error Code | [Client ID: {client_id}, Entity ID: {entity_id}] | Status Message: {message}"
-        ,exc_info=True)
+            f"Custom Code = {code} | Unrecognized Error Code | [Client ID: {client_id}, Entity ID: {entity_id}] | Status Message: {message}",
+            exc_info=True
+        )
 
     default_headers = {
         'Content-Type': 'application/json; charset=utf-8',
@@ -113,10 +124,10 @@ def handle_lambda_response(code, message, params, response_body=None, client_id=
 
     # Build the response
     response = {
-            'statusCode': api_code,
-            'headers': default_headers,
-            'body': json.dumps(dict(Message=message) if response_body is None else response_body, default=robust_serializer)
-        }
+        'statusCode': api_code,
+        'headers': default_headers,
+        'body': json.dumps(dict(Message=message) if response_body is None else response_body, default=robust_serializer)
+    }
 
     logger.debug(f"Built Lambda Response: {response}")
     raise GuardedResponseTrigger(response)

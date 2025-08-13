@@ -8,7 +8,12 @@ import io
 import mimetypes
 from io import BytesIO
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from botocore.config import Config
+    from botocore.exceptions import ClientError
+    from botocore.response import StreamingBody
 
 try:
     from botocore.config import Config
@@ -23,13 +28,9 @@ except ImportError:
     _get_s3_client = None
     imports = False
 
-# Assuming these are your custom modules
-from WrenchCL._Internal.require_module import gate_imports
 from WrenchCL.Decorators.Retryable import Retryable
 from WrenchCL.Decorators.SingletonClass import SingletonClass
 from WrenchCL.Tools.ccLogBase import logger
-
-
 
 
 @SingletonClass
@@ -43,7 +44,12 @@ class S3ServiceGateway:
         """
         Initializes the S3ServiceGateway by setting up the S3 client using the AwsClientHub.
         """
-        gate_imports(imports, 'aws', 'botocore')
+        if not imports:
+            raise ImportError(
+                "S3 functionality requires additional dependencies.\n"
+                "Install with: pip install 'WrenchCL[aws]'"
+            )
+
         from WrenchCL._Internal._ConfigurationManager import _ConfigurationManager
         state_config: _ConfigurationManager = _ConfigurationManager()
         state_config.initialize(silent=True)

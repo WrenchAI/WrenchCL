@@ -3,10 +3,9 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
 import json
+from typing import Optional, Union, TYPE_CHECKING
 
-from typing import Optional, Union
-
-try:
+if TYPE_CHECKING:
     import psycopg2
     from WrenchCL._Internal._ConfigurationManager import _ConfigurationManager
     from WrenchCL._Internal._SshTunnelManager import _SshTunnelManager
@@ -15,13 +14,16 @@ try:
     from mypy_boto3_rds.client import RDSClient
     from mypy_boto3_s3.client import S3Client
     from mypy_boto3_secretsmanager.client import SecretsManagerClient
+
+# Runtime imports
+try:
+    import psycopg2
+    from WrenchCL._Internal._ConfigurationManager import _ConfigurationManager
+    from WrenchCL._Internal._SshTunnelManager import _SshTunnelManager
+    from WrenchCL._Internal._boto_cache import _get_boto3_session, _fetch_secret_from_secretsmanager
     imports = True
 except ImportError:
     psycopg2 = None
-    LambdaClient = None
-    RDSClient = None
-    S3Client = None
-    SecretsManagerClient = None
     _ConfigurationManager = None
     _SshTunnelManager = None
     _get_boto3_session = None
@@ -30,11 +32,9 @@ except ImportError:
 
 from WrenchCL.Decorators.SingletonClass import SingletonClass
 from WrenchCL.Exceptions import InvalidConfigurationException
-from WrenchCL._Internal.require_module import gate_imports
 from WrenchCL.Tools.ccLogBase import logger
 
 
-# noinspection PyUnresolvedReferences
 @SingletonClass
 class AwsClientHub:
     """
@@ -50,10 +50,16 @@ class AwsClientHub:
         :param env_path: Optional path to a `.env` file.
         :param kwargs: Override values for configuration (e.g., `AWS_PROFILE`, `SECRET_ARN`, etc.).
         """
-        self.__config: Optional[_ConfigurationManager] = None
+        if not imports:
+            raise ImportError(
+                "AWS functionality requires additional dependencies.\n"
+                "Install with: pip install 'WrenchCL[aws]'"
+            )
+
+        self.__config: Optional["_ConfigurationManager"] = None
         self.__env_path = env_path
         self.__kwargs = kwargs
-        self.__db_client: Optional[RDSClient] = None
+        self.__db_client = None
         self.__lambda = None
         self.__initialized = False
         self.__init_mode = False
@@ -61,7 +67,6 @@ class AwsClientHub:
     def _initialize(self, need_secret=False):
         """Load config and secrets if not already initialized."""
         if not self.__initialized:
-            gate_imports(imports, 'aws', ['boto3', 'paramiko', 'psycopg2', '...'])
             try:
                 self.reload_config(env_path=self.__env_path, **self.__kwargs)
                 self.__initialized = True
@@ -129,29 +134,22 @@ class AwsClientHub:
         return _get_boto3_session(self.config.aws_profile)
 
     def _load_rds_secret(self):
-        """
-        Load the RDS secret from SecretsManager.
-        """
-
+        """Load the RDS secret from SecretsManager."""
         parsed = {}
         try:
             secret = _fetch_secret_from_secretsmanager(
-            profile=self.__config.aws_profile,
-            region=self.__config.region_name,
-            secret_arn=self.__config.secret_arn
+                profile=self.__config.aws_profile,
+                region=self.__config.region_name,
+                secret_arn=self.__config.secret_arn
             )
             parsed = json.loads(secret) if isinstance(secret, str) else secret
         finally:
             configured = self.__config.load_rds_secret(parsed)
             if not configured:
                 raise InvalidConfigurationException("Missing required RDS configuration values.")
-            else:
-                pass
 
     def _init_rds_client(self):
-        """
-        Initialize the database client, applying PGHOST/PGPORT override or setting up an SSH tunnel if configured.
-        """
+        """Initialize the database client, applying PGHOST/PGPORT override or setting up an SSH tunnel if configured."""
         try:
             if self.config and isinstance(self.config, _ConfigurationManager):
                 config = {

@@ -1,19 +1,24 @@
-#  Copyright (c) 2024-2025.
-#  Author: Willem van der Schans.
-#  Licensed under the MIT License (https://opensource.org/license/mit).
-
-# WrenchCL/Connect/__init__.py
+"""AWS service integrations - requires 'aws' extra."""
 
 try:
-    from .AwsClientHub import *
-    from .RdsServiceGateway import *
-    from .S3ServiceGateway import *
-    from .Lambda import *
-except ImportError:
-    AwsClientHub = None
-    RdsServiceGateway = None
-    S3ServiceGateway = None
-    Lambda = None
-    pass
+    # Test all required AWS dependencies
+    import boto3
+    import psycopg2
+    import paramiko
+    from sshtunnel import SSHTunnelForwarder
+    import botocore
 
-__all__ = ['RdsServiceGateway', 'S3ServiceGateway', 'AwsClientHub', 'handle_lambda_response']
+    # Import our AWS classes
+    from .AwsClientHub import AwsClientHub
+    from .RdsServiceGateway import RdsServiceGateway
+    from .S3ServiceGateway import S3ServiceGateway
+    from .Lambda import handle_lambda_response
+
+except ImportError as e:
+    raise ImportError(
+        f"AWS functionality requires additional dependencies.\n"
+        f"Install with: pip install 'WrenchCL[aws]'\n"
+        f"Missing: {e}"
+    ) from e
+
+__all__ = ['AwsClientHub', 'RdsServiceGateway', 'S3ServiceGateway', 'handle_lambda_response']
