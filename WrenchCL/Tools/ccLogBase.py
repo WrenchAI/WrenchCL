@@ -1968,6 +1968,7 @@ class ccLogBase:
                 else:
                     continue
             return i
+        # Fallback: If stack inspection fails, return depth 1 (assume direct caller).
         return 1
 
     @staticmethod
