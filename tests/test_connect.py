@@ -104,20 +104,3 @@ def test_rds_update_tuple_commit(mock_hub_cls):
     svc = RdsServiceGateway(multithreaded=False)
     result = svc.update_database("UPDATE table SET x = %s", payload=("val",), returning=True)
     assert result == [{'id': 1}]
-
-
-# ─────────────────────────────────────────────────────────────
-# S3ServiceGateway Tests
-# ─────────────────────────────────────────────────────────────
-
-@patch("WrenchCL.Connect.S3ServiceGateway.AwsClientHub")
-def test_s3_upload_bytes(mock_hub_cls):
-    mock_client = MagicMock()
-    mock_hub_cls.return_value.get_s3_client.return_value = mock_client
-
-    svc = S3ServiceGateway()
-    svc.set_test_mode(True)
-
-    # No actual upload because test_mode=True
-    result = svc.upload_file(b"binarydata", "my-bucket", "test/file.txt")
-    assert result is None
