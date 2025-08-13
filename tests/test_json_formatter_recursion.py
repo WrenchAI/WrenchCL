@@ -2,13 +2,8 @@
 import json
 import logging
 import contextvars
-import types
-import pytest
 
 from WrenchCL.Tools.ccLogBase import _JSONLogFormatter
-
-
-# Adjust import to match your real module path
 
 
 class FakeVar:
