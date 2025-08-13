@@ -11,7 +11,7 @@ def test_singleton_violation_on_new():
             def __new__(cls):
                 return super().__new__(cls)
 
-    assert "Classes decorated with @SingletonClass must not override the '__new__' method." in str(exc_info.value)
+    assert "Classes decorated with @SingletonClass must not override the '__new__' method" in str(exc_info.value)
 
 
 def test_singleton_instance_identity():

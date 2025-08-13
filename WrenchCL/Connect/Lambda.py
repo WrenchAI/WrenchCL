@@ -1,13 +1,15 @@
 import json
+
+from WrenchCL.Exceptions import GuardedResponseTrigger
+from WrenchCL.Tools import robust_serializer
+from WrenchCL.Tools.TypeChecker import typechecker  # Update this to the correct import path
+from WrenchCL.Tools.ccLogBase import logger
+from WrenchCL._Internal.require_module import gate_imports
+
+
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
-
-from WrenchCL.Exceptions import GuardedResponseTrigger
-from WrenchCL._Internal.require_module import require_module
-from WrenchCL.Tools import robust_serializer
-from WrenchCL.Tools.ccLogBase import logger
-from WrenchCL.Tools.TypeChecker import typechecker  # Update this to the correct import path
 
 
 def handle_lambda_response(code, message, params, response_body=None, client_id=None, entity_id=None):
@@ -49,7 +51,7 @@ def handle_lambda_response(code, message, params, response_body=None, client_id=
         from boto3 import client as boto3client
     except ImportError:
         boto3client = None
-        require_module(True, 'aws', 'boto3')
+        gate_imports(False, 'aws', 'boto3')
 
     code = int(code)
     expected_types = {

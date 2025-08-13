@@ -1,0 +1,39 @@
+# .github/workflows/publish-uv.yml
+name: Build & Publish (uv)
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  id-token: write         # REQUIRED for PyPI Trusted Publishing
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0         # hatch-vcs needs tags
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+
+      - name: Create venv
+        run: uv venv .venv
+
+      - name: Install hatch-vcs
+        run: |
+          . .venv/bin/activate
+          uv pip install hatch-vcs
+
+      - name: Build and Publish
+        run: |
+          . .venv/bin/activate
+          uv build
+          ls -lh dist  # Debug: List built files
+          uv publish dist/* -- --yes

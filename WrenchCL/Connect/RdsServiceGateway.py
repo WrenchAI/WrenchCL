@@ -1,14 +1,13 @@
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
-import importlib
 import json
 import math
 from datetime import datetime, timedelta
 from typing import Optional, Any, Union, List, Tuple
 from uuid import UUID
 
-from WrenchCL._Internal.require_module import require_module
+from WrenchCL._Internal.require_module import gate_imports
 
 try:
     import psycopg2
@@ -56,7 +55,7 @@ class RdsServiceGateway:
         :param max_pool_size: Maximum number of connections in the pool (only if multithreaded is True).
         :type max_pool_size: int
         """
-        require_module(True, 'aws', ['psycopg2'])
+        gate_imports(imports, 'aws', ['psycopg2'])
         psycopg2.extras.register_uuid()
         self.multithreaded = multithreaded
         self.test_mode = False
@@ -69,7 +68,7 @@ class RdsServiceGateway:
             self.pool: Optional[psycopg2.pool] = ThreadedConnectionPool(minconn=min_pool_size, maxconn=max_pool_size, dsn=self.db_uri)
         else:
             # Establish a single connection if multithreading is not enabled
-            self.connection: Optional[RDSClient] = self.client_manager.db
+            self.connection: Optional["RDSClient"] = self.client_manager.db
 
     def set_test_mode(self, test_mode: bool = False):
         logger.warning("Test mode activated, database commits will not be commited.")
