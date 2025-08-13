@@ -1,15 +1,8 @@
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
-from .require_module import gate_imports
-
-try:
-    from sshtunnel import SSHTunnelForwarder
-except ImportError:
-    SSHTunnelForwarder = None
-    gate_imports(False, 'aws', 'sshtunnel')
-
-from WrenchCL.Tools.ccLogBase import logger
+from sshtunnel import SSHTunnelForwarder
+from WrenchCL import logger
 
 
 class _SshTunnelManager:

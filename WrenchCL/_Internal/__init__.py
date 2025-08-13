@@ -1,5 +1,9 @@
-#  Copyright (c) 2024-2025.
-#  Author: Willem van der Schans.
-#  Licensed under the MIT License (https://opensource.org/license/mit).
+"""Internal utilities - some require AWS dependencies."""
 
-# WrenchCL/_Internal/__init__.py
+# Always available
+from ._MockPandas import pd
+
+
+__all__ = [
+    'pd'
+]

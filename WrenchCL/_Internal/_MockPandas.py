@@ -1,6 +1,3 @@
-
-
-
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
@@ -64,3 +61,7 @@ class _MockPandas:
         """Mock pandas.options."""
         self.options = {}
 
+try:
+    import pandas as pd
+except ImportError:
+    pd = _MockPandas()

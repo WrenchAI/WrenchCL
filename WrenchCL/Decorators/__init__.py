@@ -1,11 +1,8 @@
-#  Copyright (c) 2024-2025.
-#  Author: Willem van der Schans.
-#  Licensed under the MIT License (https://opensource.org/license/mit).
+"""Decorators - no optional dependencies."""
 
-# WrenchCL/Decorators/__init__.py
+from .Deprecated import Deprecated
+from .Retryable import Retryable
+from .SingletonClass import SingletonClass
+from .Synchronized import Synchronized
 
-from .Retryable import *
-from .SingletonClass import *
-from .Synchronized import *
-
-__all__ = ['Retryable', 'SingletonClass', 'Synchronized']
+__all__ = ['Retryable', 'SingletonClass', 'Synchronized', 'Deprecated']

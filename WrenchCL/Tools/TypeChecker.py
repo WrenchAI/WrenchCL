@@ -3,10 +3,8 @@
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
-
 from typing import Any, Dict, List, Type, Union, Iterable
-
-from .ccLogBase import logger
+from WrenchCL import logger
 
 
 def typechecker(
