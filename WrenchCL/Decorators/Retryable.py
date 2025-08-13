@@ -6,8 +6,11 @@ import asyncio
 import time
 from functools import wraps
 from json import JSONDecodeError
-from WrenchCL._Internal.require_module import gate_imports
+
 import requests
+
+from WrenchCL._Internal.require_module import gate_imports
+
 try:
 
     from botocore.exceptions import ClientError, BotoCoreError

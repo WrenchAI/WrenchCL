@@ -6,13 +6,12 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from WrenchCL.Tools import Maybe
-from WrenchCL.Decorators import SingletonClass
 from dotenv import load_dotenv
 
+from WrenchCL.Decorators import SingletonClass
 from WrenchCL.Exceptions import InvalidConfigurationException
+from WrenchCL.Tools import Maybe
 from WrenchCL.Tools.ccLogBase import logger
-
 
 
 @SingletonClass

@@ -6,11 +6,11 @@ import base64
 import mimetypes
 from io import BytesIO
 from pathlib import Path
-from typing import Union, Optional, Tuple
+from typing import Union, Tuple
 
-from filetype import filetype
 import requests
-from WrenchCL._Internal.require_module import gate_imports
+from filetype import filetype
+
 from .Image2B64 import validate_base64
 
 try:

@@ -6,10 +6,9 @@ import base64
 import binascii
 import io
 import mimetypes
-import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Union, IO, Optional
+from typing import Union, Optional
 
 try:
     from botocore.config import Config

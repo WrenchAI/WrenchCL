@@ -4,8 +4,6 @@
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
-from typing import Optional
-
 from .Arguments import ArgumentTypeException, ArgumentValueException, ValidationTypeException, InvalidPayloadException
 from .Initializations import IncompleteInitializationException, InitializationException, InvalidConfigurationException
 from .Misc import ReferenceNotFoundException, SecurityViolationException, GuardedResponseTrigger

@@ -2,10 +2,10 @@
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 import inspect
+import re
+from collections.abc import Mapping
 from difflib import get_close_matches
 from typing import Iterable, List, Optional, Union
-from collections.abc import Mapping
-import re
 
 
 class ExceptionSuggestor:
