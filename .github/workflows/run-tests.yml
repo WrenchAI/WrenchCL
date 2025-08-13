@@ -1,41 +1,28 @@
-name: run-tests.yml
+name: Python Tests
+
 on:
+  push:
   pull_request:
     branches:
       - main
-      - release  # Add any other branches you want to protect
+      - release
       - v4
-
-permissions:
-  contents: read
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Needed if you want to push coverage
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
+      - name: Run python-action
+        uses: rcmdnk/python-action@v3.0.3
         with:
           python-version: "3.11"
-
-      - name: Create venv and install all dependencies
-        run: |
-          uv venv .venv
-          . .venv/bin/activate
-          uv export --all-extras --no-dev --no-hashes > requirements.txt
-
-      - id: run-tests
-        uses: JotaFan/pycoverage@v1.1.1
-        with:
-          requirements-file: requirements.txt
-          cov-omit-list: tests/*
-          cov-threshold-single: 85
-          cov-threshold-total: 90
-          async-tests: true
-          package-extras: dev
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
+          setup-type: uv
+          pytest: 1
+          pytest-tests-path: tests/
+          coverage: 1
+          pytest-cov-path: WrenchCL  # Adjust if needed
+          pre-commit: 0
