@@ -810,7 +810,7 @@ class cLogger:
         # Create temporary config state
         overrides = {}
         if level is not None:
-            overrides['level'] = str(LogLevel(level))
+            overrides['level'] = LogLevel(level)
         if mode is not None:
             overrides['mode'] = mode
             if mode == 'json' and deployed is None:
