@@ -26,11 +26,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install . pdoc
 
-      - name: Generate API docs
+      - name: Generate API docs (multi-page)
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p site
-          # For one page per submodule, add --separate
-          pdoc --base-url /WrenchCL/ --separate -o site ./WrenchCL
+          MODS=$(python -c "import sys, pkgutil; import WrenchCL; print(' '.join(['WrenchCL'] + [m.name for m in pkgutil.walk_packages(WrenchCL.__path__, WrenchCL.__name__ + '.')]))")
+          echo \"Modules: $MODS\"
+          pdoc -o site $MODS
           touch site/.nojekyll
 
       - name: Deploy to GitHub Pages
