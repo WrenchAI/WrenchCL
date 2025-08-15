@@ -28,7 +28,10 @@ jobs:
 
       - name: Generate API docs
         run: |
-          pdoc -o site WrenchCL
+          mkdir -p site
+          # For one page per submodule, add --separate
+          pdoc --base-url /WrenchCL/ -o site WrenchCL --separate
+          touch site/.nojekyll
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4

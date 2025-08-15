@@ -16,12 +16,7 @@
 
 [//]: # (## [Read the Docs - Documentation]&#40;https://wrenchai.github.io/WrenchCL/&#41;)
 
-### Component Docs
-- [Logger Documentation](docs/Logger.md)
-- [Connect Module (AWS Services)](docs/Connect.md)
-- [Tools Module (Utilities)](docs/Tools.md)
-- [Decorators Module](docs/Decorators.md)
-- [Exceptions Module](docs/Exceptions.md)
+### Docs
 
 
 ## Description
@@ -30,6 +25,7 @@ WrenchCL is a comprehensive library designed to facilitate seamless interactions
 
 **PyPI Link:** [WrenchCL on PyPI](https://pypi.org/project/WrenchCL/)
 
+**Documentation** [PDoc Pages](https://wrenchai.github.io/WrenchCL)
 ## Package Structure
 
 - **_Internal**: Contains internal classes for configuration and SSH tunnel management.
