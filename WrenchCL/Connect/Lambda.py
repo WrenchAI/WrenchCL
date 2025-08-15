@@ -20,25 +20,45 @@ def handle_lambda_response(code, message, params, response_body=None, client_id=
     ensuring valid HTTP status codes in API responses.
 
     Custom Error Code Mapping (Logged vs. API Response Codes):
-        - Logged Codes (4xx, 5xx):
-            - 400: Validation Error (Bad request, malformed inputs).
-            - 401: Unauthorized (Invalid credentials, session expired).
-            - 403: Forbidden (Permission denied, restricted access).
-            - 404: Resource Not Found.
-            - 409: Conflict (Resource locks, version conflicts).
-            - 429: Rate Limit Exceeded.
-            - 500: General Server Error (Unhandled exceptions, internal issues).
-            - 502: Dependency Error (External service failures).
-            - 503: Service Unavailable (System overload, downtime).
-            - 504: Gateway Timeout (Function timeout, resource unavailability).
-            - 550: Generic Custom Error (Unspecified issues for tracking purposes).
-            - 551: Data Validation Error (Invalid inputs or constraints).
-            - 552: Resource Lock or Conflict.
-            - 553: Model or AI-related issues.
-            - 554: API Gateway or Lambda-specific errors.
-        - Returned API Codes:
-            - 4xx (Client Errors): Mapped based on the custom code (400, 401, 403, etc.).
-            - 5xx (Server Errors): Generalized to standard HTTP codes (500, 502, etc.).
+
+    **Logged Codes (4xx, 5xx):**
+
+        - 400: Validation Error (Bad request, malformed inputs).
+
+        - 401: Unauthorized (Invalid credentials, session expired).
+
+        - 403: Forbidden (Permission denied, restricted access).
+
+        - 404: Resource Not Found.
+
+        - 409: Conflict (Resource locks, version conflicts).
+
+        - 429: Rate Limit Exceeded.
+
+        - 500: General Server Error (Unhandled exceptions, internal issues).
+
+        - 502: Dependency Error (External service failures).
+
+        - 503: Service Unavailable (System overload, downtime).
+
+        - 504: Gateway Timeout (Function timeout, resource unavailability).
+
+        - 550: Generic Custom Error (Unspecified issues for tracking purposes).
+
+        - 551: Data Validation Error (Invalid inputs or constraints).
+
+        - 552: Resource Lock or Conflict.
+
+        - 553: Model or AI-related issues.
+
+        - 554: API Gateway or Lambda-specific errors.
+
+    **Returned API Codes:**
+
+        - 4xx (Client Errors): Mapped based on the custom code (400, 401, 403, etc.).
+
+        - 5xx (Server Errors): Generalized to standard HTTP codes (500, 502, etc.).
+
 
     :param int code: Internal custom error code for logging purposes.
     :param str message: A descriptive message about the status or error.

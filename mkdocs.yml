@@ -1,6 +1,102 @@
 site_name: WrenchCL
+site_url: !ENV READTHEDOCS_CANONICAL_URL
+site_description: WrenchCL – AWS, OpenAI, and utility tooling for modern Python development.
+site_author: Wrench.AI
 
+# Navigation
 nav:
-  - Home: README.md
+  - Home: index.md
+  - Core Logger: logger.md
+  - AWS Services: connect.md
+  - Decorators: decorators.md
+  - Tools: tools.md
+  - Exceptions: exceptions.md
 
-theme: readthedocs
+theme:
+  name: material
+  features:
+    # Navigation & layout
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.sections
+    - navigation.indexes
+    - navigation.tracking
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    # Content & code
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    # UX
+    - navigation.path
+
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: light-blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep-orange
+      accent: orange
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+# Plugins
+plugins:
+  - search
+  - git-revision-date-localized:
+      timezone: UTC
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: sphinx
+            show_submodules: true
+            show_signature: true
+            show_source: true
+            separate_signature: true
+            group_by_category: true
+            show_bases: true
+            merge_init_into_class: true
+
+# Markdown extensions
+markdown_extensions:
+  - markdown_include.include:
+      base_path: .
+  - admonition
+  - pymdownx.details
+  - pymdownx.snippets
+  - pymdownx.magiclink
+  - attr_list
+  - toc:
+      anchorlink: true
+      anchorlink_class: "toclink"
+  - md_in_html
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.keys
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      linenums: true
+      use_pygments: true
+  - pymdownx.tabbed:
+      alternate_style: true
+
+# Social / extra info
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/WrenchAI/WrenchCL
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/wrenchcl/
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/wrench_ai
