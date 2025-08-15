@@ -6,6 +6,9 @@ on:
       - main
       - release
       - v4
+  push:
+    branches:
+      - release
   workflow_dispatch:
 
 jobs:
