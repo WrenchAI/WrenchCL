@@ -14,26 +14,17 @@
     </a>
 </p>
 
-[//]: # (## [Read the Docs - Documentation]&#40;https://wrenchai.github.io/WrenchCL/&#41;)
+---
 
-### Docs
+### [ReadTheDocs](https://wrenchcl.readthedocs.io/en/latest)
 
+---
 
 ## Description
 
 WrenchCL is a comprehensive library designed to facilitate seamless interactions with AWS services, OpenAI models, and various utility tools. This package aims to streamline the development process by providing robust components for database interactions, cloud storage, and AI-powered functionalities.
 
 **PyPI Link:** [WrenchCL on PyPI](https://pypi.org/project/WrenchCL/)
-
-**Documentation** [PDoc Pages](https://wrenchai.github.io/WrenchCL)
-## Package Structure
-
-- **_Internal**: Contains internal classes for configuration and SSH tunnel management.
-- **Connect**: Provides gateways for AWS RDS and S3 services and the `AWSClientHub`.
-- **Decorators**: Utility decorators for retry logic, singleton pattern, and method timing.
-- **Models**: Internal for interacting with OpenAI models.
-- **Tools**: Miscellaneous utility tools such as coalescing values, file typing, image encoding, and a custom logger.
-- **DataFlow**: Response focused tools to aid in returning values and generating logs based on status codes.
 
 ## Installation
 
@@ -77,18 +68,9 @@ pip install WrenchCL[dev]
 
 #### Complete Installation
 ```bash
-pip install WrenchCL[color,aws,trace,dev]
+pip install WrenchCL[all]
 # Installs all optional dependencies for full functionality
 ```
-
-### Core Dependencies
-
-WrenchCL has minimal required dependencies:
-- `python-dotenv` - Environment variable management
-- `requests` - HTTP client functionality  
-- `filetype` - File type detection
-- `ansi2txt` - ANSI code processing for logs
-- `ftfy` - Text encoding fixes
 
 ## Development
 
