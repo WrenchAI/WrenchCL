@@ -88,11 +88,10 @@ all = [
   "mypy-boto3-s3>=1.40.0",
   "mypy-boto3-secretsmanager>=1.40.0",
   "mypy>=1.0.0",
-  # Color support
+
   "colorama>=0.4,<1.0",
-  # Tracing support
   "ddtrace>=3.2.0,<3.3.0",
-  # AWS support
+
   "psycopg2>=2.9,<3.0",
   "sshtunnel>=0.4,<1.0",
   "boto3>=1.28,<2.0",

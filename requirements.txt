@@ -86,7 +86,7 @@ pluggy==1.6.0
     #   pytest-cov
 protobuf==6.31.1
     # via ddtrace
-psycopg2-binary==2.9.10
+psycopg2==2.9.10
     # via wrenchcl
 pycparser==2.22
     # via cffi
