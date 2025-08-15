@@ -30,7 +30,7 @@ jobs:
         run: |
           mkdir -p site
           # For one page per submodule, add --separate
-          pdoc --base-url /WrenchCL/ -o site WrenchCL --separate
+          pdoc --base-url /WrenchCL/ --separate -o site ./WrenchCL
           touch site/.nojekyll
 
       - name: Deploy to GitHub Pages
