@@ -1,0 +1,6 @@
+site_name: WrenchCL
+
+nav:
+  - Home: README.md
+
+theme: readthedocs
