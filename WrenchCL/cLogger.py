@@ -161,7 +161,8 @@ class cLogger:
             highlight_syntax=highlight_syntax,
             verbose=verbose,
             trace_enabled=trace_enabled,
-            deployment_mode=deployment_mode
+            deployment_mode=deployment_mode,
+            suppress_autoconfig=suppress_autoconfig
         )
 
         # Check for trace/mode mismatch
@@ -185,7 +186,7 @@ class cLogger:
         self.config_manager.reinitialize()
         if verbose:
             import json
-            self._internal_log(json.dumps(self.logger_state, indent=2, default=lambda x: str(x), ensure_ascii=False))
+            self._internal_log(json.dumps(self.state, indent=2, default=lambda x: str(x), ensure_ascii=False))
 
     def setLevel(self, level: logLevels) -> None:
         """
@@ -424,14 +425,15 @@ class cLogger:
         else:
             return result
 
-    def __pretty_log(self, obj: Any, indent=2, compact: bool = False, **kwargs) -> None:
+    def __pretty_log(self, obj: Any, compact: bool = False, **kwargs) -> None:
         """
         Logs a given object in a visually formatted manner.
 
         :param obj: Object to log.
-        :param indent: Indentation for JSON formatting.
         :param compact: If True, uses pprint for more compact array formatting.
-        :param kwargs: Passed to json.dumps or model_dump_json
+        :param kwargs:
+            indent: Indentation for JSON formatting. (default = 2),
+            cwidth: Width for compact displays (default is 240)
         """
         from ._Internal.Logging.logging_utils import ensure_str
         from ._Internal import pd
@@ -441,7 +443,8 @@ class cLogger:
         obj = ensure_str(obj)
         output = obj
         config = self.config_manager.current_state
-
+        cwidth = kwargs.get('cwidth', 240)
+        indent = kwargs.get('indent', 2)
         try:
             if isinstance(obj, pd.DataFrame):
                 prefix_str = f"DataType: {type(obj).__name__} | Shape: {obj.shape[0]} rows | {obj.shape[1]} columns"
@@ -453,7 +456,7 @@ class cLogger:
                 else:
                     output = obj.to_json(orient='records', indent=indent, **kwargs)
             elif isinstance(obj, dict):
-                output = json.dumps(obj, indent=indent, ensure_ascii=False, **kwargs) if not compact else pformat(obj, compact=True)
+                output = json.dumps(obj, indent=indent, ensure_ascii=False, **kwargs) if not compact else pformat(obj, compact=True, width=cwidth)
             elif hasattr(obj, 'model_dump_json'):
                 output = obj.model_dump_json(indent=indent, **kwargs)
             elif hasattr(obj, 'dump_json_schema'):
@@ -462,26 +465,23 @@ class cLogger:
                 output = obj.pretty_repr(**kwargs)
             elif hasattr(obj, 'json'):
                 raw = obj.json()
-                output = json.dumps(raw, indent=indent, ensure_ascii=False, **kwargs) if not compact else pformat(raw, compact=compact)
+                output = json.dumps(raw, indent=indent, ensure_ascii=False, **kwargs) if not compact else pformat(raw, compact=compact, width=cwidth)
             elif isinstance(obj, str) or hasattr(obj, '__repr__') or hasattr(obj, '__str__'):
                 try:
                     parsed = json.loads(obj)
-                    output = json.dumps(parsed, indent=indent, ensure_ascii=False, default=str, **kwargs) if not compact else pformat(parsed, compact=True)
+                    output = json.dumps(parsed, indent=indent, ensure_ascii=False, default=str, **kwargs) if not compact else pformat(parsed, compact=True, width=cwidth)
                 except Exception:
                     output = obj
             elif hasattr(obj, '__dict__'):
                 raw = str(obj.__dict__)
-                output = json.dumps(raw, indent=indent, ensure_ascii=False, **kwargs) if not compact else pformat(raw, compact=compact)
+                output = json.dumps(raw, indent=indent, ensure_ascii=False, **kwargs) if not compact else pformat(raw, compact=compact, width=cwidth)
             else:
-                output = pformat(obj, compact=compact)
+                output = pformat(obj, compact=compact, width=cwidth)
         except Exception:
             output = obj
         finally:
-            if config.mode == 'json' and isinstance(output, str):
-                try:
-                    output = json.loads(output)
-                except Exception:
-                    pass
+            if isinstance(output, str):
+                output = "\n" + output.strip()
         self.__log("DATA", args=(output,))
 
     # ---------------- Resource Management ----------------
@@ -877,7 +877,7 @@ class cLogger:
         return self.config_manager.current_state.mode
 
     @property
-    def attached_loggers(self):
+    def loggers(self):
         """
         Provides a dictionary representation of the currently attached loggers and their configurations.
 
@@ -906,7 +906,7 @@ class cLogger:
         return LogLevel(logging.getLevelName(self.__logger_instance.level))
 
     @property
-    def logger_instance(self) -> logging.Logger:
+    def instance(self) -> logging.Logger:
         """
         Provides access to the logger instance that is used by the class.
 
@@ -937,7 +937,7 @@ class cLogger:
         return self.__logger_instance.handlers
 
     @property
-    def logger_state(self) -> dict:
+    def state(self) -> dict:
         """
         Provides a dictionary that represents the current state of the logger.
         The state includes logging level, run identifier, mode, environment metadata,

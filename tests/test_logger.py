@@ -57,7 +57,7 @@ def logger_stream():
 
 
 def flush_handlers(logger):
-    for h in logger.logger_instance.handlers:
+    for h in logger.instance.handlers:
         h.flush()
 
 
