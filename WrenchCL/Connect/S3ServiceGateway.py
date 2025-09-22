@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 from ._Internal._boto_cache import _get_s3_client
 from ..Decorators.Retryable import Retryable
 from ..Decorators.SingletonClass import SingletonClass
-from WrenchCL import logger
+from .. import logger
 
 
 @SingletonClass

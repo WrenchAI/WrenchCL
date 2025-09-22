@@ -2,7 +2,7 @@
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 from sshtunnel import SSHTunnelForwarder
-from WrenchCL import logger
+from ... import logger
 
 
 class _SshTunnelManager:

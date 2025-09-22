@@ -5,7 +5,7 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 from typing import Any
 
-from WrenchCL._Internal._MockPandas import _MockPandas
+from .._Internal._MockPandas import _MockPandas
 
 try:
     import pandas as pd

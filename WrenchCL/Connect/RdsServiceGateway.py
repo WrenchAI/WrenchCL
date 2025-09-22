@@ -18,7 +18,7 @@ import psycopg2.extras
 from psycopg2.pool import ThreadedConnectionPool
 from .AwsClientHub import AwsClientHub
 from ..Decorators.SingletonClass import SingletonClass
-from WrenchCL import logger
+from .. import logger
 
 from .._Internal._MockPandas import _MockPandas
 

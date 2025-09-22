@@ -4,7 +4,7 @@
 
 import json
 from typing import Union, Any
-from WrenchCL import logger
+from .. import logger
 
 
 def parse_json(response: Union[str, dict], max_depth: int = 25, verbose=False, print_tree=False) -> dict:

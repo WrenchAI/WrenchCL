@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from ...Decorators import SingletonClass
 from ...Exceptions import InvalidConfigurationException
 from ...Tools import Maybe
-from WrenchCL import logger
+from ... import logger
 
 
 # noinspection PyAttributeOutsideInit
