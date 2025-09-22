@@ -481,7 +481,7 @@ class cLogger:
             output = obj
         finally:
             if isinstance(output, str):
-                output = "\n" + output.strip()
+                output = output.strip()
         self.__log("DATA", args=(output,))
 
     # ---------------- Resource Management ----------------

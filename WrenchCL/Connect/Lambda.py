@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 from ..Exceptions import GuardedResponseTrigger
 from ..Tools import robust_serializer
 from ..Tools.TypeChecker import typechecker
-from WrenchCL import logger
+from .. import logger
 
 
 def handle_lambda_response(code, message, params, response_body=None, client_id=None, entity_id=None):

@@ -105,7 +105,7 @@ class ExceptionSuggestor:
             pass
 
         try:
-            from WrenchCL._Internal._MockPandas import _MockPandas  # Adjust import
+            from .._Internal._MockPandas import _MockPandas  # Adjust import
             if isinstance(obj, _MockPandas.DataFrame):
                 return True
         except ImportError:

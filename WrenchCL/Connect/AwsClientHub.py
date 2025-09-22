@@ -11,7 +11,7 @@ from ._Internal._ConfigurationManager import _ConfigurationManager
 from ._Internal._SshTunnelManager import _SshTunnelManager
 from ..Decorators.SingletonClass import SingletonClass
 from ..Exceptions import InvalidConfigurationException
-from WrenchCL import logger
+from .. import logger
 
 
 @SingletonClass

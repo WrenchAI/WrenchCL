@@ -104,7 +104,10 @@ class LoggerConfigState:
 
     def should_format_message(self, no_format: bool = False) -> bool:
         """Determines if message formatting should be applied."""
-        return not no_format
+        if self.deployed:
+            return False
+        else:
+            return not no_format
 
     def should_use_color(self, no_color: bool = False) -> bool:
         """Determines if color should be used."""

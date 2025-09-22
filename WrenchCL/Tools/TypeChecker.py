@@ -4,7 +4,7 @@
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 from typing import Any, Dict, List, Type, Union, Iterable
-from WrenchCL import logger
+from .. import logger
 
 
 def typechecker(

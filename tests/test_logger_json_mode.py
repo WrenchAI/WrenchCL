@@ -19,7 +19,10 @@ def logger_fixture():
     os.environ["LOG_DD_TRACE"] = "false"
     os.environ["AWS_EXECUTION_ENV"] = "testenv"
 
-    logger.configure(mode='json')
+    logger.configure(mode='json',
+                         trace_enabled=True,
+    color_enabled=False,
+    highlight_syntax=False)
     # logger.force_markup()
     print(logger.state)
     logger.add_new_handler(
@@ -39,7 +42,11 @@ def logger_fixture():
 def test_json_log_format_and_metadata(logger_fixture):
     logger, stream = logger_fixture
 
-    logger.configure(trace_enabled=True)
+    logger.configure(mode='json',
+                         trace_enabled=True,
+    color_enabled=False,
+    highlight_syntax=False,
+                     deployment_mode=True)
     logger.info("json test message")
     for h in logger.instance.handlers:
         h.flush()
@@ -47,6 +54,7 @@ def test_json_log_format_and_metadata(logger_fixture):
     stream.seek(0)
     lines = stream.getvalue().strip().splitlines()
     assert lines, "Log stream is empty"
+    print(lines)
     log_entry = json.loads(lines[-1])
 
     assert log_entry["message"] == "json test message"
@@ -71,6 +79,7 @@ def test_json_log_includes_exception(logger_fixture):
     stream.seek(0)
     lines = stream.getvalue().strip().splitlines()
     assert lines, "Log stream is empty"
+    print(lines)
     log_entry = json.loads(lines[-1])
 
     assert "Something broke" in log_entry["message"]
@@ -102,7 +111,10 @@ def test_json_flush_and_format_switch(logger_fixture):
     for h in logger.instance.handlers:
         h.flush()
 
-    logger.configure(mode='json')
+        logger.configure(mode='json',
+                         trace_enabled=True,
+    color_enabled=False,
+    highlight_syntax=False)
     logger.info("after switch")
 
     for h in logger.instance.handlers:
