@@ -21,7 +21,7 @@ def logger_fixture():
 
     logger.configure(mode='json')
     # logger.force_markup()
-    print(logger.logger_state)
+    print(logger.state)
     logger.add_new_handler(
             handler_cls=logging.StreamHandler,
             stream=stream,
@@ -41,7 +41,7 @@ def test_json_log_format_and_metadata(logger_fixture):
 
     logger.configure(trace_enabled=True)
     logger.info("json test message")
-    for h in logger.logger_instance.handlers:
+    for h in logger.instance.handlers:
         h.flush()
 
     stream.seek(0)
@@ -65,7 +65,7 @@ def test_json_log_includes_exception(logger_fixture):
     except Exception as e:
         logger.error("Something broke", e)
 
-    for h in logger.logger_instance.handlers:
+    for h in logger.instance.handlers:
         h.flush()
 
     stream.seek(0)
@@ -83,7 +83,7 @@ def test_json_log_trace_fields_absent_if_ddtrace_off(logger_fixture):
     logger.dd_trace = False
 
     logger.info("trace test")
-    for h in logger.logger_instance.handlers:
+    for h in logger.instance.handlers:
         h.flush()
 
     stream.seek(0)
@@ -99,13 +99,13 @@ def test_json_flush_and_format_switch(logger_fixture):
     logger, stream = logger_fixture
     logger.info("before switch")
 
-    for h in logger.logger_instance.handlers:
+    for h in logger.instance.handlers:
         h.flush()
 
     logger.configure(mode='json')
     logger.info("after switch")
 
-    for h in logger.logger_instance.handlers:
+    for h in logger.instance.handlers:
         h.flush()
 
     stream.seek(0)
@@ -120,7 +120,7 @@ def test_terminal_log_env_metadata(logger_fixture):
 
     logger.info("terminal test")
 
-    for h in logger.logger_instance.handlers:
+    for h in logger.instance.handlers:
         h.flush()
 
     stream.seek(0)

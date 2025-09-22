@@ -9,11 +9,12 @@ from difflib import get_close_matches
 from io import TextIOBase
 from typing import List, Dict, Optional, Type
 
+from ...Decorators import SingletonClass
 from .DataClasses import LogLevel, logLevels
 from .Formatters import FileLogFormatter
 from .LoggerConfigState import LoggerConfigState
 
-
+@SingletonClass
 class GlobalLoggerManager:
     """
     Manages the global Python logging ecosystem - root logger, named loggers, etc.

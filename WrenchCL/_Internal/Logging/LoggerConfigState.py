@@ -71,7 +71,8 @@ class LoggerConfigState:
     @property
     def should_suggest_exceptions(self) -> bool:
         """Determines if exception suggestions should be provided."""
-        return self.mode == 'terminal'
+        # return self.mode == 'terminal'
+        return True
 
     @property
     def should_highlight_json_literals(self) -> bool:
@@ -194,7 +195,8 @@ class ConfigManager:
                   verbose: Optional[bool] = None,
                   trace_enabled: Optional[bool] = None,
                   deployment_mode: Optional[bool] = None,
-                  force_markup: Optional[bool] = None) -> LoggerConfigState:
+                  force_markup: Optional[bool] = None,
+                  suppress_autoconfig: Optional[bool] = False) -> LoggerConfigState:
         """
         Create new config state with specified changes.
         Returns the new state and notifies listeners.
@@ -206,8 +208,23 @@ class ConfigManager:
             if mode is not None:
                 changes['mode'] = mode
                 # JSON mode implies deployment
-                if mode == 'json' and deployment_mode is None:
-                    changes['deployed'] = True
+                if not suppress_autoconfig:
+                    if mode == 'json' and deployment_mode is None:
+                        changes['deployed'] = True
+                    if mode == 'terminal':
+                        if deployment_mode is True:
+                            changes['deployed'] = True
+                            changes['color_enabled'] = False
+                            changes['highlight_syntax'] = False
+                            changes['verbose'] = False
+                            changes['dd_trace_enabled'] = False
+                            changes['force_markup'] = False
+                        changes['color_enabled'] = True
+                        changes['highlight_syntax'] = True
+                        changes['verbose'] = False
+                        changes['deployed'] = False
+                        changes['dd_trace_enabled'] = False
+                        changes['force_markup'] = False
 
             if level is not None:
                 changes['level'] = LogLevel(level)
