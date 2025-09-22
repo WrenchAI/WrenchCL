@@ -16,7 +16,8 @@ authors = [
   { name = "Willem van der Schans", email = "willem@wrench.ai" }
 ]
 maintainers = [
-  { name = "Jeong Kim", email = "jeong@wrench.ai" }
+    { name = "Jeong Kim", email = "jeong@wrench.ai" },
+    { name = "Willem van der Schans", email = "willem@wrench.ai" }
 ]
 keywords = ["aws", "openai", "utilities", "database", "cloud", "sdk"]
 classifiers = [
@@ -28,7 +29,7 @@ dependencies = [
   "requests>=2.32,<3.0",
   "filetype>=1.2,<2.0",
   "ansi2txt>=0.2.0,<1.0.0",
-  "ftfy>=6.3.1,<7.0.0"
+  "ftfy>=6.3.1,<7.0.0",
 ]
 
 # Project URLs

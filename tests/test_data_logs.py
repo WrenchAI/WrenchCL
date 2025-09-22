@@ -69,10 +69,10 @@ def test_txt_file_logging():
 def test_logger_in_json_mode_for_dict():
     obj = {"user": "admin", "access": "granted", "features": ["x", "y", "z"]}
     with logger.temporary(mode='json', deployed=True):
-        print(logger.logger_state)
+        print(logger.state)
         logger.data(obj)
     with logger.temporary(mode='json', deployed=False):
-        print(logger.logger_state)
+        print(logger.state)
         logger.data(obj)
 
 
