@@ -37,5 +37,3 @@ def SingletonClass(cls: type) -> type:
     SingletonWrapper.__qualname__ = cls.__qualname__
     SingletonWrapper.__doc__ = cls.__doc__
     return SingletonWrapper
-
-

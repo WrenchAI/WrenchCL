@@ -11,7 +11,6 @@ from uuid import UUID
 if TYPE_CHECKING:
     from mypy_boto3_rds.client import RDSClient
 
-
 import psycopg2
 import psycopg2.extensions
 import psycopg2.extras
@@ -87,8 +86,10 @@ class RdsServiceGateway:
         if self.multithreaded:
             self.pool.putconn(conn)
 
-    def get_data(self, query: str, payload: Optional[tuple] = None, fetchall: bool = True, return_dict: bool = True,
-            show_query: bool = False, raise_on_error: bool = False) -> Optional[Any]:
+    def get_data(
+            self, query: str, payload: Optional[tuple] = None, fetchall: bool = True, return_dict: bool = True,
+            show_query: bool = False, raise_on_error: bool = False
+            ) -> Optional[Any]:
         """
         Fetch data from the database based on the input query and parameters.
         """
@@ -119,8 +120,10 @@ class RdsServiceGateway:
         finally:
             self.release_connection(conn)
 
-    def update_database(self, query: str, payload: Union[tuple, list[tuple], pd.DataFrame], returning: bool = False,
-                        column_order: Optional[List[str]] = None, raise_on_error: bool = True, test_mode: bool = False) -> Optional[List[tuple]]:
+    def update_database(
+            self, query: str, payload: Union[tuple, list[tuple], pd.DataFrame], returning: bool = False,
+            column_order: Optional[List[str]] = None, raise_on_error: bool = True, test_mode: bool = False
+            ) -> Optional[List[tuple]]:
         """
         Updates the database by executing the specified SQL query with the given payload.
 

@@ -8,14 +8,17 @@ try:
     from botocore.config import Config
     import boto3
 
+
     @lru_cache(maxsize=3)
     def _get_boto3_session(profile_name: str) -> Any:  # Use Any instead of boto3.Session
         return boto3.session.Session(profile_name=profile_name)
+
 
     @lru_cache(maxsize=6)
     def _fetch_secret_from_secretsmanager(profile: str, region: str, secret_arn: str) -> str:
         client = _get_boto3_session(profile).client('secretsmanager', region_name=region)
         return client.get_secret_value(SecretId=secret_arn)['SecretString']
+
 
     @lru_cache(maxsize=3)
     def _get_s3_client(profile: str, region: str, config: Optional[Config] = None) -> Any:

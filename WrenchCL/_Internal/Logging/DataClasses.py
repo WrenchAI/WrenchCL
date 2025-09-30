@@ -36,13 +36,13 @@ class LogLevel(str, Enum):
     CRITICAL = "CRITICAL"  # noqa
 
     __aMap__ = {
-        "WARN": "WARNING",
-        "ERR": "ERROR",
-        "CRI": "CRITICAL",
-        "INTERNAL": "INTERNAL",
-        "DATA": "DATA",
-        "HEADER": "HEADER"
-    }
+            "WARN": "WARNING",
+            "ERR": "ERROR",
+            "CRI": "CRITICAL",
+            "INTERNAL": "INTERNAL",
+            "DATA": "DATA",
+            "HEADER": "HEADER"
+            }
 
     __byMap__ = {"INTERNAL": "DEBUG", "DATA": "INFO", "HEADER": "INFO"}
 
@@ -53,7 +53,7 @@ class LogLevel(str, Enum):
         if issubclass(type(value), Enum):
             value = value.value
         if isinstance(value, int):
-            value = ceil(value / 10)*10
+            value = ceil(value / 10) * 10
             value = min(value, 50)
             value = max(value, 10)
             value = logging.getLevelName(value)
@@ -72,7 +72,7 @@ class LogLevel(str, Enum):
         raise ValueError(f"Invalid log level: {value} (allowed: {[e for e in cls]})")
 
     def __int__(self) -> int:
-        return getattr(logging, self.__byMap__.get(self.value, self.value)) # noqa
+        return getattr(logging, self.__byMap__.get(self.value, self.value))  # noqa
 
     def __str__(self) -> str:
         return self.value
@@ -110,5 +110,5 @@ class LogOptions:
             self.stack_info = stack_info
         else:
             raise TypeError(
-                f"LogOptions expects dict, LogOptions, or None, got {type(opts)}"
-            )
+                    f"LogOptions expects dict, LogOptions, or None, got {type(opts)}"
+                    )

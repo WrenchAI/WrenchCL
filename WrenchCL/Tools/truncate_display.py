@@ -5,6 +5,7 @@
 import json
 from typing import Any
 
+
 def truncate_display(value: Any, max_length: int = 200, max_items: int = 10) -> str:
     """
     Safely converts any value into a string for logging, truncating fields that are too long.

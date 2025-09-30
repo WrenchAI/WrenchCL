@@ -1,19 +1,18 @@
-
-
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 from typing import Any, Dict, List, Type, Union, Iterable
+
 from .. import logger
 
 
 def typechecker(
-    data: Union[Dict[str, Any], List[Dict[str, Any]]],
-    expected_types: Dict[str, Union[Type, List[Type]]],
-    none_is_ok: bool = False,
-    errors: str = 'raise',
-    verbose: bool = False
-) -> bool:
+        data: Union[Dict[str, Any], List[Dict[str, Any]]],
+        expected_types: Dict[str, Union[Type, List[Type]]],
+        none_is_ok: bool = False,
+        errors: str = 'raise',
+        verbose: bool = False
+        ) -> bool:
     """
     Validates that each entry in a dictionary or a list of dictionaries matches the expected type.
 

@@ -7,6 +7,7 @@ class _MockPandas:
 
     class DataFrame:
         """Mock DataFrame that safely handles calls but performs no actual operations."""
+
         def __init__(self, *args, **kwargs):
             self.data = kwargs.get("data", {})
             self.columns = list(self.data.keys()) if isinstance(self.data, dict) else []
@@ -22,6 +23,7 @@ class _MockPandas:
 
     class Series:
         """Mock Series that safely handles calls but performs no actual operations."""
+
         def __init__(self, data=None, *args, **kwargs):
             self.data = data
 
@@ -31,6 +33,7 @@ class _MockPandas:
 
     class api:
         """Mock pandas.api for checking data types."""
+
         class types:
             @staticmethod
             def is_object_dtype(column):
@@ -60,6 +63,7 @@ class _MockPandas:
     def __init__(self):
         """Mock pandas.options."""
         self.options = {}
+
 
 try:
     import pandas as pd

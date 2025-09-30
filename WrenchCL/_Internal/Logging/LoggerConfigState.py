@@ -20,7 +20,7 @@ from .logging_utils import generate_run_id
 @dataclass(frozen=True)  # Immutable config state
 class LoggerConfigState:
     """Immutable configuration state - no mutations allowed."""
-    mode: str = 'terminal'              # 'terminal', 'json', or 'compact'
+    mode: str = 'terminal'  # 'terminal', 'json', or 'compact'
     highlight_syntax: bool = True
     verbose: bool = False
     deployed: bool = False
@@ -132,18 +132,18 @@ class EnvironmentDetector:
         # AWS Lambda detection
         if os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
             overrides.update({
-                'deployed': True,
-                'color_enabled': False,
-                'mode': 'json'
-            })
+                    'deployed': True,
+                    'color_enabled': False,
+                    'mode': 'json'
+                    })
 
         # AWS general detection
         if os.environ.get("AWS_EXECUTION_ENV"):
             overrides.update({
-                'deployed': True,
-                'color_enabled': False,
-                'mode': 'json'
-            })
+                    'deployed': True,
+                    'color_enabled': False,
+                    'mode': 'json'
+                    })
 
         # Environment variable overrides
         color_mode = os.environ.get("COLOR_MODE", "").lower()
@@ -162,10 +162,10 @@ class EnvironmentDetector:
     def get_env_metadata() -> Dict[str, Optional[str]]:
         """Extract environment metadata from system environment variables."""
         return {
-            "env": os.getenv("ENV") or os.getenv('DD_ENV') or os.getenv("AWS_EXECUTION_ENV"),
-            "project": os.getenv("PROJECT_NAME") or os.getenv('COMPOSE_PROJECT_NAME') or os.getenv("AWS_LAMBDA_FUNCTION_NAME"),
-            "project_version": os.getenv("PROJECT_VERSION") or os.getenv("LAMBDA_TASK_ROOT") or os.getenv('REPO_VERSION'),
-        }
+                "env": os.getenv("ENV") or os.getenv('DD_ENV') or os.getenv("AWS_EXECUTION_ENV"),
+                "project": os.getenv("PROJECT_NAME") or os.getenv('COMPOSE_PROJECT_NAME') or os.getenv("AWS_LAMBDA_FUNCTION_NAME"),
+                "project_version": os.getenv("PROJECT_VERSION") or os.getenv("LAMBDA_TASK_ROOT") or os.getenv('REPO_VERSION'),
+                }
 
 
 class LoggerStateManager:
@@ -202,10 +202,10 @@ class LoggerStateManager:
         Needs internal_log callback from cLogger since that's UI/logging, not state.
         """
         self.global_logger_manager = GlobalLoggerManager(
-            formatter_factory=self.formatter_factory,
-            handler_manager=self.handler_manager,
-            internal_logger=internal_log_callback
-        )
+                formatter_factory=self.formatter_factory,
+                handler_manager=self.handler_manager,
+                internal_logger=internal_log_callback
+                )
 
     def _initialize_color_dependents(self):
         self.markup_processor = MarkupProcessor(self.color_service)
@@ -293,16 +293,18 @@ class LoggerStateManager:
         with self._lock:
             return LogLevel(self.__base_level)
 
-    def configure(self,
-                  mode: Optional[Literal['terminal', 'json', 'compact']] = None,
-                  level: Optional[logLevels] = None,
-                  color_enabled: Optional[bool] = None,
-                  highlight_syntax: Optional[bool] = None,
-                  verbose: Optional[bool] = None,
-                  trace_enabled: Optional[bool] = None,
-                  deployment_mode: Optional[bool] = None,
-                  force_markup: Optional[bool] = None,
-                  suppress_autoconfig: Optional[bool] = False) -> LoggerConfigState:
+    def configure(
+            self,
+            mode: Optional[Literal['terminal', 'json', 'compact']] = None,
+            level: Optional[logLevels] = None,
+            color_enabled: Optional[bool] = None,
+            highlight_syntax: Optional[bool] = None,
+            verbose: Optional[bool] = None,
+            trace_enabled: Optional[bool] = None,
+            deployment_mode: Optional[bool] = None,
+            force_markup: Optional[bool] = None,
+            suppress_autoconfig: Optional[bool] = False
+            ) -> LoggerConfigState:
         """
         Configure state and apply ALL side effects.
         No external callbacks needed - everything happens here.
@@ -361,7 +363,7 @@ class LoggerStateManager:
         This is the ONLY place where state changes affect services.
         """
 
-       # 1. Color service
+        # 1. Color service
         if (old_state.color_enabled != new_state.color_enabled) or (new_state.color_enabled and isinstance(self.color_service._color_class, MockColorama)):
             if new_state.color_enabled:
                 self.color_service.enable_colors()

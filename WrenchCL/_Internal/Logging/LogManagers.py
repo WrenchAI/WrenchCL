@@ -14,10 +14,10 @@ from typing_extensions import TYPE_CHECKING
 if TYPE_CHECKING:
     from .LoggerConfigState import LoggerConfigState
 
-
 from ...Decorators import SingletonClass
 from .DataClasses import LogLevel, logLevels
 from .Formatters import FileLogFormatter
+
 
 @SingletonClass
 class GlobalLoggerManager:
@@ -35,8 +35,10 @@ class GlobalLoggerManager:
         self._lock = threading.RLock()
         self._global_stream_configured = False
 
-    def attach_global_stream(self, level: logLevels, silence_others: bool = False,
-                           stream=sys.stdout, config_state=None, env_metadata=None) -> None:
+    def attach_global_stream(
+            self, level: logLevels, silence_others: bool = False,
+            stream=sys.stdout, config_state=None, env_metadata=None
+            ) -> None:
         """
         Attaches a global stream handler to the root logger.
 
@@ -53,11 +55,11 @@ class GlobalLoggerManager:
 
             # Create formatter using our factory
             formatter = self.formatter_factory.create_formatter(
-                level=level,
-                config_state=config_state,
-                env_metadata=env_metadata,
-                global_stream_configured=True  # This affects the formatter
-            )
+                    level=level,
+                    config_state=config_state,
+                    env_metadata=env_metadata,
+                    global_stream_configured=True  # This affects the formatter
+                    )
 
             # Create handler
             handler = logging.StreamHandler(stream)
@@ -105,9 +107,11 @@ class GlobalLoggerManager:
                 logger.propagate = True
                 self.internal_logger(f"🔧 Logger '{actual_name}' set to level {level}")
 
-    def set_handler_level_by_name(self, handler_name: str, level: Optional[logLevels] = None,
-                                logger_instance=None, config_state=None, env_metadata=None,
-                                global_stream_configured=False) -> None:
+    def set_handler_level_by_name(
+            self, handler_name: str, level: Optional[logLevels] = None,
+            logger_instance=None, config_state=None, env_metadata=None,
+            global_stream_configured=False
+            ) -> None:
         """
         Sets the logging level and formatter of an attached handler by name.
 
@@ -133,11 +137,11 @@ class GlobalLoggerManager:
 
                     # Create new formatter with updated level
                     new_formatter = self.formatter_factory.create_formatter(
-                        level=level,
-                        config_state=config_state,
-                        env_metadata=env_metadata,
-                        global_stream_configured=global_stream_configured
-                    )
+                            level=level,
+                            config_state=config_state,
+                            env_metadata=env_metadata,
+                            global_stream_configured=global_stream_configured
+                            )
                     handler.setFormatter(new_formatter)
                     self.internal_logger(f"🔧 Handler '{handler_name}' set to level {level}")
                     break
@@ -175,9 +179,9 @@ class GlobalLoggerManager:
         :return: List of active logger names
         """
         return [
-            name for name in logging.root.manager.loggerDict
-            if isinstance(logging.getLogger(name), logging.Logger)
-        ]
+                name for name in logging.root.manager.loggerDict
+                if isinstance(logging.getLogger(name), logging.Logger)
+                ]
 
     @staticmethod
     def get_logger_info() -> Dict[str, Dict]:
@@ -191,12 +195,12 @@ class GlobalLoggerManager:
             logger = logging.getLogger(name)
             if isinstance(logger, logging.Logger):
                 info[name] = {
-                    'level': logger.level,
-                    'level_name': logging.getLevelName(logger.level),
-                    'handlers': [type(h).__name__ for h in logger.handlers],
-                    'propagate': logger.propagate,
-                    'disabled': logger.disabled
-                }
+                        'level': logger.level,
+                        'level_name': logging.getLevelName(logger.level),
+                        'handlers': [type(h).__name__ for h in logger.handlers],
+                        'propagate': logger.propagate,
+                        'disabled': logger.disabled
+                        }
         return info
 
     def cleanup_global_handlers(self):
@@ -230,11 +234,11 @@ class GlobalLoggerManager:
             joined_loggers = ', '.join(root_loggers)
 
         self.internal_logger(
-            f"✅ Global stream attached to root logger with {handler_count} handler(s).\n"
-            f"🔎 Active loggers detected: {len(active_loggers)}\n"
-            f"📝 Accessible root loggers: {joined_loggers}\n"
-            f"---Get a full list of active loggers with `active_loggers` property---"
-        )
+                f"✅ Global stream attached to root logger with {handler_count} handler(s).\n"
+                f"🔎 Active loggers detected: {len(active_loggers)}\n"
+                f"📝 Accessible root loggers: {joined_loggers}\n"
+                f"---Get a full list of active loggers with `active_loggers` property---"
+                )
         self.internal_logger("Global stream configured successfully.")
 
     def _log_logger_not_found(self, logger_name: str, name_map: Dict[str, str]):
@@ -253,10 +257,10 @@ class GlobalLoggerManager:
         self.internal_logger(log_string)
 
     def update_global_handlers(
-        self,
-        config_state: "LoggerConfigState",
-        env_metadata: Dict,
-    ) -> None:
+            self,
+            config_state: "LoggerConfigState",
+            env_metadata: Dict,
+            ) -> None:
         """
         Update all root/global handlers to reflect the latest config.
         Called from LoggerStateManager._apply_state_changes().
@@ -276,17 +280,16 @@ class GlobalLoggerManager:
 
                 # Update formatter
                 new_formatter = self.formatter_factory.create_formatter(
-                    level=config_state.level,
-                    config_state=config_state,
-                    env_metadata=env_metadata,
-                    global_stream_configured=True,
-                )
+                        level=config_state.level,
+                        config_state=config_state,
+                        env_metadata=env_metadata,
+                        global_stream_configured=True,
+                        )
                 handler.setFormatter(new_formatter)
 
             self.internal_logger(
-                f"🔧 Global handlers updated (level={config_state.level}, mode={config_state.mode})"
-            )
-
+                    f"🔧 Global handlers updated (level={config_state.level}, mode={config_state.mode})"
+                    )
 
 
 class HandlerManager:
@@ -297,7 +300,8 @@ class HandlerManager:
         self.formatter_factory = formatter_factory
         self._lock = threading.RLock()
 
-    def add_handler(self, handler_cls: Type[logging.Handler],
+    def add_handler(
+            self, handler_cls: Type[logging.Handler],
             config_state: "LoggerConfigState", stream: Optional[TextIOBase] = None,
             level: logLevels = None,
             force_replace: bool = False,
@@ -331,25 +335,27 @@ class HandlerManager:
             self.logger_instance.addHandler(handler)
             return handler
 
-    def add_file_handler(self,
-                        filename: str,
-                        config: "LoggerConfigState",
-                        max_bytes: int = 10485760,  # 10MB default
-                        backup_count: int = 5,
-                        level: logLevels = None,
-                        formatter: Optional[logging.Formatter] = None,
-                        base_level: str = 'INFO') -> Optional[logging.Handler]:
+    def add_file_handler(
+            self,
+            filename: str,
+            config: "LoggerConfigState",
+            max_bytes: int = 10485760,  # 10MB default
+            backup_count: int = 5,
+            level: logLevels = None,
+            formatter: Optional[logging.Formatter] = None,
+            base_level: str = 'INFO'
+            ) -> Optional[logging.Handler]:
         """Add a rotating file handler."""
         from logging.handlers import RotatingFileHandler
 
         with self._lock:
             handler = RotatingFileHandler(
-                filename=filename,
-                maxBytes=max_bytes,
-                backupCount=backup_count,
-                delay=True,
-                encoding="utf-8"
-            )
+                    filename=filename,
+                    maxBytes=max_bytes,
+                    backupCount=backup_count,
+                    delay=True,
+                    encoding="utf-8"
+                    )
             level = level or base_level
             handler.setLevel(level)
 
@@ -369,18 +375,20 @@ class HandlerManager:
                 except Exception:
                     pass
 
-    def update_all_formatters(self, config_state, env_metadata: Dict,
-                            global_stream_configured: bool = False):
+    def update_all_formatters(
+            self, config_state, env_metadata: Dict,
+            global_stream_configured: bool = False
+            ):
         """Update formatters for all handlers based on new config."""
         with self._lock:
             for handler in self.logger_instance.handlers:
                 if not isinstance(handler, logging.NullHandler):
                     new_formatter = self.formatter_factory.create_formatter(
-                        level=logging.getLevelName(handler.level),
-                        config_state=config_state,
-                        env_metadata=env_metadata,
-                        global_stream_configured=global_stream_configured
-                    )
+                            level=logging.getLevelName(handler.level),
+                            config_state=config_state,
+                            env_metadata=env_metadata,
+                            global_stream_configured=global_stream_configured
+                            )
                     handler.setFormatter(new_formatter)
 
     def update_handler_levels(self, level: LogLevel):
@@ -405,8 +413,7 @@ class HandlerManager:
         return_dict = {}
         for handler in self.logger_instance.handlers:
             return_dict[getattr(handler, 'name', type(handler).__name__)] = {
-                'level': handler.level,
-                'type': type(handler).__name__
-            }
+                    'level': handler.level,
+                    'type': type(handler).__name__
+                    }
         return return_dict
-

@@ -61,8 +61,10 @@ class S3ServiceGateway:
         self.test_mode = test_mode
 
     @Retryable()
-    def upload_file(self, file: Union[str, Path, bytes, BytesIO, "StreamingBody"], bucket_name: str, object_key: str,
-            return_url: bool = False) -> Union[None, str]:
+    def upload_file(
+            self, file: Union[str, Path, bytes, BytesIO, "StreamingBody"], bucket_name: str, object_key: str,
+            return_url: bool = False
+            ) -> Union[None, str]:
         """
         Uploads a file to S3. Handles file paths, bytes, file-like objects, and StreamingBody.
 
@@ -316,7 +318,7 @@ class S3ServiceGateway:
         logger.info(f'Generating signed URL for bucket: {bucket_name}, key: {object_key}')
         try:
             url = self.s3_client.generate_presigned_url('get_object', Params={'Bucket': bucket_name, 'Key': object_key},
-                ExpiresIn=expiration_seconds)
+                                                        ExpiresIn=expiration_seconds)
             if url:
                 logger.info(f'Signed URL generated successfully: {url}')
                 return url

@@ -5,12 +5,13 @@
 import os
 from pathlib import Path
 from typing import Optional
+
 from dotenv import load_dotenv
 
+from ... import logger
 from ...Decorators import SingletonClass
 from ...Exceptions import InvalidConfigurationException
 from ...Tools import Maybe
-from ... import logger
 
 
 # noinspection PyAttributeOutsideInit
@@ -38,7 +39,7 @@ class _ConfigurationManager:
         if self._initialized:
             if not silent:
                 raise InvalidConfigurationException(config_name="InternalConfig",
-                    reason = "Configuration has already been initialized. call reset() first.")
+                                                    reason="Configuration has already been initialized. call reset() first.")
             else:
                 return
 

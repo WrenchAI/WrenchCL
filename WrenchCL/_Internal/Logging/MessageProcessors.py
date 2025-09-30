@@ -43,8 +43,10 @@ class MessageProcessor:
         self.color_service = color_service
         self.markup_processor = markup_processor
 
-    def process_log_message(self, level: LogLevel, args: tuple, config_state,
-                          header: Optional[str] = None, no_color: bool = False) -> tuple:
+    def process_log_message(
+            self, level: LogLevel, args: tuple, config_state,
+            header: Optional[str] = None, no_color: bool = False
+            ) -> tuple:
         """
         Process a log message with all formatting, markup, and special handling.
         Returns (processed_message, exc_info)
@@ -76,8 +78,8 @@ class MessageProcessor:
         # Add header if needed
         if header and config_state.should_markup(force_override=not no_color):
             header_str = self.create_header(
-                header, level=level,
-                compact=config_state.is_compact_header_mode
+                    header, level=level,
+                    compact=config_state.is_compact_header_mode
                     )
             msg = f"{header_str}\n{msg}"
 
@@ -97,8 +99,9 @@ class MessageProcessor:
 
         return msg, exc_info
 
-    def create_header(self, text: str, level: logLevels = 'HEADER', size: int = None,
-                     compact: bool = False
+    def create_header(
+            self, text: str, level: logLevels = 'HEADER', size: int = None,
+            compact: bool = False
             ) -> Optional[str]:
         """Create a formatted header."""
         if not level:
@@ -120,5 +123,3 @@ class MessageProcessor:
             formatted = f"\n{formatted}"
 
         return formatted
-
-

@@ -14,9 +14,9 @@ from .TypeChecker import typechecker
 # Logger with optional color/trace support (handles its own optional deps internally)
 
 __all__ = [
-    'coalesce', 'get_file_type', 'image_to_base64', 'Maybe',
-    'typechecker', 'get_metadata', 'robust_serializer',
-    'validate_base64', 'single_quote_decoder', 'parse_json',
-    'safe_json_loader', 'list_loader', 'show_json_tree',
+        'coalesce', 'get_file_type', 'image_to_base64', 'Maybe',
+        'typechecker', 'get_metadata', 'robust_serializer',
+        'validate_base64', 'single_quote_decoder', 'parse_json',
+        'safe_json_loader', 'list_loader', 'show_json_tree',
         'get_hash', 'standardize_none', RobustJSONEncoder
-]
+        ]

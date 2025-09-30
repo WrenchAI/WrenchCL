@@ -33,10 +33,10 @@ except ImportError as e:
         messages.append("AWS-related dependencies")
     missing_pkg = "\n  -".join(messages)
     raise ImportError(
-        f"AWS functionality requires additional dependencies.\n"
-        f"Missing Packages:\n  -{missing_pkg}\n"
-        f"Install with: pip install 'WrenchCL[aws]'\n"
-        f"Original error: {error_details}"
-    ) from e
+            f"AWS functionality requires additional dependencies.\n"
+            f"Missing Packages:\n  -{missing_pkg}\n"
+            f"Install with: pip install 'WrenchCL[aws]'\n"
+            f"Original error: {error_details}"
+            ) from e
 
 __all__ = ['AwsClientHub', 'RdsServiceGateway', 'S3ServiceGateway', 'build_lambda_response']

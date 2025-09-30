@@ -4,6 +4,7 @@
 
 import json
 from typing import Union, Any
+
 from .. import logger
 
 
@@ -46,7 +47,7 @@ def parse_json(response: Union[str, dict], max_depth: int = 25, verbose=False, p
     try:
         if verbose:
             logger._internal_log(f"Starting JSON parsing. Max depth: {max_depth}")
-        parsed_json = recur_parse_json(response, max_depth=max_depth, verbose = verbose)
+        parsed_json = recur_parse_json(response, max_depth=max_depth, verbose=verbose)
         if print_tree:
             show_json_tree(parsed_json)
         return parsed_json
@@ -108,9 +109,7 @@ def show_json_tree(d):
     return tree_str  # Return tree as a string
 
 
-
-
-def recur_parse_json(d: Union[dict, str], depth: int = 0, max_depth: int = 25, verbose = False) -> Union[dict, str]:
+def recur_parse_json(d: Union[dict, str], depth: int = 0, max_depth: int = 25, verbose=False) -> Union[dict, str]:
     """
     Recursively parses nested JSON structures into a dictionary while enforcing a recursion depth limit.
 
@@ -144,7 +143,7 @@ def recur_parse_json(d: Union[dict, str], depth: int = 0, max_depth: int = 25, v
     if depth > max_depth:
         raise RecursionError(f"Maximum recursion depth of {max_depth} exceeded")
 
-    d = safe_json_loader(d, raise_error=True, verbose = verbose)
+    d = safe_json_loader(d, raise_error=True, verbose=verbose)
 
     if not isinstance(d, dict) and depth == 0:
         raise TypeError(f"Expected dictionary but got {type(d).__name__}")
@@ -153,24 +152,24 @@ def recur_parse_json(d: Union[dict, str], depth: int = 0, max_depth: int = 25, v
     else:
         for k, v in d.items():
             if isinstance(v, dict):
-                d[k] = recur_parse_json(v, depth=depth + 1, max_depth=max_depth, verbose = verbose)
+                d[k] = recur_parse_json(v, depth=depth + 1, max_depth=max_depth, verbose=verbose)
             elif isinstance(v, str):
-                parsed = safe_json_loader(v, raise_error=False, verbose = verbose)
+                parsed = safe_json_loader(v, raise_error=False, verbose=verbose)
                 if isinstance(parsed, dict):
-                    d[k] = recur_parse_json(parsed, depth=depth + 1, max_depth=max_depth, verbose = verbose)
+                    d[k] = recur_parse_json(parsed, depth=depth + 1, max_depth=max_depth, verbose=verbose)
                 elif isinstance(parsed, list):
-                    d[k] = list_loader(parsed, depth=depth + 1, max_depth=max_depth, verbose = verbose)
+                    d[k] = list_loader(parsed, depth=depth + 1, max_depth=max_depth, verbose=verbose)
                 else:
                     d[k] = parsed
             elif isinstance(v, list):
-                d[k] = list_loader(v, depth=depth + 1, max_depth=max_depth, verbose = verbose)
+                d[k] = list_loader(v, depth=depth + 1, max_depth=max_depth, verbose=verbose)
             indent = "--" * (depth + 1)
             if verbose:
                 logger._internal_log(f"{indent}>Parsed key '{k}': to type {type(d[k]).__name__}")
         return d
 
 
-def list_loader(v: Any, depth: int = 0, max_depth: int = 25, verbose = False) -> list:
+def list_loader(v: Any, depth: int = 0, max_depth: int = 25, verbose=False) -> list:
     """
     Recursively parses lists within a JSON structure. Handles both valid and malformed JSON strings.
 
@@ -210,13 +209,13 @@ def list_loader(v: Any, depth: int = 0, max_depth: int = 25, verbose = False) ->
     parsed_list = []
     for item in v:
         if isinstance(item, dict):
-            parsed_list.append(recur_parse_json(item, depth=depth + 1, max_depth=max_depth, verbose = verbose))
+            parsed_list.append(recur_parse_json(item, depth=depth + 1, max_depth=max_depth, verbose=verbose))
         elif isinstance(item, str):
             parsed = safe_json_loader(item, raise_error=False)
             if isinstance(parsed, dict):
-                parsed_list.append(recur_parse_json(parsed, depth=depth + 1, max_depth=max_depth, verbose = verbose))
+                parsed_list.append(recur_parse_json(parsed, depth=depth + 1, max_depth=max_depth, verbose=verbose))
             elif isinstance(parsed, list):
-                parsed_list.append(list_loader(parsed, depth=depth + 1, max_depth=max_depth, verbose = verbose))
+                parsed_list.append(list_loader(parsed, depth=depth + 1, max_depth=max_depth, verbose=verbose))
             else:
                 parsed_list.append(parsed)
         else:
@@ -225,7 +224,7 @@ def list_loader(v: Any, depth: int = 0, max_depth: int = 25, verbose = False) ->
     return parsed_list
 
 
-def safe_json_loader(content: Any, raise_error=False, depth=0, verbose = False) -> Union[dict, str, Any]:
+def safe_json_loader(content: Any, raise_error=False, depth=0, verbose=False) -> Union[dict, str, Any]:
     """
     Safely parses JSON strings into Python dictionaries or leaves them as-is if they are malformed.
 
@@ -268,7 +267,7 @@ def safe_json_loader(content: Any, raise_error=False, depth=0, verbose = False) 
                 for key, value in parsed.items():
                     if isinstance(value, str):
                         try:
-                            parsed[key] = safe_json_loader(value, raise_error=True, depth=depth + 1, verbose = verbose)
+                            parsed[key] = safe_json_loader(value, raise_error=True, depth=depth + 1, verbose=verbose)
                         except json.JSONDecodeError as e:
                             indent = "--" * (depth + 2)
                             if '{' in value or '}' in value:
@@ -308,4 +307,3 @@ def safe_json_loader(content: Any, raise_error=False, depth=0, verbose = False) 
             return content  # Leave malformed content as-is
 
     raise TypeError(f"safe_json_loader expected string or dict but got {type(content).__name__}")
-

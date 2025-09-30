@@ -3,15 +3,16 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
 import json
-from typing import Optional, Union, TYPE_CHECKING
+from typing import Optional, Union
 
 import psycopg2
-from ._Internal._boto_cache import _get_boto3_session, _fetch_secret_from_secretsmanager
+
 from ._Internal._ConfigurationManager import _ConfigurationManager
 from ._Internal._SshTunnelManager import _SshTunnelManager
+from ._Internal._boto_cache import _get_boto3_session, _fetch_secret_from_secretsmanager
+from .. import logger
 from ..Decorators.SingletonClass import SingletonClass
 from ..Exceptions import InvalidConfigurationException
-from .. import logger
 
 
 @SingletonClass
@@ -111,10 +112,10 @@ class AwsClientHub:
         parsed = {}
         try:
             secret = _fetch_secret_from_secretsmanager(
-                profile=self.__config.aws_profile,
-                region=self.__config.region_name,
-                secret_arn=self.__config.secret_arn
-            )
+                    profile=self.__config.aws_profile,
+                    region=self.__config.region_name,
+                    secret_arn=self.__config.secret_arn
+                    )
             parsed = json.loads(secret) if isinstance(secret, str) else secret
         finally:
             configured = self.__config.load_rds_secret(parsed)
@@ -126,24 +127,24 @@ class AwsClientHub:
         try:
             if self.config and isinstance(self.config, _ConfigurationManager):
                 config = {
-                    "PGHOST": self.config.pghost_override or self.config.db_host,
-                    "PGPORT": int(self.config.pgport_override or self.config.db_port),
-                    "PGDATABASE": self.config.db_name,
-                    "PGUSER": self.config.db_user,
-                    "PGPASSWORD": self.config.db_pass
-                }
+                        "PGHOST": self.config.pghost_override or self.config.db_host,
+                        "PGPORT": int(self.config.pgport_override or self.config.db_port),
+                        "PGDATABASE": self.config.db_name,
+                        "PGUSER": self.config.db_user,
+                        "PGPASSWORD": self.config.db_pass
+                        }
                 if not self.config.pghost_override and all([
-                    self.config.ssh_server,
-                    self.config.ssh_user,
-                    self.config.pem_path or self.config.ssh_password
-                ]):
+                        self.config.ssh_server,
+                        self.config.ssh_user,
+                        self.config.pem_path or self.config.ssh_password
+                        ]):
                     config["SSH_TUNNEL"] = {
-                        "SSH_SERVER": self.config.ssh_server,
-                        "SSH_PORT": self.config.ssh_port,
-                        "SSH_USER": self.config.ssh_user,
-                        "SSH_PASSWORD": self.config.ssh_password,
-                        "SSH_KEY_PATH": self.config.pem_path
-                    }
+                            "SSH_SERVER": self.config.ssh_server,
+                            "SSH_PORT": self.config.ssh_port,
+                            "SSH_USER": self.config.ssh_user,
+                            "SSH_PASSWORD": self.config.ssh_password,
+                            "SSH_KEY_PATH": self.config.pem_path
+                            }
 
                 self.__db_client = self._rds_handle_configuration(config)
             else:
@@ -172,12 +173,12 @@ class AwsClientHub:
                 raise
 
         return psycopg2.connect(
-            host=host,
-            port=port,
-            database=config["PGDATABASE"],
-            user=config["PGUSER"],
-            password=config["PGPASSWORD"]
-        )
+                host=host,
+                port=port,
+                database=config["PGDATABASE"],
+                user=config["PGUSER"],
+                password=config["PGPASSWORD"]
+                )
 
     def get_secret(self, secret_id: str = None) -> Union[dict, str, None]:
         """

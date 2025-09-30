@@ -78,7 +78,6 @@ def robust_serializer(obj: Any) -> Any:
     return str(obj)
 
 
-
 class RobustJSONEncoder(json.JSONEncoder):
     """
     JSONEncoder subclass that uses robust_serializer for unsupported objects.
@@ -168,4 +167,3 @@ class single_quote_decoder(json.JSONDecoder):
 
                 # Escape it to \"
                 js_str = js_str[:prev_quote_index] + "\\" + js_str[prev_quote_index:]
-

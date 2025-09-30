@@ -1,4 +1,3 @@
-
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
@@ -20,7 +19,6 @@ def get_hash(data):
     """
     if isinstance(data, str):
         data = data.encode('utf-8')
-
 
     sha1 = hashlib.sha1()
     sha1.update(data)

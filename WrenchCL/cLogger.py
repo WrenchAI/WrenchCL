@@ -15,7 +15,7 @@ from typing import Optional, Literal, Any, Union, Type, List
 from .Decorators import SingletonClass
 from ._Internal.Logging.DataClasses import LogLevel, LogOptions, logLevels
 from ._Internal.Logging.LoggerConfigState import LoggerStateManager
-from ._Internal.Logging.logging_utils import get_depth, generate_run_id
+from ._Internal.Logging.logging_utils import get_depth
 
 
 @SingletonClass
@@ -38,6 +38,7 @@ class cLogger:
         logger.error("Something failed", exc_info=True)
         logger.configure(mode="json", trace_enabled=True)
     """
+
     def __init__(self) -> None:
         self.__lock = threading.RLock()
         # Core services - clean separation of concerns
@@ -55,15 +56,17 @@ class cLogger:
 
     # ---------------- Public Configuration API ----------------
 
-    def configure(self,
-                  mode: Optional[Literal['terminal', 'json', 'compact']] = None,
-                  level: Optional[logLevels] = None,
-                  color_enabled: Optional[bool] = None,
-                  highlight_syntax: Optional[bool] = None,
-                  verbose: Optional[bool] = None,
-                  trace_enabled: Optional[bool] = None,
-                  deployment_mode: Optional[bool] = None,
-                  suppress_autoconfig: bool = True) -> None:
+    def configure(
+            self,
+            mode: Optional[Literal['terminal', 'json', 'compact']] = None,
+            level: Optional[logLevels] = None,
+            color_enabled: Optional[bool] = None,
+            highlight_syntax: Optional[bool] = None,
+            verbose: Optional[bool] = None,
+            trace_enabled: Optional[bool] = None,
+            deployment_mode: Optional[bool] = None,
+            suppress_autoconfig: bool = True
+            ) -> None:
         """
         Configure logger behavior and settings.
 
@@ -84,15 +87,15 @@ class cLogger:
         # Delegate to config manager
         self.state_manager.handler_manager.flush_all_handlers()
         new_config = self.state_manager.configure(
-            mode=mode,
-            level=level,
-            color_enabled=color_enabled,
-            highlight_syntax=highlight_syntax,
-            verbose=verbose,
-            trace_enabled=trace_enabled,
-            deployment_mode=deployment_mode,
-            suppress_autoconfig=suppress_autoconfig
-        )
+                mode=mode,
+                level=level,
+                color_enabled=color_enabled,
+                highlight_syntax=highlight_syntax,
+                verbose=verbose,
+                trace_enabled=trace_enabled,
+                deployment_mode=deployment_mode,
+                suppress_autoconfig=suppress_autoconfig
+                )
 
         self.level = new_config.level
 
@@ -102,7 +105,7 @@ class cLogger:
 
         self.__mini_state()
 
-    def reinitialize(self, verbose = False):
+    def reinitialize(self, verbose=False):
         """
         Reload environment configuration and update logger settings.
 
@@ -129,11 +132,11 @@ class cLogger:
 
     # ---------------- Core Logging Methods ----------------
     def info(
-        self,
-        *args: Any,
-        header: Optional[str] = None,
-        log_opts: Optional[Union[LogOptions, dict]] = None,
-    ) -> None:
+            self,
+            *args: Any,
+            header: Optional[str] = None,
+            log_opts: Optional[Union[LogOptions, dict]] = None,
+            ) -> None:
         """
         Log an INFO-level message.
 
@@ -143,13 +146,13 @@ class cLogger:
         """
         opts = LogOptions(log_opts)
         self.__log(level="INFO", args=args, no_format=opts.no_format,
-                  no_color=opts.no_color, stack_info=opts.stack_info, header=header)
+                   no_color=opts.no_color, stack_info=opts.stack_info, header=header)
 
     def debug(
-        self,
-        *args: Any,
-        log_opts: Optional[Union[LogOptions, dict]] = None,
-    ) -> None:
+            self,
+            *args: Any,
+            log_opts: Optional[Union[LogOptions, dict]] = None,
+            ) -> None:
         """
         Log a DEBUG-level message.
 
@@ -158,15 +161,15 @@ class cLogger:
         """
         opts = LogOptions(log_opts)
         self.__log(level="DEBUG", args=args, no_format=opts.no_format,
-                  no_color=opts.no_color, stack_info=opts.stack_info)
+                   no_color=opts.no_color, stack_info=opts.stack_info)
 
     def warning(
-        self,
-        *args: Any,
-        header: Optional[str] = None,
-        log_opts: Optional[Union[LogOptions, dict]] = None,
-        **kwargs,
-    ) -> None:
+            self,
+            *args: Any,
+            header: Optional[str] = None,
+            log_opts: Optional[Union[LogOptions, dict]] = None,
+            **kwargs,
+            ) -> None:
         """
         Log a WARNING-level message.
 
@@ -178,15 +181,15 @@ class cLogger:
         if isinstance(kwargs.get('exc_info', ''), (Exception, BaseException)):
             args = args + (kwargs.get('exc_info'),)
         self.__log(level="WARNING", args=args, no_format=opts.no_format,
-                  no_color=opts.no_color, stack_info=opts.stack_info, header=header)
+                   no_color=opts.no_color, stack_info=opts.stack_info, header=header)
 
     def error(
-        self,
-        *args: Any,
-        header: Optional[str] = None,
-        log_opts: Optional[Union[LogOptions, dict]] = None,
-        **kwargs: Any
-    ) -> None:
+            self,
+            *args: Any,
+            header: Optional[str] = None,
+            log_opts: Optional[Union[LogOptions, dict]] = None,
+            **kwargs: Any
+            ) -> None:
         """
         Log an ERROR-level message.
 
@@ -202,15 +205,15 @@ class cLogger:
         if isinstance(kwargs.get('exc_info', ''), (Exception, BaseException)):
             args = args + (kwargs.get('exc_info'),)
         self.__log(level="ERROR", args=args, no_format=log_opts.no_format,
-                  no_color=log_opts.no_color, stack_info=log_opts.stack_info, header=header)
+                   no_color=log_opts.no_color, stack_info=log_opts.stack_info, header=header)
 
     def critical(
-        self,
-        *args: Any,
-        header: Optional[str] = None,
-        log_opts: Optional[Union[LogOptions, dict]] = None,
-        **kwargs: Any
-    ) -> None:
+            self,
+            *args: Any,
+            header: Optional[str] = None,
+            log_opts: Optional[Union[LogOptions, dict]] = None,
+            **kwargs: Any
+            ) -> None:
         """
         Log a CRITICAL-level message.
 
@@ -226,15 +229,15 @@ class cLogger:
         if isinstance(kwargs.get('exc_info', ''), (Exception, BaseException)):
             args = args + (kwargs.get('exc_info'),)
         self.__log(level="CRITICAL", args=args, no_format=log_opts.no_format,
-                  no_color=log_opts.no_color, stack_info=log_opts.stack_info, header=header)
+                   no_color=log_opts.no_color, stack_info=log_opts.stack_info, header=header)
 
     def exception(
-        self,
-        *args: Any,
-        header: Optional[str] = None,
-        log_opts: Optional[Union[LogOptions, dict]] = None,
-        **kwargs
-    ) -> None:
+            self,
+            *args: Any,
+            header: Optional[str] = None,
+            log_opts: Optional[Union[LogOptions, dict]] = None,
+            **kwargs
+            ) -> None:
         """
         Log an ERROR-level message with exception context.
 
@@ -247,7 +250,7 @@ class cLogger:
         if isinstance(kwargs.get('exc_info', ''), (Exception, BaseException)):
             args = args + (kwargs.get('exc_info'),)
         self.__log(level="ERROR", args=args, no_format=opts.no_format,
-                  no_color=opts.no_color, stack_info=opts.stack_info, header=header)
+                   no_color=opts.no_color, stack_info=opts.stack_info, header=header)
 
     # Aliases
     success = info
@@ -267,7 +270,7 @@ class cLogger:
         """Reset the performance timer."""
         self.state_manager.reset_timer()
 
-    def log_time(self, message="Elapsed time", reset:bool = False) -> None:
+    def log_time(self, message="Elapsed time", reset: bool = False) -> None:
         """
         Log elapsed time since timer was started.
 
@@ -283,7 +286,7 @@ class cLogger:
             self.reset_time()
 
     # noinspection PyInconsistentReturns
-    def header(self, text: str, size:int = None, compact = False, return_repr = False, level: logLevels = 'HEADER') -> Optional[str]:
+    def header(self, text: str, size: int = None, compact=False, return_repr=False, level: logLevels = 'HEADER') -> Optional[str]:
         """
         Create and log a formatted header.
 
@@ -298,8 +301,8 @@ class cLogger:
         compact = compact or config.is_compact_header_mode
 
         result = self.state_manager.message_processor.create_header(
-            text, level=level, size=size, compact=compact
-        )
+                text, level=level, size=size, compact=compact
+                )
 
         if not return_repr:
             self.__log(level, args=(result,), no_format=True, no_color=True)
@@ -328,8 +331,8 @@ class cLogger:
             if isinstance(obj, pd.DataFrame):
                 prefix_str = f"DataType: {type(obj).__name__} | Shape: {obj.shape[0]} rows | {obj.shape[1]} columns"
                 pd.set_option('display.max_rows', 500, 'display.max_columns', None,
-                             'display.width', None, 'display.max_colwidth', 50,
-                             'display.colheader_justify', 'center')
+                              'display.width', None, 'display.max_colwidth', 50,
+                              'display.colheader_justify', 'center')
                 if config.mode != 'json':
                     output = f"{prefix_str}\n{obj}"
                 else:
@@ -377,13 +380,13 @@ class cLogger:
     # ---------------- Handler Management ----------------
 
     def add_new_handler(
-        self,
-        handler_cls: Type[logging.Handler] = logging.StreamHandler,
-        stream: Optional[TextIOBase] = None,
-        level: logLevels = None,
-        formatter: Optional[logging.Formatter] = None,
-        force_replace: bool = False,
-    ) -> logging.Handler:
+            self,
+            handler_cls: Type[logging.Handler] = logging.StreamHandler,
+            stream: Optional[TextIOBase] = None,
+            level: logLevels = None,
+            formatter: Optional[logging.Formatter] = None,
+            force_replace: bool = False,
+            ) -> logging.Handler:
         """
         Add a new logging handler to the logger instance.
 
@@ -403,13 +406,13 @@ class cLogger:
                                                               formatter=formatter)
 
     def enable_file_logging(
-        self,
-        filename: str,
-        max_bytes: int = 10485760,  # 10MB default
-        backup_count: int = 5,
-        level: logLevels = None,
-        formatter: Optional[logging.Formatter] = None,
-    ) -> Optional[logging.Handler]:
+            self,
+            filename: str,
+            max_bytes: int = 10485760,  # 10MB default
+            backup_count: int = 5,
+            level: logLevels = None,
+            formatter: Optional[logging.Formatter] = None,
+            ) -> Optional[logging.Handler]:
         """
         Add a rotating file handler for log output.
 
@@ -421,15 +424,15 @@ class cLogger:
         :return: Created rotating file handler
         """
         handler = self.state_manager.handler_manager.add_file_handler(
-            filename=filename, config=self.state_manager.current_state, max_bytes=max_bytes, backup_count=backup_count,
-            level=level, formatter=formatter, base_level=self.state_manager.base_level
-        )
+                filename=filename, config=self.state_manager.current_state, max_bytes=max_bytes, backup_count=backup_count,
+                level=level, formatter=formatter, base_level=self.state_manager.base_level
+                )
         self._internal_log(f"File handler added to logger instance: {filename}")
         return handler
 
     # ---------------- Global Configuration ----------------
 
-    def attach_global_stream(self, level: logLevels, silence_others: bool = False, stream = sys.stdout) -> None:
+    def attach_global_stream(self, level: logLevels, silence_others: bool = False, stream=sys.stdout) -> None:
         """
         Attach a global stream handler to the root logger.
 
@@ -441,12 +444,12 @@ class cLogger:
         env_metadata = self.state_manager.get_env_metadata()
 
         self.state_manager.global_logger_manager.attach_global_stream(
-            level=level,
-            silence_others=silence_others,
-            stream=stream,
-            config_state=config,
-            env_metadata=env_metadata
-        )
+                level=level,
+                silence_others=silence_others,
+                stream=stream,
+                config_state=config,
+                env_metadata=env_metadata
+                )
 
     def set_named_logger_level(self, logger_name: str, level: logLevels = 'INFO') -> None:
         """
@@ -457,7 +460,7 @@ class cLogger:
         """
         self.state_manager.global_logger_manager.set_named_logger_level(logger_name, level)
 
-    def set_attached_handler_level(self, handler_name:str, level: Optional[logLevels] = None) -> None:
+    def set_attached_handler_level(self, handler_name: str, level: Optional[logLevels] = None) -> None:
         """
         Set the logging level for a specific handler by name.
 
@@ -468,15 +471,15 @@ class cLogger:
         env_metadata = self.state_manager.get_env_metadata()
 
         self.state_manager.global_logger_manager.set_handler_level_by_name(
-            handler_name=handler_name,
-            level=level,
-            logger_instance=self.state_manager.logging_instance,
-            config_state=config,
-            env_metadata=env_metadata,
-            global_stream_configured=self.state_manager.global_stream_configured
-        )
+                handler_name=handler_name,
+                level=level,
+                logger_instance=self.state_manager.logging_instance,
+                config_state=config,
+                env_metadata=env_metadata,
+                global_stream_configured=self.state_manager.global_stream_configured
+                )
 
-    def silence_logger(self, logger_name:str) -> None:
+    def silence_logger(self, logger_name: str) -> None:
         """
         Silence a logger by setting its level above CRITICAL.
 
@@ -511,7 +514,7 @@ class cLogger:
             config = self.state_manager.current_state
             if config.force_markup and config.deployed:
                 warnings.warn("Forcing Markup in deployment mode is not recommended...",
-                            category=RuntimeWarning, stacklevel=5)
+                              category=RuntimeWarning, stacklevel=5)
 
             self._internal_log("Forced color output enabled.")
         except ImportError:
@@ -521,15 +524,15 @@ class cLogger:
 
     @contextmanager
     def temporary(
-        self,
-        level: Optional[logLevels] = None,
-        mode: Optional[Literal['terminal', 'json', 'compact']] = None,
-        color_enabled: Optional[bool] = None,
-        verbose: Optional[bool] = None,
-        trace_enabled: Optional[bool] = None,
-        highlight_syntax: Optional[bool] = None,
-        deployed: Optional[bool] = None,
-    ):
+            self,
+            level: Optional[logLevels] = None,
+            mode: Optional[Literal['terminal', 'json', 'compact']] = None,
+            color_enabled: Optional[bool] = None,
+            verbose: Optional[bool] = None,
+            trace_enabled: Optional[bool] = None,
+            highlight_syntax: Optional[bool] = None,
+            deployed: Optional[bool] = None,
+            ):
         """
         Temporarily override logger configuration within a context.
 
@@ -633,20 +636,20 @@ class cLogger:
         env_metadata = self.state_manager.get_env_metadata()
 
         return {
-            "Logging Level": self.level.value,
-            "Run Id": self.state_manager.run_id,
-            "Mode": config.mode,
-            "Environment Metadata": env_metadata,
-            "Configuration": {
-                "Color Enabled": config.color_enabled,
-                "Highlight Syntax": config.highlight_syntax,
-                "Verbose": config.verbose,
-                "Deployment Mode": config.deployed,
-                "DD Trace Enabled": config.dd_trace_enabled,
-                "Global Stream Configured": self.state_manager.global_stream_configured
-            },
-            "Handlers": [type(h).__name__ for h in self.state_manager.logging_instance.handlers],
-        }
+                "Logging Level": self.level.value,
+                "Run Id": self.state_manager.run_id,
+                "Mode": config.mode,
+                "Environment Metadata": env_metadata,
+                "Configuration": {
+                        "Color Enabled": config.color_enabled,
+                        "Highlight Syntax": config.highlight_syntax,
+                        "Verbose": config.verbose,
+                        "Deployment Mode": config.deployed,
+                        "DD Trace Enabled": config.dd_trace_enabled,
+                        "Global Stream Configured": self.state_manager.global_stream_configured
+                        },
+                "Handlers": [type(h).__name__ for h in self.state_manager.logging_instance.handlers],
+                }
 
     @property
     def highlight_syntax(self) -> bool:
@@ -663,9 +666,11 @@ class cLogger:
         else:
             self._internal_log(f"Logger -> Color:{config.color_enabled} | Mode:{config.mode.capitalize()} | Deployment:{config.deployed}")
 
-    def __log(self, level: Union[LogLevel, logLevels], args,
-              no_format: bool = False, no_color: bool = False,
-              stack_info: bool = False, header: Optional[str] = None) -> None:
+    def __log(
+            self, level: Union[LogLevel, logLevels], args,
+            no_format: bool = False, no_color: bool = False,
+            stack_info: bool = False, header: Optional[str] = None
+            ) -> None:
         """Core logging method - now much cleaner thanks to services."""
 
         if not isinstance(level, LogLevel):
@@ -675,8 +680,8 @@ class cLogger:
 
         # Process message using MessageProcessor
         msg, exc_info = self.state_manager.message_processor.process_log_message(
-            level, args, config, header, no_color
-        )
+                level, args, config, header, no_color
+                )
 
         # Handle exception info
         if level not in ['ERROR', 'CRITICAL'] and not stack_info:
@@ -693,9 +698,9 @@ class cLogger:
                 msg = '\n' + msg
 
         self.state_manager.logging_instance.log(
-            int(level), msg, exc_info=exc_info, stack_info=stack_info,
-            stacklevel=get_depth(internal=level == 'INTERNAL')
-        )
+                int(level), msg, exc_info=exc_info, stack_info=stack_info,
+                stacklevel=get_depth(internal=level == 'INTERNAL')
+                )
 
     def _update_handler_formatters(self, level: LogLevel, no_format: bool, no_color: bool):
         """Update formatters for the current log operation."""
@@ -705,10 +710,10 @@ class cLogger:
         for handler in self.state_manager.logging_instance.handlers:
             if not isinstance(handler, logging.NullHandler):
                 formatter = self.state_manager.formatter_factory.create_formatter(
-                    level=level, config_state=config, env_metadata=env_metadata,
-                    global_stream_configured=self.state_manager.global_stream_configured,
-                    no_format=no_format, no_color=no_color
-                )
+                        level=level, config_state=config, env_metadata=env_metadata,
+                        global_stream_configured=self.state_manager.global_stream_configured,
+                        no_format=no_format, no_color=no_color
+                        )
                 handler.setFormatter(formatter)
 
     def _setup_ddtrace(self, trace_enabled: bool):

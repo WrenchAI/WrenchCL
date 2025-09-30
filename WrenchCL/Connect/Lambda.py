@@ -10,7 +10,7 @@ from ..Tools import RobustJSONEncoder
 from ..Tools.truncate_display import truncate_display
 
 # Allowed Lambda proxy response codes
-LambdaStatusCodes = Literal[200, 201, 202, 204,301, 302, 304, 307, 308,400, 401, 403, 404, 405, 409, 429,500, 502, 503, 504]
+LambdaStatusCodes = Literal[200, 201, 202, 204, 301, 302, 304, 307, 308, 400, 401, 403, 404, 405, 409, 429, 500, 502, 503, 504]
 
 STATUS_CODE_MESSAGES: Dict[int, str] = {
         # 2xx: Success
@@ -40,17 +40,19 @@ STATUS_CODE_MESSAGES: Dict[int, str] = {
         502: "Bad Gateway: The server received an invalid response from an upstream service.",
         503: "Service Unavailable: The server is temporarily unable to handle the request.",
         504: "Gateway Timeout: The server did not receive a timely response from an upstream service.",
-    }
+        }
 
 
 class LambdaBodyProtocol(TypedDict, total=False):
     message: str
     data: Optional[Dict[str, Any]]
 
+
 class SerializedLambdaResponse(TypedDict):
     statusCode: LambdaStatusCodes
     headers: Dict[str, str]
     body: str
+
 
 class LambdaResponse:
     _statusCode: LambdaStatusCodes
@@ -59,16 +61,16 @@ class LambdaResponse:
     _body: LambdaBodyProtocol
     _serialized_body: str
     _default_headers: Dict[str, str] = {
-        "Content-Type": "application/json; charset=utf-8",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-        "Access-Control-Allow-Headers": "*",
-    }
+            "Content-Type": "application/json; charset=utf-8",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+            "Access-Control-Allow-Headers": "*",
+            }
+
     def __init__(self, status_code: LambdaStatusCodes, body: Union[Dict[str, Any], str, None], headers: Dict[str, str]) -> None:
         self.statusCode = status_code
         self.headers = headers
         self.body = body
-
 
     @property
     def statusCode(self) -> LambdaStatusCodes:
@@ -120,10 +122,10 @@ class LambdaResponse:
     def as_dict(self) -> SerializedLambdaResponse:
         """Return AWS Lambda-compatible dict."""
         return {
-            "statusCode": self.statusCode,
-            "headers": self.headers,
-            "body": self._serialized_body,
-        }
+                "statusCode": self.statusCode,
+                "headers": self.headers,
+                "body": self._serialized_body,
+                }
 
     def json(self):
         return json.dumps(self.as_dict(), cls=RobustJSONEncoder)
@@ -146,14 +148,15 @@ class LambdaResponse:
     def __json__(self) -> str:
         return self.json()
 
+
 # Standardized short messages for supported codes
 def build_lambda_response(
-    status_code: LambdaStatusCodes,
-    body: Union[Dict[str, Any], str, None] = None,
-    allow_methods: str = "GET, OPTIONS, POST",
-    extra_headers: Optional[Dict[str, str]] = None,
-    **extra_body_fields: Any,
-) -> LambdaResponse:
+        status_code: LambdaStatusCodes,
+        body: Union[Dict[str, Any], str, None] = None,
+        allow_methods: str = "GET, OPTIONS, POST",
+        extra_headers: Optional[Dict[str, str]] = None,
+        **extra_body_fields: Any,
+        ) -> LambdaResponse:
     """
     Build a minimal AWS Lambda proxy response with:
       - Strictly typed HTTP status codes.
@@ -169,12 +172,12 @@ def build_lambda_response(
     """
     try:
         headers = {
-            "Content-Type": "application/json; charset=utf-8",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": allow_methods,
-            "Access-Control-Allow-Headers": "*",
-            **(extra_headers or {}),
-        }
+                "Content-Type": "application/json; charset=utf-8",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": allow_methods,
+                "Access-Control-Allow-Headers": "*",
+                **(extra_headers or {}),
+                }
 
         # If body is None, fall back to a standardized message
         if body is None:
