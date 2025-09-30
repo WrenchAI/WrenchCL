@@ -61,7 +61,7 @@ Thread-safe singleton pattern:
 from WrenchCL.Decorators import SingletonClass
 
 @SingletonClass
-class ConfigManager:
+class LoggerStateManager:
     def __init__(self):
         self.config = {}
         self.loaded = False
@@ -72,8 +72,8 @@ class ConfigManager:
             self.loaded = True
 
 # Multiple instantiations return same object
-config1 = ConfigManager()
-config2 = ConfigManager()
+config1 = LoggerStateManager()
+config2 = LoggerStateManager()
 assert config1 is config2  # True
 
 # Initialization only happens once

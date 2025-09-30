@@ -112,7 +112,7 @@ logger.disable_color()
 logger.force_markup()  # Force colors even in non-TTY
 
 # Check current state
-print(f"Colors enabled: {logger.config_manager.current_state.color_enabled}")
+print(f"Colors enabled: {logger.state_manager.current_state.color_enabled}")
 ```
 
 ## Properties and State
