@@ -18,5 +18,5 @@ __all__ = [
         'typechecker', 'get_metadata', 'robust_serializer',
         'validate_base64', 'single_quote_decoder', 'parse_json',
         'safe_json_loader', 'list_loader', 'show_json_tree',
-        'get_hash', 'standardize_none', RobustJSONEncoder
+        'get_hash', 'standardize_none', 'RobustJSONEncoder'
         ]
