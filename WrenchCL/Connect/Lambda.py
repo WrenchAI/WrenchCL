@@ -150,13 +150,7 @@ class LambdaResponse:
 
 
 # Standardized short messages for supported codes
-def build_lambda_response(
-        status_code: LambdaStatusCodes,
-        body: Union[Dict[str, Any], str, None] = None,
-        allow_methods: str = "GET, OPTIONS, POST",
-        extra_headers: Optional[Dict[str, str]] = None,
-        **extra_body_fields: Any,
-        ) -> LambdaResponse:
+def handle_lambda_response(status_code: LambdaStatusCodes, body: Union[Dict[str, Any], str, None] = None, allow_methods: str = "GET, OPTIONS, POST", extra_headers: Optional[Dict[str, str]] = None, **extra_body_fields: Any) -> LambdaResponse:
     """
     Build a minimal AWS Lambda proxy response with:
       - Strictly typed HTTP status codes.

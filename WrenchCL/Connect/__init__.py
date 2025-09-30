@@ -12,7 +12,7 @@ try:
     from .AwsClientHub import AwsClientHub
     from .RdsServiceGateway import RdsServiceGateway
     from .S3ServiceGateway import S3ServiceGateway
-    from .Lambda import build_lambda_response
+    from .Lambda import handle_lambda_response
 
 except ImportError as e:
     # Create a more specific error message based on what failed
@@ -39,4 +39,4 @@ except ImportError as e:
             f"Original error: {error_details}"
             ) from e
 
-__all__ = ['AwsClientHub', 'RdsServiceGateway', 'S3ServiceGateway', 'build_lambda_response']
+__all__ = ['AwsClientHub', 'RdsServiceGateway', 'S3ServiceGateway', 'handle_lambda_response']
