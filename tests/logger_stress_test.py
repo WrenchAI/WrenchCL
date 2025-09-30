@@ -21,7 +21,7 @@ def main():
     logger.header("Basic Logging Test")
     for i in range(15):
         logger.info(f"Info message #{i+1} - Everything is working fine")
-        logger.debug(f"Debug message #{i+1} - Detailed debugging information")
+        logger._internal_log(f"Debug message #{i+1} - Detailed debugging information")
         logger.warning(f"Warning message #{i+1} - Something might be wrong")
         if i % 5 == 0:
             logger.error(f"Error message #{i+1} - Something definitely went wrong!")
@@ -114,7 +114,7 @@ def main():
     for i in range(30):
         level = i % 4
         if level == 0:
-            logger.debug(f"Rapid debug #{i+1}")
+            logger._internal_log(f"Rapid debug #{i+1}")
         elif level == 1:
             logger.info(f"Rapid info #{i+1}")
         elif level == 2:
