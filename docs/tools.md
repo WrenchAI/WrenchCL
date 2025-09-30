@@ -10,6 +10,7 @@ from WrenchCL.Tools import coalesce, Maybe, typechecker
 
 # Or access via module
 import WrenchCL.Tools as tools
+
 result = tools.coalesce(None, "default")
 ```
 
@@ -28,10 +29,10 @@ name = coalesce(None, None, "John")  # Returns "John"
 
 # Configuration fallbacks
 api_key = coalesce(
-    os.getenv('API_KEY'),
-    config.get('api_key'),
-    "default-key"
-)
+        os.getenv('API_KEY'),
+        config.get('api_key'),
+        "default-key"
+        )
 ```
 
 ### Maybe
@@ -49,12 +50,12 @@ email = Maybe(data).get('user').get('profile').get('email').out()
 
 # Chain operations safely
 result = (Maybe(data)
-    .get('user')
-    .get('profile') 
-    .get('email')
-    .upper()
-    .replace('@', '_at_')
-    .out())
+          .get('user')
+          .get('profile')
+          .get('email')
+          .upper()
+          .replace('@', '_at_')
+          .out())
 
 # Context manager for chaining
 with Maybe(data) as m:
@@ -80,10 +81,10 @@ typechecker({"id": "123", "active": True}, flexible)  # Valid
 
 # Allow None values
 typechecker(
-    {"name": "John", "nickname": None}, 
-    {"name": str, "nickname": str},
-    none_is_ok=True
-)
+        {"name": "John", "nickname": None},
+        {"name": str, "nickname": str},
+        none_is_ok=True
+        )
 
 # List of dicts
 users = [{"name": "Alice", "age": 25}, {"name": "Bob", "age": 30}]
@@ -101,17 +102,18 @@ from WrenchCL.Tools import standardize_none
 
 # Clean various None representations
 data = {
-    "name": "John",
-    "email": "",        # -> None
-    "phone": "null",    # -> None
-    "status": "n/a"     # -> None
-}
+        "name": "John",
+        "email": "",  # -> None
+        "phone": "null",  # -> None
+        "status": "n/a"  # -> None
+        }
 
 clean = standardize_none(data)
 # Result: {"name": "John", "email": None, "phone": None, "status": None}
 
 # Works with DataFrames too
 import pandas as pd
+
 df = pd.DataFrame({"col": ["", "null", "valid"]})
 clean_df = standardize_none(df)
 ```
@@ -122,7 +124,7 @@ clean_df = standardize_none(df)
 from WrenchCL.Tools import (
     parse_json, safe_json_loader, list_loader, show_json_tree,
     robust_serializer, single_quote_decoder
-)
+    )
 import json
 
 # Parse nested JSON
@@ -139,6 +141,7 @@ list_data = list_loader(['{"item": 1}', '{"item": 2}'])
 
 # Robust serialization
 from datetime import datetime
+
 data = {"timestamp": datetime.now(), "value": 123}
 json_str = json.dumps(data, default=robust_serializer)
 
@@ -183,7 +186,7 @@ metadata = get_metadata("https://example.com/file.pdf", is_url=True)
 # Returns: content_type, content_length, last_modified, url
 
 # Local file metadata
-metadata = get_metadata("/path/file.txt", is_url=False)  
+metadata = get_metadata("/path/file.txt", is_url=False)
 # Returns: file_path, file_size, creation_time, mime_type
 ```
 
@@ -214,18 +217,19 @@ def get_database_config(config_dict):
 ```python
 from WrenchCL.Tools import typechecker, standardize_none
 
+
 def validate_user_data(raw_data):
     # Clean None-like values
     clean_data = standardize_none(raw_data)
-    
+
     # Validate types
     schema = {
-        'name': str,
-        'age': [int, type(None)],  # Optional
-        'email': str,
-        'active': bool
-    }
-    
+            'name': str,
+            'age': [int, type(None)],  # Optional
+            'email': str,
+            'active': bool
+            }
+
     try:
         typechecker(clean_data, schema, errors='raise')
         return {'valid': True, 'data': clean_data}
@@ -238,25 +242,26 @@ def validate_user_data(raw_data):
 ```python
 from WrenchCL.Tools import get_file_type, get_metadata, image_to_base64
 
+
 def process_upload(file_path):
     # Get file info
     ext, mime_type = get_file_type(file_path, is_url=False)
     metadata = get_metadata(file_path, is_url=False)
-    
+
     result = {
-        'extension': ext,
-        'mime_type': mime_type,
-        'size': metadata['file_size']
-    }
-    
+            'extension': ext,
+            'mime_type': mime_type,
+            'size': metadata['file_size']
+            }
+
     # Process images
     if ext.lower() in ['.jpg', '.png', '.gif']:
         b64_data, file_hash = image_to_base64(file_path, return_hash=True)
         result.update({
-            'base64': b64_data,
-            'hash': file_hash
-        })
-    
+                'base64': b64_data,
+                'hash': file_hash
+                })
+
     return result
 ```
 

@@ -11,6 +11,7 @@ class ReferenceNotFoundException(Exception):
     :param variable_name: Name of the missing variable or value.
     :param message: Custom error message to override the default.
     """
+
     def __init__(self, variable_name: Optional[str] = None, message: Optional[str] = None) -> None:
         msg = message or f"The variable or value '{variable_name}' was not found."
         super().__init__(msg)
@@ -22,6 +23,7 @@ class SecurityViolationException(Exception):
 
     :param message: Custom error message to override the default.
     """
+
     def __init__(self, message: Optional[str] = None) -> None:
         msg = message or "Security violation detected!"
         super().__init__(msg)

@@ -36,15 +36,15 @@ class LogLevel(str, Enum):
     CRITICAL = "CRITICAL"  # noqa
 
     __aMap__ = {
-        "WARN": "WARNING",
-        "ERR": "ERROR",
-        "CRI": "CRITICAL",
-        "INTERNAL": "INTERNAL",
-        "DATA": "DATA",
-        "HEADER": "HEADER"
-    }
+            "WARN": "WARNING",
+            "ERR": "ERROR",
+            "CRI": "CRITICAL",
+            "INTERNAL": "INTERNAL",
+            "DATA": "DATA",
+            "HEADER": "HEADER"
+            }
 
-    __byMap__ = {"INTERNAL": "INFO", "DATA": "INFO", "HEADER": "INFO"}
+    __byMap__ = {"INTERNAL": "DEBUG", "DATA": "INFO", "HEADER": "INFO"}
 
     @classmethod
     def _missing_(cls, value: Union[str, int]):
@@ -53,7 +53,7 @@ class LogLevel(str, Enum):
         if issubclass(type(value), Enum):
             value = value.value
         if isinstance(value, int):
-            value = ceil(value / 10)*10
+            value = ceil(value / 10) * 10
             value = min(value, 50)
             value = max(value, 10)
             value = logging.getLevelName(value)
@@ -72,7 +72,10 @@ class LogLevel(str, Enum):
         raise ValueError(f"Invalid log level: {value} (allowed: {[e for e in cls]})")
 
     def __int__(self) -> int:
-        return getattr(logging, self.__byMap__.get(self.value, self.value)) # noqa
+        return getattr(logging, self.__byMap__.get(self.value, self.value))  # noqa
+
+    def __str__(self) -> str:
+        return self.value
 
 
 logLevels = Union[int, str, LogLevel]
@@ -85,23 +88,27 @@ class LogOptions:
     no_color: bool = False
     stack_info: bool = False
 
-    def __new__(cls, opts=None):
+    def __new__(cls, opts=None, *args, **kwargs):
         """Create LogOptions from dict, LogOptions instance, or None."""
-        if opts is None:
-            return super().__new__(cls)
-        elif isinstance(opts, dict):
-            return super().__new__(cls)
-        elif isinstance(opts, LogOptions):
+        if isinstance(opts, LogOptions):
             return opts
-        else:
-            raise TypeError(f"LogOptions expects dict, LogOptions, or None, got {type(opts)}")
+        return super().__new__(cls)
 
     def __init__(self, opts=None, no_format=False, no_color=False, stack_info=False):
         if isinstance(opts, dict):
             self.no_format = opts.get('no_format', no_format)
             self.no_color = opts.get('no_color', no_color)
             self.stack_info = opts.get('stack_info', stack_info)
+        elif isinstance(opts, LogOptions):
+            # If we were passed another instance, copy it
+            self.no_format = opts.no_format
+            self.no_color = opts.no_color
+            self.stack_info = opts.stack_info
         elif opts is None:
             self.no_format = no_format
             self.no_color = no_color
             self.stack_info = stack_info
+        else:
+            raise TypeError(
+                    f"LogOptions expects dict, LogOptions, or None, got {type(opts)}"
+                    )

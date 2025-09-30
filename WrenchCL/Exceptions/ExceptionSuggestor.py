@@ -16,15 +16,15 @@ class ExceptionSuggestor:
 
     @classmethod
     def suggest_similar(
-        cls,
-        missing_key: str,
-        available_keys: Iterable[str],
-        n_suggestions: int = 1,
-        cutoff: float = 0.6,
-        case_insensitive: bool = True,
-        return_message: bool = True,
-        custom_message: Optional[str] = None
-    ) -> Union[str, List[str], None]:
+            cls,
+            missing_key: str,
+            available_keys: Iterable[str],
+            n_suggestions: int = 1,
+            cutoff: float = 0.6,
+            case_insensitive: bool = True,
+            return_message: bool = True,
+            custom_message: Optional[str] = None
+            ) -> Union[str, List[str], None]:
         keys = list(map(str, available_keys))
         key = str(missing_key)
 
@@ -49,50 +49,50 @@ class ExceptionSuggestor:
     @classmethod
     def suggest_for_pandas_column(cls, missing_column: str, dataframe_columns: Iterable[str]) -> Optional[str]:
         return cls.suggest_similar(
-            missing_key=missing_column,
-            available_keys=dataframe_columns,
-            n_suggestions=1,
-            cutoff=0.6,
-            case_insensitive=True,
-            return_message=True,
-            custom_message="Column '{}' not found. Did you mean: {}?".format(missing_column, '{}')
-        )
+                missing_key=missing_column,
+                available_keys=dataframe_columns,
+                n_suggestions=1,
+                cutoff=0.6,
+                case_insensitive=True,
+                return_message=True,
+                custom_message="Column '{}' not found. Did you mean: {}?".format(missing_column, '{}')
+                )
 
     @classmethod
     def suggest_for_dict_key(cls, missing_key: str, dict_keys: Iterable[str]) -> Optional[str]:
         return cls.suggest_similar(
-            missing_key=missing_key,
-            available_keys=dict_keys,
-            n_suggestions=3,
-            cutoff=0.7,
-            case_insensitive=True,
-            return_message=True,
-            custom_message="Key '{}' not found. Possible matches: {}".format(missing_key, '{}')
-        )
+                missing_key=missing_key,
+                available_keys=dict_keys,
+                n_suggestions=3,
+                cutoff=0.7,
+                case_insensitive=True,
+                return_message=True,
+                custom_message="Key '{}' not found. Possible matches: {}".format(missing_key, '{}')
+                )
 
     @classmethod
     def suggest_for_cli_option(cls, invalid_option: str, valid_options: Iterable[str]) -> Optional[str]:
         return cls.suggest_similar(
-            missing_key=invalid_option,
-            available_keys=valid_options,
-            n_suggestions=3,
-            cutoff=0.5,
-            case_insensitive=False,
-            return_message=True,
-            custom_message="Unrecognized option '{}'. Did you mean: {}?".format(invalid_option, '{}')
-        )
+                missing_key=invalid_option,
+                available_keys=valid_options,
+                n_suggestions=3,
+                cutoff=0.5,
+                case_insensitive=False,
+                return_message=True,
+                custom_message="Unrecognized option '{}'. Did you mean: {}?".format(invalid_option, '{}')
+                )
 
     @classmethod
     def suggest_for_api_field(cls, missing_field: str, valid_fields: Iterable[str]) -> Optional[str]:
         return cls.suggest_similar(
-            missing_key=missing_field,
-            available_keys=valid_fields,
-            n_suggestions=2,
-            cutoff=0.65,
-            case_insensitive=True,
-            return_message=True,
-            custom_message="Field '{}' not found. Closest matches: {}".format(missing_field, '{}')
-        )
+                missing_key=missing_field,
+                available_keys=valid_fields,
+                n_suggestions=2,
+                cutoff=0.65,
+                case_insensitive=True,
+                return_message=True,
+                custom_message="Field '{}' not found. Closest matches: {}".format(missing_field, '{}')
+                )
 
     @classmethod
     def _is_pandas_df(cls, obj):
@@ -165,11 +165,11 @@ class ExceptionSuggestor:
 
         else:
             return cls.suggest_similar(
-                missing_key=missing_key,
-                available_keys=dir(obj),
-                n_suggestions=2,
-                cutoff=0.5,
-                case_insensitive=True,
-                return_message=True,
-                custom_message="Attribute '{}' not found. Closest matches: {}".format(missing_key, '{}')
-            )
+                    missing_key=missing_key,
+                    available_keys=dir(obj),
+                    n_suggestions=2,
+                    cutoff=0.5,
+                    case_insensitive=True,
+                    return_message=True,
+                    custom_message="Attribute '{}' not found. Closest matches: {}".format(missing_key, '{}')
+                    )

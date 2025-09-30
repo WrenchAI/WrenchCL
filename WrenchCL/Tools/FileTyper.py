@@ -1,4 +1,3 @@
-
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
@@ -15,6 +14,7 @@ from .Image2B64 import validate_base64
 
 try:
     from botocore.response import StreamingBody
+
     imports = True
 except ImportError:
     imports = False
@@ -22,6 +22,7 @@ except ImportError:
 
 class UnsupportedFileTypeError(Exception):
     pass
+
 
 def get_file_type(file_source: Union[str, Path, bytes, BytesIO, "StreamingBody"], is_url: bool = True) -> Tuple[str, str]:
     """
@@ -82,4 +83,3 @@ def get_file_type(file_source: Union[str, Path, bytes, BytesIO, "StreamingBody"]
 # file_type = get_file_type(byte_data, is_url=False)
 # file_type = get_file_type(BytesIO(byte_data), is_url=False)
 # file_type = get_file_type(streaming_body, is_url=False)
-

@@ -1,19 +1,18 @@
-
-
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 from typing import Any, Dict, List, Type, Union, Iterable
+
 from .. import logger
 
 
 def typechecker(
-    data: Union[Dict[str, Any], List[Dict[str, Any]]],
-    expected_types: Dict[str, Union[Type, List[Type]]],
-    none_is_ok: bool = False,
-    errors: str = 'raise',
-    verbose: bool = False
-) -> bool:
+        data: Union[Dict[str, Any], List[Dict[str, Any]]],
+        expected_types: Dict[str, Union[Type, List[Type]]],
+        none_is_ok: bool = False,
+        errors: str = 'raise',
+        verbose: bool = False
+        ) -> bool:
     """
     Validates that each entry in a dictionary or a list of dictionaries matches the expected type.
 
@@ -57,12 +56,12 @@ def typechecker(
         # Check for incorrect types
         for param, expected in expected_types.items():
             if verbose:
-                logger.debug(f"Checking param: {param}, expected type(s): {expected}")
+                logger._internal_log(f"Checking param: {param}, expected type(s): {expected}")
 
             if not isinstance(item, dict):
                 item = {param: item}
                 if verbose:
-                    logger.debug(f"Converted item to dict: {item}")
+                    logger._internal_log(f"Converted item to dict: {item}")
 
             if none_is_ok and item.get(param) is None:
                 continue
@@ -75,7 +74,7 @@ def typechecker(
                         raise TypeError(f"Incorrect param types: {error_message}")
                     elif errors == 'coerce':
                         if verbose:
-                            logger.debug(f"Invalid input found when checking input dictionary: {error_message}")
+                            logger._internal_log(f"Invalid input found when checking input dictionary: {error_message}")
                         return False
             else:
                 if not isinstance(item.get(param), expected):
@@ -84,7 +83,7 @@ def typechecker(
                         raise TypeError(f"Incorrect param types: {error_message}")
                     elif errors == 'coerce':
                         if verbose:
-                            logger.debug(f"Invalid input found when checking input dictionary: {error_message}")
+                            logger._internal_log(f"Invalid input found when checking input dictionary: {error_message}")
                         return False
 
     return True

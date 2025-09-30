@@ -29,6 +29,7 @@ class CustomFormatter(logging.Formatter):
         reset = self.presets.RESET or ''
         return f"{dim_color}{dim_style}{original}{reset}"
 
+
 class JSONLogFormatter(logging.Formatter):
     def __init__(self, env_metadata: dict, forced_color: bool, highlight_func: Callable, traced: bool = False, deployed: bool = False):
         super().__init__()
@@ -49,18 +50,18 @@ class JSONLogFormatter(logging.Formatter):
         context_data: dict = {}
 
         user_keys = {
-            "user_id", "usr_id", "entity_id", "user_entity_id", "subject_id",
-            "client_id", "user_name", "username",
-        }
+                "user_id", "usr_id", "entity_id", "user_entity_id", "subject_id",
+                "client_id", "user_name", "username",
+                }
         org_keys = {
-            "client_id", "org_id", "organization_id", "tenant_id",
-            "team_id", "workspace_id", "project_id",
-        }
+                "client_id", "org_id", "organization_id", "tenant_id",
+                "team_id", "workspace_id", "project_id",
+                }
         service_keys = {
-            "service_id", "service_name", "application", "app_name", "dd_service",
-            "aws_function_name", "aws_service", "lambda_name", "lambda_function",
-            "aws_function", "project_name", "project",
-        }
+                "service_id", "service_name", "application", "app_name", "dd_service",
+                "aws_function_name", "aws_service", "lambda_name", "lambda_function",
+                "aws_function", "project_name", "project",
+                }
 
         # Prevent infinite recursion on cyclic structures; keep traversal shallow.
         MAX_DEPTH = 4
@@ -132,34 +133,33 @@ class JSONLogFormatter(logging.Formatter):
         context_data.update(scan_ctx(contextvars.copy_context()))
         return context_data
 
-
     def format(self, record: logging.LogRecord) -> str:
         ctx = {}
         dd = {
-            "dd.env": self.env_metadata.get("env"),
-            "dd.service": self.env_metadata.get("project") or ctx.get('service_name'),
-            "dd.version": self.env_metadata.get("project_version")
-        }
+                "dd.env": self.env_metadata.get("env"),
+                "dd.service": self.env_metadata.get("project") or ctx.get('service_name'),
+                "dd.version": self.env_metadata.get("project_version")
+                }
         ctx.update(self._extract_generic_context())
 
         if self.traced:
             dd.update({
-            "dd.trace_id": str(getattr(record, "dd.trace_id", 0)),
-            "dd.span_id": str(getattr(record, "dd.span_id", 0))})
+                    "dd.trace_id": str(getattr(record, "dd.trace_id", 0)),
+                    "dd.span_id": str(getattr(record, "dd.span_id", 0))})
 
         log_record = {
-            "level": record.levelname,
-            "message": record.getMessage(),
-            "source" : {
-                "module": record.module,
-                "function": record.funcName,
-                "line": record.lineno,
-            },
-            "log_info": {
-                "logger": record.name,
-                "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%SZ"),
-            }
-        }
+                "level": record.levelname,
+                "message": record.getMessage(),
+                "source": {
+                        "module": record.module,
+                        "function": record.funcName,
+                        "line": record.lineno,
+                        },
+                "log_info": {
+                        "logger": record.name,
+                        "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%SZ"),
+                        }
+                }
 
         if dd:
             log_record['trace'] = dd
@@ -203,13 +203,15 @@ class FormatterFactory:
         self.color_service = color_service
         self.env_prefix_generator = EnvPrefixGenerator(color_service)
 
-    def create_formatter(self,
-                        level: logLevels,
-                        config_state,
-                        env_metadata: Dict,
-                        global_stream_configured: bool = False,
-                        no_format: bool = False,
-                        no_color: bool = False) -> logging.Formatter:
+    def create_formatter(
+            self,
+            level: logLevels,
+            config_state,
+            env_metadata: Dict,
+            global_stream_configured: bool = False,
+            no_format: bool = False,
+            no_color: bool = False
+            ) -> logging.Formatter:
         """
         Create appropriate formatter based on level and configuration.
 
@@ -222,32 +224,32 @@ class FormatterFactory:
         # Simple cases first
         if no_format and no_color:
             return logging.Formatter(fmt='%(message)s')
-
         # Determine active presets
         active_preset = self.color_service.get_current_presets()
         if not config_state.should_use_color(no_color):
             # Create mock presets for this formatter
             active_preset = ColorPresets(MockColorama, MockColorama)
-
         # JSON formatter case
         if config_state.should_use_json_formatter and level != 'INTERNAL':
             return JSONLogFormatter(
-                env_metadata,
-                config_state.force_markup,
-                self._get_highlight_function(),  # We'll need to inject this
-                config_state.should_enable_dd_trace_logging,
-                config_state.deployed
-            )
+                    env_metadata,
+                    config_state.force_markup,
+                    self._get_highlight_function(),  # We'll need to inject this
+                    config_state.should_enable_dd_trace_logging,
+                    config_state.deployed
+                    )
 
         # Terminal formatter case
         return self._create_terminal_formatter(
-            LogLevel(level), config_state, env_metadata, active_preset,
-            global_stream_configured, no_format
-        )
+                LogLevel(level), config_state, env_metadata, active_preset,
+                global_stream_configured, no_format
+                )
 
-    def _create_terminal_formatter(self, level: LogLevel, config_state,
-                                 env_metadata: Dict, active_preset: ColorPresets,
-                                 global_stream_configured: bool, no_format: bool) -> CustomFormatter:
+    def _create_terminal_formatter(
+            self, level: LogLevel, config_state,
+            env_metadata: Dict, active_preset: ColorPresets,
+            global_stream_configured: bool, no_format: bool
+            ) -> CustomFormatter:
         """Create a terminal formatter with all the styling."""
 
         # Get colors and styles for this level
@@ -269,20 +271,22 @@ class FormatterFactory:
 
         # Build format components
         components = self._build_format_components(
-            LogLevel(level), config_state, env_metadata, active_preset,
-            color, style, message_color, dimmed_color, dimmed_style,
-            global_stream_configured, no_format
-        )
+                LogLevel(level), config_state, env_metadata, active_preset,
+                color, style, message_color, dimmed_color, dimmed_style,
+                global_stream_configured, no_format
+                )
 
         # Assemble final format
         fmt = f"{active_preset.RESET}{components['format']}{active_preset.RESET}"
 
         return CustomFormatter(fmt, datefmt='%H:%M:%S', presets=active_preset)
 
-    def _build_format_components(self, level: LogLevel, config_state, env_metadata: Dict,
-                               active_preset: ColorPresets, color: str, style: str,
-                               message_color: str, dimmed_color: str, dimmed_style: str,
-                               global_stream_configured: bool, no_format: bool) -> Dict[str, str]:
+    def _build_format_components(
+            self, level: LogLevel, config_state, env_metadata: Dict,
+            active_preset: ColorPresets, color: str, style: str,
+            message_color: str, dimmed_color: str, dimmed_style: str,
+            global_stream_configured: bool, no_format: bool
+            ) -> Dict[str, str]:
         """Build the various components of the log format string."""
 
         # File/function info section
@@ -293,15 +297,18 @@ class FormatterFactory:
 
         # Environment prefix
         app_env_section = self.env_prefix_generator.generate_prefix(
-            env_metadata, config_state, dimmed_color, dimmed_style, color, style
-        )
+                env_metadata, config_state, dimmed_color, dimmed_style, color, style
+                )
 
         # Level name section
         level_name_section = self._get_level_name_section(level, color, style, active_preset)
 
         # Other sections
         colored_arrow_section = f"{color}{style} -> {active_preset.RESET}"
-        message_section = f"{style}{message_color}%(message)s{active_preset.RESET}"
+        if str(level) not in ['INTERNAL', 'DEBUG']:
+            message_section = f"{style}{message_color}%(message)s{active_preset.RESET}"
+        else:
+            message_section = f"{dimmed_color}{dimmed_style}%(message)s{active_preset.RESET}"
 
         # Logger name section (for global streams)
         name_section = f"{color}{style}[%(name)s] - {active_preset.RESET}" if global_stream_configured else ""
@@ -317,21 +324,23 @@ class FormatterFactory:
             format_str = f"{app_env_section}{name_section}{level_name_section}{verbose_section}{colored_arrow_section}{message_section}"
 
         return {
-            'format': format_str,
-            'file_section': file_section,
-            'verbose_section': verbose_section,
-            'app_env_section': app_env_section,
-            'level_name_section': level_name_section,
-            'colored_arrow_section': colored_arrow_section,
-            'message_section': message_section,
-            'name_section': name_section
-        }
+                'format': format_str,
+                'file_section': file_section,
+                'verbose_section': verbose_section,
+                'app_env_section': app_env_section,
+                'level_name_section': level_name_section,
+                'colored_arrow_section': colored_arrow_section,
+                'message_section': message_section,
+                'name_section': name_section
+                }
 
-    def _get_level_name_section(self, level: LogLevel, color: str, style: str,
-                              active_preset: ColorPresets) -> str:
+    def _get_level_name_section(
+            self, level: LogLevel, color: str, style: str,
+            active_preset: ColorPresets
+            ) -> str:
         """Get the formatted level name section."""
         if level == "INTERNAL":
-            return f"{color}{style}  WrenchCLInternal{active_preset.RESET}"
+            return f"{color}{style} [WrenchCL]{active_preset.RESET}"
         elif level == "DATA":
             return f"{color}{style}DATA    {active_preset.RESET}"
         else:
@@ -350,9 +359,11 @@ class EnvPrefixGenerator:
     def __init__(self, color_service: ColorService):
         self.color_service = color_service
 
-    def generate_prefix(self, env_metadata: Dict, config_state,
-                       dimmed_color: str, dimmed_style: str,
-                       color: str, style: str) -> str:
+    def generate_prefix(
+            self, env_metadata: Dict, config_state,
+            dimmed_color: str, dimmed_style: str,
+            color: str, style: str
+            ) -> str:
         """Generate environment prefix for log messages."""
 
         if config_state.should_strip_ansi:

@@ -12,10 +12,10 @@ def highlight_data(msg: str, preset: ColorPresets) -> str:
 
     # Python style dicts: support both 'key' and "key"
     msg = re.sub(
-        r'(?P<key>[\'"][^\'"]+[\'"])(?P<colon>\s*:)',
-        lambda m: f"{c.INFO}{m.group('key')}{c.RESET_FORE}{c.COLOR_COLON}{m.group('colon')}{c.RESET_FORE}",
-        msg
-    )
+            r'(?P<key>[\'"][^\'"]+[\'"])(?P<colon>\s*:)',
+            lambda m: f"{c.INFO}{m.group('key')}{c.RESET_FORE}{c.COLOR_COLON}{m.group('colon')}{c.RESET_FORE}",
+            msg
+            )
 
     msg = msg.replace('{', f"{c.COLOR_BRACE_OPEN}{{{c.RESET_FORE}")
     msg = msg.replace('}', f"{c.COLOR_BRACE_CLOSE}}}{c.RESET_FORE}")
@@ -29,23 +29,24 @@ def highlight_data(msg: str, preset: ColorPresets) -> str:
 
     return msg
 
+
 def highlight_literals_json(msg: str, preset: ColorPresets) -> str:
     c = preset
 
     # Highlight log levels
     level_keywords = {
-        "DEBUG": c.DEBUG, "INFO": c.INFO, "WARNING": c.WARNING,
-        "WARN": c.WARNING, "ERROR": c.ERROR, "CRITICAL": c.CRITICAL
-    }
+            "DEBUG": c.DEBUG, "INFO": c.INFO, "WARNING": c.WARNING,
+            "WARN": c.WARNING, "ERROR": c.ERROR, "CRITICAL": c.CRITICAL
+            }
     for keyword, color in level_keywords.items():
         msg = re.sub(rf'\b{keyword}\b', f"{color}{keyword}{c.RESET_FORE}", msg, flags=re.IGNORECASE)
 
     # Highlight string keys with double quotes
     msg = re.sub(
-        r'(?P<key>"[^"]+?")(?P<colon>\s*:)',
-        lambda m: f"{c.COLOR_KEY}{m.group('key')}{c.RESET_FORE}{c.COLOR_COLON}{m.group('colon')}{c.RESET_FORE}",
-        msg
-    )
+            r'(?P<key>"[^"]+?")(?P<colon>\s*:)',
+            lambda m: f"{c.COLOR_KEY}{m.group('key')}{c.RESET_FORE}{c.COLOR_COLON}{m.group('colon')}{c.RESET_FORE}",
+            msg
+            )
 
     # Highlight brackets/braces/commas
     msg = msg.replace('{', f"{c.COLOR_BRACE_OPEN}{{{c.RESET_FORE}")
@@ -73,9 +74,9 @@ def highlight_literals(msg: str, preset: ColorPresets) -> str:
 
     # Highlight UUIDs
     msg = re.sub(
-        r'\b([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\b',
-        lambda m: f"{c.COLOR_UUID}{m.group(1)}{c.RESET_FORE}",
-        msg, flags=re.IGNORECASE)
+            r'\b([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\b',
+            lambda m: f"{c.COLOR_UUID}{m.group(1)}{c.RESET_FORE}",
+            msg, flags=re.IGNORECASE)
 
     # Highlight placeholders like %s or %{name}s
     msg = re.sub(r'%\{?[a-zA-Z0-9_]*s}?\b',
@@ -90,17 +91,18 @@ def highlight_literals(msg: str, preset: ColorPresets) -> str:
 
     # Highlight literals: true, false, null, none, nan
     msg = re.sub(r'\b(true|false|null|none|nan)\b', lambda m: {
-        "true": f"{c.COLOR_TRUE}{m.group(0)}{c.RESET_FORE}",
-        "false": f"{c.COLOR_FALSE}{m.group(0)}{c.RESET_FORE}",
-        "null": f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}",
-        "none": f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}",
-        "nan": f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}"
-    }[m.group(0).lower()], msg, flags=re.IGNORECASE)
+            "true": f"{c.COLOR_TRUE}{m.group(0)}{c.RESET_FORE}",
+            "false": f"{c.COLOR_FALSE}{m.group(0)}{c.RESET_FORE}",
+            "null": f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}",
+            "none": f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}",
+            "nan": f"{c.COLOR_NONE}{m.group(0)}{c.RESET_FORE}"
+            }[m.group(0).lower()], msg, flags=re.IGNORECASE)
 
     return msg
 
+
 # noinspection PyTypeChecker
-def get_spacer(word: str, length: int, char:str = '─') -> str:
+def get_spacer(word: str, length: int, char: str = '─') -> str:
     if not char:
         char = '─'
     if len(word) >= length:
@@ -111,7 +113,7 @@ def get_spacer(word: str, length: int, char:str = '─') -> str:
 
 
 # noinspection PyTypeChecker
-def add_data_markers(msg: str, preset: ColorPresets, level: LogLevel, head = False) -> str:
+def add_data_markers(msg: str, preset: ColorPresets, level: LogLevel, head=False) -> str:
     if len(msg.strip().splitlines()) <= 1:
         return msg
 
@@ -150,7 +152,6 @@ def add_data_markers(msg: str, preset: ColorPresets, level: LogLevel, head = Fal
     if is_data:
         top_border = f"{markup}{'┌'}{top_bar}{right_corner}{reset}"
     bottom_border = f"{markup}{left_corner}{bot_bar}{'┘'}{reset}"
-
 
     content = ''.join(f"{pad}{line}" for line in lines)
     if not content.endswith('\n'):

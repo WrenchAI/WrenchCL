@@ -3,7 +3,6 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 """Internal utilities - some require AWS dependencies."""
 
-
 # AWS-dependent utilities - fail fast if not available
 try:
     import boto3
@@ -16,12 +15,12 @@ try:
 
 except ImportError as e:
     raise ImportError(
-        f"Internal AWS utilities require additional dependencies.\n"
-        f"Install with: pip install 'WrenchCL[aws]'\n" 
-        f"Missing: {e}"
-    ) from e
+            f"Internal AWS utilities require additional dependencies.\n"
+            f"Install with: pip install 'WrenchCL[aws]'\n"
+            f"Missing: {e}"
+            ) from e
 
 __all__ = [
-    '_ConfigurationManager', '_SshTunnelManager',
-    '_get_boto3_session', '_fetch_secret_from_secretsmanager', '_get_s3_client'
-]
+        '_ConfigurationManager', '_SshTunnelManager',
+        '_get_boto3_session', '_fetch_secret_from_secretsmanager', '_get_s3_client'
+        ]

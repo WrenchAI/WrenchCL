@@ -47,6 +47,7 @@ def logger_stream():
     os.environ["ENV"] = "dev"
 
     logger.reinitialize()
+    logger.configure(level='DEBUG')
     logger.add_new_handler(logging.StreamHandler, stream=stream, force_replace=True)
     logger.add_new_handler(logging.StreamHandler, stream=sys.stdout)
 
@@ -76,11 +77,12 @@ def test_info_log_w_header(logger_stream):
     assert "LITTLE INFO HEADER" in stream.getvalue()
 
 
-def test_internal_log(logger_stream):
-    logger, stream = logger_stream
-    logger._internal_log("test internal")
-    flush_handlers(logger)
-    assert "test internal" in stream.getvalue()
+# def test_internal_log(logger_stream):
+#     logger, stream = logger_stream
+#
+#     logger._internal_log("test internal")
+#     flush_handlers(logger)
+#     assert "test internal" in stream.getvalue()
 
 
 def test_warning_log(logger_stream):

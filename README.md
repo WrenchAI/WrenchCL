@@ -41,12 +41,14 @@ pip install WrenchCL
 WrenchCL uses optional dependencies to keep the core package lightweight while providing additional functionality when needed:
 
 #### Color Support (Logger)
+
 ```bash
 pip install WrenchCL[color]
 # Adds: colorama for beautiful terminal colors
 ```
 
 #### AWS Services
+
 ```bash
 pip install WrenchCL[aws]
 # Adds: boto3, psycopg2-binary, sshtunnel, and AWS service type hints
@@ -54,6 +56,7 @@ pip install WrenchCL[aws]
 ```
 
 #### Distributed Tracing
+
 ```bash
 pip install WrenchCL[trace]
 # Adds: ddtrace for Datadog APM integration
@@ -61,12 +64,14 @@ pip install WrenchCL[trace]
 ```
 
 #### Development Tools
+
 ```bash
 pip install WrenchCL[dev]
 # Adds: pytest, coverage, pydantic for development and testing
 ```
 
 #### Complete Installation
+
 ```bash
 pip install WrenchCL[all]
 # Installs all optional dependencies for full functionality
@@ -82,7 +87,7 @@ Open the console in your working directory; the building command is
 python setup.py sdist bdist_wheel
 ```
 
-You can then install the package with 
+You can then install the package with
 
 ```bash
 pip install ./dist/WrenchCL-0.0.1.dev0-py3-none-any.whl --force-reinstall

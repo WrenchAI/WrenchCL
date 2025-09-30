@@ -3,138 +3,186 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
 import json
-from typing import TYPE_CHECKING
+from typing import Any, Dict, Optional, Union, Literal, get_args, TypedDict
 
-if TYPE_CHECKING:
-    from boto3 import client as boto3client
-
-from ..Exceptions import GuardedResponseTrigger
-from ..Tools import robust_serializer
-from ..Tools.TypeChecker import typechecker
 from .. import logger
+from ..Tools import RobustJSONEncoder
+from ..Tools.truncate_display import truncate_display
+
+# Allowed Lambda proxy response codes
+LambdaStatusCodes = Literal[200, 201, 202, 204, 301, 302, 304, 307, 308, 400, 401, 403, 404, 405, 409, 429, 500, 502, 503, 504]
+
+STATUS_CODE_MESSAGES: Dict[int, str] = {
+        # 2xx: Success
+        200: "OK: The request was successful.",
+        201: "Created: A new resource has been created successfully.",
+        202: "Accepted: The request has been accepted for processing, but is not yet complete.",
+        204: "No Content: The request succeeded, but there is no content to return.",
+
+        # 3xx: Redirection
+        301: "Moved Permanently: The resource has been moved to a new URI permanently.",
+        302: "Found: The resource is temporarily available at a different URI.",
+        304: "Not Modified: The resource has not changed since the last request.",
+        307: "Temporary Redirect: The request should be repeated with a different URI (same method).",
+        308: "Permanent Redirect: The request should be repeated with a new URI (same method).",
+
+        # 4xx: Client Errors
+        400: "Bad Request: The request could not be understood or was missing required parameters.",
+        401: "Unauthorized: Authentication is required or has failed.",
+        403: "Forbidden: You do not have permission to access this resource.",
+        404: "Not Found: The requested resource could not be found.",
+        405: "Method Not Allowed: The HTTP method is not supported for this resource.",
+        409: "Conflict: The request could not be completed due to a conflict with the current state.",
+        429: "Too Many Requests: You have sent too many requests in a given timeframe.",
+
+        # 5xx: Server Errors
+        500: "Internal Server Error: An unexpected server error occurred.",
+        502: "Bad Gateway: The server received an invalid response from an upstream service.",
+        503: "Service Unavailable: The server is temporarily unable to handle the request.",
+        504: "Gateway Timeout: The server did not receive a timely response from an upstream service.",
+        }
 
 
-def handle_lambda_response(code, message, params, response_body=None, client_id=None, entity_id=None):
+class LambdaBodyProtocol(TypedDict, total=False):
+    message: str
+    data: Optional[Dict[str, Any]]
+
+
+class SerializedLambdaResponse(TypedDict):
+    statusCode: LambdaStatusCodes
+    headers: Dict[str, str]
+    body: str
+
+
+class LambdaResponse:
+    _statusCode: LambdaStatusCodes
+    _headers: Dict[str, str]
+    _message: str
+    _body: LambdaBodyProtocol
+    _serialized_body: str
+    _default_headers: Dict[str, str] = {
+            "Content-Type": "application/json; charset=utf-8",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+            "Access-Control-Allow-Headers": "*",
+            }
+
+    def __init__(self, status_code: LambdaStatusCodes, body: Union[Dict[str, Any], str, None], headers: Dict[str, str]) -> None:
+        self.statusCode = status_code
+        self.headers = headers
+        self.body = body
+
+    @property
+    def statusCode(self) -> LambdaStatusCodes:
+        return self._statusCode
+
+    @statusCode.setter
+    def statusCode(self, value: LambdaStatusCodes) -> None:
+        if not isinstance(value, int):
+            raise TypeError("statusCode must be an integer")
+        if value not in get_args(LambdaStatusCodes):
+            raise ValueError("statusCode must be a valid Lambda response code")
+        self._statusCode = value
+        self._message = STATUS_CODE_MESSAGES[value]
+
+    @property
+    def headers(self) -> Dict[str, str]:
+        if self._headers is None:
+            self._headers = self._default_headers.copy()
+        return self._headers
+
+    @headers.setter
+    def headers(self, value: Dict[str, str]) -> None:
+        if not isinstance(value, dict):
+            raise TypeError("headers must be a dictionary")
+        self._headers = value
+
+    @property
+    def body(self) -> LambdaBodyProtocol:
+        if self._body is None:
+            self.body = {}
+        return self._body
+
+    @body.setter
+    def body(self, value: Union[Dict[str, Any], str, None]) -> None:
+        __im = None
+        if value is None:
+            value = {}
+        if value is not None and not isinstance(value, (dict, str)):
+            value = str(value)
+        if not isinstance(value, dict):
+            value = {'data': value}
+        if 'message' in value:
+            __im = value.pop('message')
+        value['message'] = self._message if __im is None else f"{self._message} | {__im}"
+        serialized_body = json.dumps(value, cls=RobustJSONEncoder)
+        self._body = LambdaBodyProtocol(**value)
+        self._serialized_body = serialized_body
+
+    def as_dict(self) -> SerializedLambdaResponse:
+        """Return AWS Lambda-compatible dict."""
+        return {
+                "statusCode": self.statusCode,
+                "headers": self.headers,
+                "body": self._serialized_body,
+                }
+
+    def json(self):
+        return json.dumps(self.as_dict(), cls=RobustJSONEncoder)
+
+    def __repr__(self) -> str:
+        """Debug-friendly truncated representation."""
+        return f"LambdaResponse(statusCode={self.statusCode}, headers={self.headers}, body={truncate_display(self.body)})"
+
+    def __str__(self) -> str:
+        return json.dumps(self.as_dict(), cls=RobustJSONEncoder, indent=2)
+
+    def __iter__(self):
+        yield from self.as_dict().items()
+
+    # noinspection PyUnusedFunction
+    def as_json(self) -> str:
+        return self.json()
+
+    # noinspection PyUnusedFunction
+    def __json__(self) -> str:
+        return self.json()
+
+
+# Standardized short messages for supported codes
+def handle_lambda_response(status_code: LambdaStatusCodes, body: Union[Dict[str, Any], str, None] = None, allow_methods: str = "GET, OPTIONS, POST", extra_headers: Optional[Dict[str, str]] = None, **extra_body_fields: Any) -> LambdaResponse:
     """
-    Handles Lambda function responses, providing detailed custom error logging while
-    ensuring valid HTTP status codes in API responses.
+    Build a minimal AWS Lambda proxy response with:
+      - Strictly typed HTTP status codes.
+      - CORS + JSON defaults.
+      - Standardized messages if body is None or empty.
 
-    Custom Error Code Mapping (Logged vs. API Response Codes):
-
-    **Logged Codes (4xx, 5xx):**
-
-        - 400: Validation Error (Bad request, malformed inputs).
-
-        - 401: Unauthorized (Invalid credentials, session expired).
-
-        - 403: Forbidden (Permission denied, restricted access).
-
-        - 404: Resource Not Found.
-
-        - 409: Conflict (Resource locks, version conflicts).
-
-        - 429: Rate Limit Exceeded.
-
-        - 500: General Server Error (Unhandled exceptions, internal issues).
-
-        - 502: Dependency Error (External service failures).
-
-        - 503: Service Unavailable (System overload, downtime).
-
-        - 504: Gateway Timeout (Function timeout, resource unavailability).
-
-        - 550: Generic Custom Error (Unspecified issues for tracking purposes).
-
-        - 551: Data Validation Error (Invalid inputs or constraints).
-
-        - 552: Resource Lock or Conflict.
-
-        - 553: Model or AI-related issues.
-
-        - 554: API Gateway or Lambda-specific errors.
-
-    **Returned API Codes:**
-
-        - 4xx (Client Errors): Mapped based on the custom code (400, 401, 403, etc.).
-
-        - 5xx (Server Errors): Generalized to standard HTTP codes (500, 502, etc.).
-
-
-    :param int code: Internal custom error code for logging purposes.
-    :param str message: A descriptive message about the status or error.
-    :param dict params: Parameters required for further processing.
-    :param dict response_body: Custom JSON response body (optional).
-    :param str client_id: The client ID (optional).
-    :param str entity_id: The entity ID (optional).
-
-    :raises GuardedResponseTrigger: Custom exception to signal early exit from the Lambda function.
+    :param status_code: Valid HTTP status code for Lambda proxy responses.
+    :param body: Response payload (dict, str, or None).
+    :param allow_methods: Allowed HTTP methods for CORS (default: "GET, OPTIONS, POST").
+    :param extra_headers: Optional headers to merge into the defaults.
+    :param extra_body_fields: Extra key/value pairs merged into the body if it's a dict.
+    :return: LambdaResponseDict.
     """
-    code = int(code)
-    expected_types = {
-        'event': str,
-        'context': str,
-        'start_time': (int, float),
-        'lambda_client': object,  # Use generic object type since we just need to check if it exists
-    }
-
     try:
-        typechecker(params, expected_types, none_is_ok=True)
-        if params.get('lambda_client') is None:
-            params['lambda_client'] = boto3client('lambda')
+        headers = {
+                "Content-Type": "application/json; charset=utf-8",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": allow_methods,
+                "Access-Control-Allow-Headers": "*",
+                **(extra_headers or {}),
+                }
 
+        # If body is None, fall back to a standardized message
+        if body is None:
+            body = {"message": STATUS_CODE_MESSAGES.get(status_code, "Unknown Status")}
+        elif isinstance(body, dict):
+            body = {**body, **extra_body_fields}
+
+        response = LambdaResponse(status_code, body, headers)
+        logger._internal_log(f"Lambda response: {repr(response)}")
+        return response
+    except (TypeError, ValueError) as e:
+        raise TypeError("Response body is not JSON serializable") from e
     except Exception as e:
-        logger.error(f"Failed to invoke dataflow metrics with error {e}")
-
-    # Consolidated Custom Error Messages
-    custom_error_messages = {
-        400: "Validation Error: Malformed or invalid request.",
-        401: "Unauthorized: Invalid credentials or session expired.",
-        403: "Forbidden: Access denied or restricted.",
-        404: "Resource Not Found: The requested resource does not exist.",
-        409: "Conflict: Resource is locked or has version conflicts.",
-        429: "Rate Limit Exceeded: Too many requests.",
-        500: "Internal Server Error: An unexpected server-side issue occurred.",
-        502: "Dependency Error: External service failure.",
-        503: "Service Unavailable: System overload or downtime.",
-        504: "Gateway Timeout: Function timed out before completion.",
-        550: "Generic Custom Error: Unspecified issue for tracking purposes.",
-        551: "Data Validation Error: Inputs failed validation.",
-        552: "Resource Conflict: Resource is locked or conflicting.",
-        553: "Model Error: AI/ML operation failed.",
-        554: "Lambda/API Gateway Error: Integration or execution issue.",
-    }
-
-    # Map custom codes to standard HTTP codes for API responses
-    if code in {550, 551, 552, 553, 554}:
-        api_code = 500  # Map custom server-side issues to HTTP 500
-    elif code in custom_error_messages:
-        api_code = code  # Use the provided code for 4xx and common 5xx errors
-    else:
-        api_code = 500  # Default to HTTP 500 for undefined server errors
-
-    # Log the error with the internal custom code
-    if code in custom_error_messages:
-        logger.error(
-            f"Custom Code = {code} | {custom_error_messages[code]} | [Client ID: {client_id}, Entity ID: {entity_id}] | Status Message: {message}",
-            exc_info=True
-        )
-    else:
-        logger.error(
-            f"Custom Code = {code} | Unrecognized Error Code | [Client ID: {client_id}, Entity ID: {entity_id}] | Status Message: {message}",
-            exc_info=True
-        )
-
-    default_headers = {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Access-Control-Allow-Origin': '*'
-    }
-
-    # Build the response
-    response = {
-        'statusCode': api_code,
-        'headers': default_headers,
-        'body': json.dumps(dict(Message=message) if response_body is None else response_body, default=robust_serializer)
-    }
-
-    logger.debug(f"Built Lambda Response: {response}")
-    raise GuardedResponseTrigger(response)
+        raise Exception("Error building Lambda response") from e

@@ -3,8 +3,8 @@
 from unittest.mock import patch, MagicMock
 
 from WrenchCL.Connect._Internal._ConfigurationManager import _ConfigurationManager
-from WrenchCL._Internal._MockPandas import _MockPandas
 from WrenchCL.Connect._Internal._SshTunnelManager import _SshTunnelManager
+from WrenchCL._Internal._MockPandas import _MockPandas
 
 
 def get_cfg(**kwargs):

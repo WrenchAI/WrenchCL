@@ -48,9 +48,11 @@ from WrenchCL.Connect import AwsClientHub, RdsServiceGateway, S3ServiceGateway
 ## Core Components
 
 ### Logger
+
 Advanced structured logging with colorization, JSON output, and Datadog integration.
 
 ### Tools (WrenchCL.Tools)
+
 - `coalesce()` - Return first non-None value
 - `Maybe` - Safe nested attribute access
 - `typechecker()` - Runtime type validation
@@ -58,18 +60,21 @@ Advanced structured logging with colorization, JSON output, and Datadog integrat
 - File type detection and image processing
 
 ### Decorators (WrenchCL.Decorators)
+
 - `@Retryable` - Automatic retry logic
 - `@SingletonClass` - Thread-safe singleton pattern
 - `@Synchronized` - Method synchronization
 - `@Deprecated` - Deprecation warnings
 
 ### Connect (WrenchCL.Connect) - Requires AWS Dependencies
+
 - `AwsClientHub` - Unified AWS client management
 - `RdsServiceGateway` - PostgreSQL database operations
 - `S3ServiceGateway` - S3 storage operations
 - Lambda utilities
 
 ### Exceptions (WrenchCL.Exceptions)
+
 Structured exception hierarchy with intelligent error suggestions.
 
 ## Configuration
@@ -87,10 +92,10 @@ Or programmatically:
 
 ```python
 logger.configure(
-    mode="json",        # terminal, json, or compact
-    level="INFO",       # DEBUG, INFO, WARNING, ERROR, CRITICAL
-    color_enabled=True
-)
+        mode="json",  # terminal, json, or compact
+        level="INFO",  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+        color_enabled=True
+        )
 ```
 
 ## AWS Dependencies
