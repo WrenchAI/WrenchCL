@@ -1,13 +1,20 @@
 #  Copyright (c) 2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
-
+import logging
 import os
+import sys
 import threading
+import time
 from dataclasses import replace, dataclass
 from typing import Optional, Literal, Dict, Any
 
+from .ColorService import ColorService, MockColorama
 from .DataClasses import LogLevel, logLevels
+from .Formatters import FormatterFactory
+from .LogManagers import HandlerManager, GlobalLoggerManager
+from .MessageProcessors import MarkupProcessor, MessageProcessor
+from .logging_utils import generate_run_id
 
 
 @dataclass(frozen=True)  # Immutable config state
@@ -114,7 +121,6 @@ class LoggerConfigState:
         return self.color_enabled and not no_color and not self.deployed
 
 
-
 class EnvironmentDetector:
     """Detects deployment environment and provides environment-based config."""
 
@@ -162,33 +168,130 @@ class EnvironmentDetector:
         }
 
 
-class ConfigManager:
+class LoggerStateManager:
     """
-    Manages logger configuration with immutable state and clear change tracking.
+    Single Source of Truth for:
+    1. Configuration state
+    2. ALL state-dependent services
+    3. State application logic
+    """
+    _lock = threading.RLock()
+    __logger_instance: Optional[logging.Logger] = None
 
-    This class provides a clean API for configuration management while ensuring
-    that all config changes are tracked and applied atomically.
-    """
+    # State
+    _state = LoggerConfigState()
+    _run_id = generate_run_id()
+    __base_level = 'INFO'
+    __start_time = None
+    __initialized = False
+
+    # Services
+    _env_detector = EnvironmentDetector()
+    color_service = ColorService()
+    global_logger_manager: Optional[GlobalLoggerManager] = None
 
     def __init__(self):
-        self._lock = threading.RLock()
-        self._state = LoggerConfigState()
-        self._env_detector = EnvironmentDetector()
-        self._change_listeners = []
-
-        # Apply initial environment detection
+        self._init_color_service()
+        self._initialize_color_dependents()
+        self._initialize_formatter_dependents()
         self._apply_environment_config()
+
+    def set_global_logger_manager(self, internal_log_callback):
+        """
+        Called once during cLogger init to set up GlobalLoggerManager.
+        Needs internal_log callback from cLogger since that's UI/logging, not state.
+        """
+        self.global_logger_manager = GlobalLoggerManager(
+            formatter_factory=self.formatter_factory,
+            handler_manager=self.handler_manager,
+            internal_logger=internal_log_callback
+        )
+
+    def _initialize_color_dependents(self):
+        self.markup_processor = MarkupProcessor(self.color_service)
+        self.message_processor = MessageProcessor(self.color_service, self.markup_processor)
+        self.formatter_factory = FormatterFactory(self.color_service)
+
+    def _initialize_formatter_dependents(self):
+        self.handler_manager = HandlerManager(self.logging_instance, self.formatter_factory)
+
+    def _init_color_service(self):
+        try:
+            import colorama
+            self.color_service.enable_colors()
+        except ImportError:
+            pass
+
+    def setup(self) -> bool:
+        with self._lock:
+            if self.initialized:
+                return False
+            self.handler_manager.flush_all_handlers()
+            self.logging_instance.setLevel(int(LogLevel(self.__base_level)))
+            self.handler_manager.add_handler(logging.StreamHandler, self.current_state, stream=sys.stdout, force_replace=True)
+            self.logging_instance.propagate = False
+            self.__initialized = True
+            return True
+
+    @property
+    def logging_instance(self) -> logging.Logger:
+        with self._lock:
+            if not self.__logger_instance:
+                self.__logger_instance = logging.getLogger('WrenchCL')
+            return self.__logger_instance
 
     @property
     def current_state(self) -> LoggerConfigState:
-        """Get current immutable config state."""
         with self._lock:
             return self._state
 
-    def add_change_listener(self, callback):
-        """Add a callback that gets called when config changes."""
+    @property
+    def run_id(self) -> str:
+        return self._run_id
+
+    def set_new_run_id(self):
         with self._lock:
-            self._change_listeners.append(callback)
+            self._run_id = generate_run_id()
+        return self._run_id
+
+    @property
+    def initialized(self) -> bool:
+        with self._lock:
+            return self.__initialized
+
+    @initialized.setter
+    def initialized(self, value: bool):
+        with self._lock:
+            self.__initialized = value
+
+    @property
+    def global_stream_configured(self) -> bool:
+        with self._lock:
+            return self.global_logger_manager.is_global_stream_configured
+
+    @property
+    def start_time(self) -> Optional[float]:
+        with self._lock:
+            return self.__start_time
+
+    def start_timer(self):
+        with self._lock:
+            self.__start_time = time.time()
+
+    def reset_timer(self):
+        with self._lock:
+            self.__start_time = None
+
+    def get_elapsed_time(self) -> Optional[float]:
+        with self._lock:
+            if self.__start_time is None:
+                return None
+            return time.time() - self.__start_time
+
+    @property
+    def base_level(self) -> LogLevel:
+        with self._lock:
+            return LogLevel(self.__base_level)
 
     def configure(self,
                   mode: Optional[Literal['terminal', 'json', 'compact']] = None,
@@ -201,16 +304,14 @@ class ConfigManager:
                   force_markup: Optional[bool] = None,
                   suppress_autoconfig: Optional[bool] = False) -> LoggerConfigState:
         """
-        Create new config state with specified changes.
-        Returns the new state and notifies listeners.
+        Configure state and apply ALL side effects.
+        No external callbacks needed - everything happens here.
         """
-
         with self._lock:
             changes = {}
 
             if mode is not None:
                 changes['mode'] = mode
-                # JSON mode implies deployment
                 if not suppress_autoconfig:
                     if mode == 'json' and deployment_mode is None:
                         changes['deployed'] = True
@@ -222,100 +323,113 @@ class ConfigManager:
                             changes['verbose'] = False
                             changes['dd_trace_enabled'] = False
                             changes['force_markup'] = False
-                        changes['color_enabled'] = True
-                        changes['highlight_syntax'] = True
-                        changes['verbose'] = False
-                        changes['deployed'] = False
-                        changes['dd_trace_enabled'] = False
-                        changes['force_markup'] = False
+                        else:
+                            changes['color_enabled'] = True
+                            changes['highlight_syntax'] = True
+                            changes['verbose'] = False
+                            changes['deployed'] = False
+                            changes['dd_trace_enabled'] = False
+                            changes['force_markup'] = False
 
             if level is not None:
                 changes['level'] = LogLevel(level)
-
             if color_enabled is not None:
                 changes['color_enabled'] = color_enabled
-
             if highlight_syntax is not None:
                 changes['highlight_syntax'] = highlight_syntax
-
             if verbose is not None:
                 changes['verbose'] = verbose
-
             if deployment_mode is not None:
                 changes['deployed'] = deployment_mode
-
             if trace_enabled is not None:
                 changes['dd_trace_enabled'] = trace_enabled
-
             if force_markup is not None:
                 changes['force_markup'] = force_markup
 
-            # Create new immutable state
             old_state = self._state
-            new_state = self.new_config(**changes)
+            new_state = replace(self._state, **changes)
             self._state = new_state
 
-            # Notify listeners of the change
-            self._notify_change_listeners(old_state, new_state)
+            # Apply all side effects internally
+            self._apply_state_changes(old_state, new_state)
 
             return new_state
 
+    def _apply_state_changes(self, old_state: LoggerConfigState, new_state: LoggerConfigState):
+        """
+        Apply ALL side effects when state changes.
+        This is the ONLY place where state changes affect services.
+        """
+
+       # 1. Color service
+        if (old_state.color_enabled != new_state.color_enabled) or (new_state.color_enabled and isinstance(self.color_service._color_class, MockColorama)):
+            if new_state.color_enabled:
+                self.color_service.enable_colors()
+            else:
+                self.color_service.disable_colors()
+            self._initialize_color_dependents()
+        # 2. Logger instance level
+        if old_state.level != new_state.level:
+            self.logging_instance.setLevel(int(new_state.level))
+            # Also update all handler levels
+            if self.handler_manager:
+                self.handler_manager.update_handler_levels(new_state.level)
+
+        # 3. Formatters (if mode/color/deployment changed)
+        if self._should_update_formatters(old_state, new_state):
+            env_metadata = self.get_env_metadata()
+            if self.handler_manager:
+                self.handler_manager.update_all_formatters(new_state, env_metadata)
+
+            # Also update global handlers if configured
+        if self.global_logger_manager and self.global_logger_manager.is_global_stream_configured:
+            self.global_logger_manager.update_global_handlers(new_state, self.get_env_metadata())
+
     def reinitialize(self) -> LoggerConfigState:
-        """Reapply environment detection and return new state."""
+        """Reapply environment detection."""
         with self._lock:
             old_state = self._state
             self._apply_environment_config()
-            self._notify_change_listeners(old_state, self._state)
+            self._apply_state_changes(old_state, self._state)
             return self._state
 
     def create_temporary_state(self, **overrides) -> LoggerConfigState:
-        """Create a temporary state with overrides (for context managers)."""
+        """Create temporary state without applying it."""
         with self._lock:
-            return self.new_config(**overrides)
+            if overrides.get('level') is not None and not isinstance(overrides['level'], LogLevel):
+                overrides['level'] = LogLevel(overrides['level'])
+            return replace(self._state, **overrides)
 
     def apply_temporary_state(self, temp_state: LoggerConfigState) -> LoggerConfigState:
-        """Apply a temporary state and return the old state."""
+        """Apply temporary state and return old state for restoration."""
         with self._lock:
             old_state = self._state
             self._state = temp_state
-            self._notify_change_listeners(old_state, temp_state)
+            self._apply_state_changes(old_state, temp_state)
             return old_state
 
-    def restore_state(self, previous_state: LoggerConfigState):
-        """Restore a previous state."""
+    def restore_state(self, previous_state: LoggerConfigState) -> None:
+        """Restore previous state from temporary context."""
         with self._lock:
-            old_state = self._state
+            current_state = self._state
             self._state = previous_state
-            self._notify_change_listeners(old_state, previous_state)
+            self._apply_state_changes(current_state, previous_state)
 
     def get_env_metadata(self) -> Dict[str, Optional[str]]:
-        """Get current environment metadata."""
         return self._env_detector.get_env_metadata()
 
     def _apply_environment_config(self):
         """Apply environment-based configuration."""
         env_overrides = self._env_detector.detect_deployment()
         if env_overrides:
-            self._state = self.new_config(**env_overrides)
-
-    def _notify_change_listeners(self, old_state: LoggerConfigState, new_state: LoggerConfigState):
-        """Notify all registered listeners about config changes."""
-        for callback in self._change_listeners:
-            try:
-                callback(old_state, new_state)
-            except Exception:
-                # Don't let listener errors break the config system
-                pass
+            if env_overrides.get('level') is not None and not isinstance(env_overrides['level'], LogLevel):
+                env_overrides['level'] = LogLevel(env_overrides['level'])
+            old_state = self._state
+            self._state = replace(self._state, **env_overrides)
+            self._apply_state_changes(old_state, self._state)
 
     @staticmethod
-    def should_update_formatters(old_config, new_config) -> bool:
-        """Helper to determine if formatters need updating."""
+    def _should_update_formatters(old_config, new_config) -> bool:
         return (old_config.mode != new_config.mode or
                 old_config.color_enabled != new_config.color_enabled or
                 old_config.deployed != new_config.deployed)
-
-    # noinspection PyTypeChecker
-    def new_config(self, **settings: dict[str, Any]):
-        if settings.get('level') is not None:
-            settings['level'] = LogLevel(settings['level'])
-        return replace(self._state, **settings)

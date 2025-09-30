@@ -9,10 +9,15 @@ from difflib import get_close_matches
 from io import TextIOBase
 from typing import List, Dict, Optional, Type
 
+from typing_extensions import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .LoggerConfigState import LoggerConfigState
+
+
 from ...Decorators import SingletonClass
 from .DataClasses import LogLevel, logLevels
 from .Formatters import FileLogFormatter
-from .LoggerConfigState import LoggerConfigState
 
 @SingletonClass
 class GlobalLoggerManager:
@@ -247,6 +252,42 @@ class GlobalLoggerManager:
             log_string += f"\nAvailable loggers: {shown}"
         self.internal_logger(log_string)
 
+    def update_global_handlers(
+        self,
+        config_state: "LoggerConfigState",
+        env_metadata: Dict,
+    ) -> None:
+        """
+        Update all root/global handlers to reflect the latest config.
+        Called from LoggerStateManager._apply_state_changes().
+        """
+        with self._lock:
+            if not self._global_stream_configured:
+                return
+
+            root_logger = logging.getLogger()
+
+            # Sync root logger level to config
+            root_logger.setLevel(int(config_state.level))
+
+            for handler in root_logger.handlers:
+                # Update level
+                handler.setLevel(int(config_state.level))
+
+                # Update formatter
+                new_formatter = self.formatter_factory.create_formatter(
+                    level=config_state.level,
+                    config_state=config_state,
+                    env_metadata=env_metadata,
+                    global_stream_configured=True,
+                )
+                handler.setFormatter(new_formatter)
+
+            self.internal_logger(
+                f"🔧 Global handlers updated (level={config_state.level}, mode={config_state.mode})"
+            )
+
+
 
 class HandlerManager:
     """Manages logging handlers - adding, removing, configuring."""
@@ -257,7 +298,7 @@ class HandlerManager:
         self._lock = threading.RLock()
 
     def add_handler(self, handler_cls: Type[logging.Handler],
-            config_state: LoggerConfigState, stream: Optional[TextIOBase] = None,
+            config_state: "LoggerConfigState", stream: Optional[TextIOBase] = None,
             level: logLevels = None,
             force_replace: bool = False,
             base_level: str = 'INFO',
@@ -292,7 +333,7 @@ class HandlerManager:
 
     def add_file_handler(self,
                         filename: str,
-                        config: LoggerConfigState,
+                        config: "LoggerConfigState",
                         max_bytes: int = 10485760,  # 10MB default
                         backup_count: int = 5,
                         level: logLevels = None,
@@ -342,6 +383,12 @@ class HandlerManager:
                     )
                     handler.setFormatter(new_formatter)
 
+    def update_handler_levels(self, level: LogLevel):
+        """Update levels for all handlers based on new config."""
+        with self._lock:
+            for handler in self.logger_instance.handlers:
+                handler.setLevel(logging.getLevelName(int(level)))
+
     def close_all_handlers(self):
         """Close all handlers and clean up resources."""
         with self._lock:
@@ -362,3 +409,4 @@ class HandlerManager:
                 'type': type(handler).__name__
             }
         return return_dict
+

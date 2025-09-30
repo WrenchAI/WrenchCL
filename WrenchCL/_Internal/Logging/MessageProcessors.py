@@ -3,8 +3,12 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 from typing import Optional
 
+from typing_extensions import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .LoggerConfigState import LoggerConfigState
+
 from .DataClasses import LogLevel, logLevels
-from .LoggerConfigState import LoggerConfigState
 from .MarkupHandlers import highlight_literals, highlight_data, highlight_literals_json, add_data_markers
 from .logging_utils import ensure_str, suggest_exception
 
@@ -15,7 +19,7 @@ class MarkupProcessor:
     def __init__(self, color_service):
         self.color_service = color_service
 
-    def process_message_markup(self, msg: str, config_state: LoggerConfigState, no_color: bool = False) -> str:
+    def process_message_markup(self, msg: str, config_state: "LoggerConfigState", no_color: bool = False) -> str:
         """Apply markup to message based on configuration."""
         if not config_state.should_markup(force_override=not no_color) or not config_state.highlight_syntax:
             return msg
@@ -66,7 +70,8 @@ class MessageProcessor:
         # Join message
         msg = '\n'.join(str(arg) for arg in processed_args)
         # Apply markup
-        msg = self.markup_processor.process_message_markup(msg, config_state, no_color=no_color)
+        if str(level) not in ['INTERNAL', 'DEBUG']:
+            msg = self.markup_processor.process_message_markup(msg, config_state, no_color=no_color)
 
         # Add header if needed
         if header and config_state.should_markup(force_override=not no_color):

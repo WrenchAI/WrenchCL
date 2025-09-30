@@ -222,13 +222,11 @@ class FormatterFactory:
         # Simple cases first
         if no_format and no_color:
             return logging.Formatter(fmt='%(message)s')
-
         # Determine active presets
         active_preset = self.color_service.get_current_presets()
         if not config_state.should_use_color(no_color):
             # Create mock presets for this formatter
             active_preset = ColorPresets(MockColorama, MockColorama)
-
         # JSON formatter case
         if config_state.should_use_json_formatter and level != 'INTERNAL':
             return JSONLogFormatter(
@@ -301,7 +299,10 @@ class FormatterFactory:
 
         # Other sections
         colored_arrow_section = f"{color}{style} -> {active_preset.RESET}"
-        message_section = f"{style}{message_color}%(message)s{active_preset.RESET}"
+        if str(level) not in ['INTERNAL', 'DEBUG']:
+            message_section = f"{style}{message_color}%(message)s{active_preset.RESET}"
+        else:
+            message_section = f"{dimmed_color}{dimmed_style}%(message)s{active_preset.RESET}"
 
         # Logger name section (for global streams)
         name_section = f"{color}{style}[%(name)s] - {active_preset.RESET}" if global_stream_configured else ""
@@ -331,7 +332,7 @@ class FormatterFactory:
                               active_preset: ColorPresets) -> str:
         """Get the formatted level name section."""
         if level == "INTERNAL":
-            return f"{color}{style}  WrenchCLInternal{active_preset.RESET}"
+            return f"{color}{style} [WrenchCL]{active_preset.RESET}"
         elif level == "DATA":
             return f"{color}{style}DATA    {active_preset.RESET}"
         else:
