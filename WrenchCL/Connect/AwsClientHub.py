@@ -132,7 +132,6 @@ class AwsClientHub:
                     "PGUSER": self.config.db_user,
                     "PGPASSWORD": self.config.db_pass
                 }
-
                 if not self.config.pghost_override and all([
                     self.config.ssh_server,
                     self.config.ssh_user,
@@ -167,7 +166,7 @@ class AwsClientHub:
             try:
                 self.ssh_manager = _SshTunnelManager(config)
                 host, port = self.ssh_manager.start_tunnel()
-                logger.debug("SSH Tunnel Connected")
+                logger._internal_log("SSH Tunnel Connected")
             except Exception as e:
                 logger.error(f"SSH Tunnel failed: {e}")
                 raise

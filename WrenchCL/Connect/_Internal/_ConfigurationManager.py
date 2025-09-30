@@ -46,7 +46,7 @@ class _ConfigurationManager:
             try:
                 load_dotenv(self._resolve_path(self.env_path), override=True)
             except Exception as e:
-                logger.debug(f"Skipping .env load. Error: {e}")
+                logger._internal_log(f"Skipping .env load. Error: {e}")
 
         self._load_from_env()
         self._apply_overrides(kwargs)
@@ -143,4 +143,5 @@ class _ConfigurationManager:
         """Build a SQLAlchemy/Postgres URI from the current DB config."""
         host = self.pghost_override or self.db_host
         port = int(self.pgport_override or self.db_port or 5432)
-        return f"postgresql://{self.db_user}:{self.db_pass}@{host}:{port}/{self.db_name}"
+        uri = f"postgresql://{self.db_user}:{self.db_pass}@{host}:{port}/{self.db_name}"
+        return uri

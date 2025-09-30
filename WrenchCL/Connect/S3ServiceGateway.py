@@ -37,7 +37,7 @@ class S3ServiceGateway:
         state_config.initialize(silent=True)
         self.s3_client = _get_s3_client(config=config, profile=state_config.aws_profile, region=state_config.region_name)
         self.test_mode = False
-        logger.debug("S3ServiceGateway initialized with S3 client.")
+        logger._internal_log("S3ServiceGateway initialized with S3 client.")
 
     @staticmethod
     def _get_mime_extension(mime_type: str) -> str:
@@ -52,7 +52,7 @@ class S3ServiceGateway:
 
         current_extension = Path(object_key).suffix
         if current_extension != correct_extension:
-            logger.debug(f"Correcting file extension from {current_extension} to {correct_extension}")
+            logger._internal_log(f"Correcting file extension from {current_extension} to {correct_extension}")
             object_key = str(Path(object_key).with_suffix(correct_extension))
         return object_key
 
@@ -243,7 +243,7 @@ class S3ServiceGateway:
         except ClientError as e:
             if e.response['Error']['Code'] == "404":
                 if self.test_mode:
-                    logger.debug("Mocking object existence in test mode")
+                    logger._internal_log("Mocking object existence in test mode")
                     return True
                 logger.info(f"Object does not exist")
                 return False
@@ -266,7 +266,7 @@ class S3ServiceGateway:
         paginator = self.s3_client.get_paginator('list_objects_v2')
         page_iterator = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
         object_list = [item['Key'] for page in page_iterator for item in page.get('Contents', [])]
-        logger.debug(f"Objects listed in bucket: {bucket_name} with prefix: {prefix}")
+        logger._internal_log(f"Objects listed in bucket: {bucket_name} with prefix: {prefix}")
         return object_list
 
     @Retryable()
@@ -281,7 +281,7 @@ class S3ServiceGateway:
         """
         logger.info(f"Checking permissions for bucket: {bucket_name}")
         acl = self.s3_client.get_bucket_acl(Bucket=bucket_name)
-        logger.debug(f"Permissions checked for bucket: {bucket_name}")
+        logger._internal_log(f"Permissions checked for bucket: {bucket_name}")
         return acl
 
     @Retryable()
@@ -295,7 +295,7 @@ class S3ServiceGateway:
         logger.info("Listing all S3 buckets")
         response = self.s3_client.list_buckets()
         bucket_list = [bucket['Name'] for bucket in response.get('Buckets', [])]
-        logger.debug("S3 buckets listed")
+        logger._internal_log("S3 buckets listed")
         return bucket_list
 
     @Retryable()

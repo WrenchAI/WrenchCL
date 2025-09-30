@@ -96,12 +96,12 @@ class RdsServiceGateway:
         try:
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 if show_query:
-                    logger.debug("Mogrified Query:\n", cursor.mogrify(query, payload))
+                    logger._internal_log("Mogrified Query:\n", cursor.mogrify(query, payload))
                 else:
-                    logger.debug("Mogrified Query:\n", cursor.mogrify(query, payload))
+                    logger._internal_log("Mogrified Query:\n", cursor.mogrify(query, payload))
                 cursor.execute(query, payload)
                 data = cursor.fetchall() if fetchall else cursor.fetchone()
-                logger.debug("Fetched data\n: %s", str(data)[:100] if fetchall else str(data))
+                logger._internal_log("Fetched data\n: %s", str(data)[:100] if fetchall else str(data))
             if return_dict and data is not None:
                 return [dict(row) for row in data] if fetchall else dict(data)
             elif data is None:
@@ -114,7 +114,7 @@ class RdsServiceGateway:
                 logger.warning(f"Error executing query: {e}")
                 raise e
             else:
-                logger.debug(f"Query returned None: {e}")
+                logger._internal_log(f"Query returned None: {e}")
                 return None
         finally:
             self.release_connection(conn)
@@ -155,38 +155,38 @@ class RdsServiceGateway:
         try:
             # Convert payload into a tuple if it's a single value or list
             payload = self.convert_payload(payload)
-            logger.debug(f"Converted payload: {payload}")
+            logger._internal_log(f"Converted payload: {payload}")
 
             if isinstance(payload, tuple):
-                logger.debug("Payload is a single tuple.")
+                logger._internal_log("Payload is a single tuple.")
                 # Execute query for single tuple payload
                 with conn.cursor() as cursor:
                     cursor.execute(query, payload)
                     return_value = cursor.fetchall() if returning else None
                     if not test_mode:
                         conn.commit()
-                        logger.debug("Transaction committed successfully.")
+                        logger._internal_log("Transaction committed successfully.")
                     else:
                         conn.rollback()
-                        logger.debug("Transaction rolled back in test mode.")
+                        logger._internal_log("Transaction rolled back in test mode.")
                     return return_value
 
             elif isinstance(payload, list) and all(isinstance(item, tuple) for item in payload):
-                logger.debug("Payload is a list of tuples.")
+                logger._internal_log("Payload is a list of tuples.")
                 # Execute batch query for list of tuples payload
                 with conn.cursor() as cursor:
                     psycopg2.extras.execute_values(cursor, query, payload, page_size=self.config.db_batch_size)
                     return_value = cursor.fetchall() if returning else None
                     if not test_mode:
                         conn.commit()
-                        logger.debug("Transaction committed successfully.")
+                        logger._internal_log("Transaction committed successfully.")
                     else:
                         conn.rollback()
-                        logger.debug("Transaction rolled back in test mode.")
+                        logger._internal_log("Transaction rolled back in test mode.")
                     return return_value
 
             elif isinstance(payload, pd.DataFrame) and column_order:
-                logger.debug("Payload is a DataFrame with specified column order.")
+                logger._internal_log("Payload is a DataFrame with specified column order.")
                 # Batch processing for DataFrame payloads with specified column order
                 if returning:
                     raise ValueError("Returning values not compatible with batch processing, please use dictionary input")
@@ -205,7 +205,7 @@ class RdsServiceGateway:
                         if len(data_batch) == self.config.db_batch_size or i == len(payload) - 1:
                             psycopg2.extras.execute_values(cursor, query, data_batch, page_size=self.config.db_batch_size)
                             data_batch = []
-                            logger.debug(f"Processed batch {batch_counter}/{total_batches} successfully")
+                            logger._internal_log(f"Processed batch {batch_counter}/{total_batches} successfully")
                             batch_counter += 1
 
                     if batch_counter == 1:
@@ -213,10 +213,10 @@ class RdsServiceGateway:
 
                     if not test_mode:
                         conn.commit()
-                        logger.debug("Transaction committed successfully.")
+                        logger._internal_log("Transaction committed successfully.")
                     else:
                         conn.rollback()
-                        logger.debug("Transaction rolled back in test mode.")
+                        logger._internal_log("Transaction rolled back in test mode.")
 
         except Exception as e:
             conn.rollback()
