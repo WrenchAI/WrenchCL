@@ -48,7 +48,7 @@ def Retryable(_func=None, *, max_retries=2, retry_on_exceptions=None, delay=2, v
     def log_message(level, message):
         if verbose:
             if level == "warning":
-                logger.debug(message)
+                logger._internal_log(message)
             elif level == "error":
                 logger.error(message)
         else:
