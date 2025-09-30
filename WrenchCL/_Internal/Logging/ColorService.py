@@ -74,14 +74,14 @@ class ColorPresets:
         super().__setattr__('COLOR_KEY', getattr(self._color_class, 'BLUE', ''))
 
         # Syntax colors
-        super().__setattr__('COLOR_BRACE_OPEN', getattr(self._color_class, 'CYAN', ''))     # {
-        super().__setattr__('COLOR_BRACE_CLOSE', getattr(self._color_class, 'CYAN', ''))    # }
-        super().__setattr__('COLOR_BRACKET_OPEN', getattr(self._color_class, 'CYAN', ''))      # [
-        super().__setattr__('COLOR_BRACKET_CLOSE', getattr(self._color_class, 'CYAN', ''))     # ]
-        super().__setattr__('COLOR_PAREN_OPEN', getattr(self._color_class, 'CYAN', ''))        # (
-        super().__setattr__('COLOR_PAREN_CLOSE', getattr(self._color_class, 'CYAN', ''))       # )
-        super().__setattr__('COLOR_COLON', getattr(self._color_class, 'MAGENTA', ''))           # :
-        super().__setattr__('COLOR_COMMA', getattr(self._color_class, 'MAGENTA', ''))            # ,
+        super().__setattr__('COLOR_BRACE_OPEN', getattr(self._color_class, 'CYAN', ''))  # {
+        super().__setattr__('COLOR_BRACE_CLOSE', getattr(self._color_class, 'CYAN', ''))  # }
+        super().__setattr__('COLOR_BRACKET_OPEN', getattr(self._color_class, 'CYAN', ''))  # [
+        super().__setattr__('COLOR_BRACKET_CLOSE', getattr(self._color_class, 'CYAN', ''))  # ]
+        super().__setattr__('COLOR_PAREN_OPEN', getattr(self._color_class, 'CYAN', ''))  # (
+        super().__setattr__('COLOR_PAREN_CLOSE', getattr(self._color_class, 'CYAN', ''))  # )
+        super().__setattr__('COLOR_COLON', getattr(self._color_class, 'MAGENTA', ''))  # :
+        super().__setattr__('COLOR_COMMA', getattr(self._color_class, 'MAGENTA', ''))  # ,
 
         super().__setattr__('_INTERNAL_DIM_COLOR', getattr(self._color_class, 'WHITE', ''))
         super().__setattr__('_INTERNAL_DIM_STYLE', getattr(self._style_class, 'DIM', ''))
@@ -100,7 +100,7 @@ class ColorPresets:
             value = getattr(self._style_class, value.upper())
         else:
             raise ValueError(
-                f"Invalid value for '{name}': {value}. Allowed values: {allowed_color_values + allowed_style_values}")
+                    f"Invalid value for '{name}': {value}. Allowed values: {allowed_color_values + allowed_style_values}")
 
         name = name.upper()
         super().__setattr__(name, value)
@@ -110,7 +110,6 @@ class ColorPresets:
         if level == 'INTERNAL':
             return self._INTERNAL_DIM_COLOR
         return getattr(self, level, '')
-
 
     def get_level_style(self, level: logLevels):
         level = LogLevel(level)
@@ -133,7 +132,6 @@ class ColorPresets:
             return getattr(self, str_name, '')
         else:
             return ''
-
 
     def update(self, **kwargs):
         for key, value in kwargs.items():
@@ -177,5 +175,3 @@ class ColorService:
     def get_current_presets(self) -> ColorPresets:
         """Get current color presets."""
         return self.presets
-
-

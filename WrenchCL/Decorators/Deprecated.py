@@ -6,6 +6,7 @@ from functools import wraps
 
 __depr_tracker__ = set()
 
+
 def Deprecated(message: str = None):
     """
     Wraps a function with a decorator that warns the user the function is Deprecated. It also allows
@@ -18,6 +19,7 @@ def Deprecated(message: str = None):
         provided, a default message will be used.
     :return: A decorator that when applied to a function, wraps it with the deprecation warning behavior.
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -25,10 +27,12 @@ def Deprecated(message: str = None):
             if key not in __depr_tracker__:
                 __depr_tracker__.add(key)
                 warnings.warn(
-                    f"{func.__module__}.{func.__name__} is deprecated {message}" or f"{func.__module__}.{func.__name__} is deprecated and may be removed in the future.",
-                    category=DeprecationWarning,
-                    stacklevel=2,
-                )
+                        f"{func.__module__}.{func.__name__} is deprecated {message}" or f"{func.__module__}.{func.__name__} is deprecated and may be removed in the future.",
+                        category=DeprecationWarning,
+                        stacklevel=2,
+                        )
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator

@@ -2,6 +2,7 @@
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 from sshtunnel import SSHTunnelForwarder
+
 from ... import logger
 
 
@@ -39,8 +40,8 @@ class _SshTunnelManager:
                 for k, v in self.ssh_config.items()
                 }
 
-        logger.debug(f"SSH Tunnel Manager initialized with config: {safe_config}")
-        logger.debug(f"SSH-specific configuration: {safe_ssh_config}")
+        logger._internal_log(f"SSH Tunnel Manager initialized with config: {safe_config}")
+        logger._internal_log(f"SSH-specific configuration: {safe_ssh_config}")
 
     def _validate_ssh_config(self):
         """Raise if essential SSH tunnel credentials are missing."""
@@ -59,7 +60,7 @@ class _SshTunnelManager:
         :returns: Local bind address and port tuple.
         :raises Exception: If tunnel fails to start.
         """
-        logger.debug(
+        logger._internal_log(
                 f"Starting SSH tunnel to {self.ssh_config['SSH_SERVER']}:{self.ssh_config['SSH_PORT']} "
                 f"as user {self.ssh_config['SSH_USER']}"
                 )
@@ -78,12 +79,12 @@ class _SshTunnelManager:
             logger.error(f"Failed to start SSH tunnel: {e}")
             raise
 
-        logger.debug(f"SSH tunnel active at 127.0.0.1:{self.tunnel.local_bind_port}")
+        logger._internal_log(f"SSH tunnel active at 127.0.0.1:{self.tunnel.local_bind_port}")
         return "127.0.0.1", self.tunnel.local_bind_port
 
     def stop_tunnel(self):
         """Stops the tunnel if running."""
         if self.tunnel:
-            logger.debug("Stopping SSH tunnel...")
+            logger._internal_log("Stopping SSH tunnel...")
             self.tunnel.stop()
-            logger.debug("SSH tunnel stopped.")
+            logger._internal_log("SSH tunnel stopped.")

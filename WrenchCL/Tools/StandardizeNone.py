@@ -1,5 +1,3 @@
-
-
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
@@ -27,8 +25,8 @@ def standardize_none(data: Any, none_like_values: set = None, evaluate_as_string
     """
     # Default None-like values
     default_none_like_values = {
-        '', ' ', 'null', 'none', 'nan', 'n/a', 'na', 'undefined', 'missing', 'nil', 'void', 'blank'
-    }
+            '', ' ', 'null', 'none', 'nan', 'n/a', 'na', 'undefined', 'missing', 'nil', 'void', 'blank'
+            }
     none_like_values = none_like_values or default_none_like_values
 
     if isinstance(data, pd.DataFrame):  # Handle DataFrame

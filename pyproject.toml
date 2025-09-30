@@ -1,7 +1,7 @@
 [build-system]
 requires = [
-  "hatchling>=1.24.2",
-  "hatch-vcs>=0.4.0"
+    "hatchling>=1.24.2",
+    "hatch-vcs>=0.4.0"
 ]
 build-backend = "hatchling.build"
 
@@ -13,7 +13,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [
-  { name = "Willem van der Schans", email = "willem@wrench.ai" }
+    { name = "Willem van der Schans", email = "willem@wrench.ai" }
 ]
 maintainers = [
     { name = "Jeong Kim", email = "jeong@wrench.ai" },
@@ -21,15 +21,15 @@ maintainers = [
 ]
 keywords = ["aws", "openai", "utilities", "database", "cloud", "sdk"]
 classifiers = [
-  "Programming Language :: Python :: 3",
-  "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
 ]
 dependencies = [
-  "python-dotenv>=1.0,<2.0",
-  "requests>=2.32,<3.0",
-  "filetype>=1.2,<2.0",
-  "ansi2txt>=0.2.0,<1.0.0",
-  "ftfy>=6.3.1,<7.0.0",
+    "python-dotenv>=1.0,<2.0",
+    "requests>=2.32,<3.0",
+    "filetype>=1.2,<2.0",
+    "ansi2txt>=0.2.0,<1.0.0",
+    "ftfy>=6.3.1,<7.0.0",
 ]
 
 # Project URLs
@@ -47,57 +47,55 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "pytest",
-  "pytest-mock",
-  "coverage",
-  "pytest-cov",
-  "pyyaml",
-  "pydantic",
-  "pandas",
-  # Type stubs for better IDE/mypy support
-  "mypy-boto3-rds>=1.40.3",
-  "mypy-boto3-lambda>=1.40.7",
-  "mypy-boto3-s3>=1.40.0",
-  "mypy-boto3-secretsmanager>=1.40.0",
-  "mypy>=1.0.0",
+    "pytest",
+    "pytest-mock",
+    "coverage",
+    "pytest-cov",
+    "pyyaml",
+    "pydantic",
+    "pandas",
+    # Type stubs for better IDE/mypy support
+    "mypy-boto3-rds>=1.40.3",
+    "mypy-boto3-lambda>=1.40.7",
+    "mypy-boto3-s3>=1.40.0",
+    "mypy-boto3-secretsmanager>=1.40.0",
+    "mypy>=1.0.0",
 ]
 color = [
-  "colorama>=0.4,<1.0",
+    "colorama>=0.4,<1.0",
 ]
 trace = [
-  "ddtrace>=3.2.0,<3.3.0",
+    "ddtrace>=3.2.0,<3.3.0",
 ]
 aws = [
-  # Runtime AWS dependencies only
-  "psycopg2>=2.9,<3.0",
-  "sshtunnel>=0.4,<1.0",
-  "boto3>=1.28,<2.0",
-  "botocore>=1.31,<2.0",
-  "paramiko==3.5.1"
+    # Runtime AWS dependencies only
+    "psycopg2>=2.9,<3.0",
+    "sshtunnel>=0.4,<1.0",
+    "boto3>=1.28,<2.0",
+    "botocore>=1.31,<2.0",
+    "paramiko==3.5.1"
 ]
 all = [
-  # Development dependencies
-  "pytest",
-  "pytest-mock",
-  "coverage",
-  "pytest-cov",
-  "pyyaml",
-  "pydantic",
-  "pandas",
-  "mypy-boto3-rds>=1.40.3",
-  "mypy-boto3-lambda>=1.40.7",
-  "mypy-boto3-s3>=1.40.0",
-  "mypy-boto3-secretsmanager>=1.40.0",
-  "mypy>=1.0.0",
-
-  "colorama>=0.4,<1.0",
-  "ddtrace>=3.2.0,<3.3.0",
-
-  "psycopg2>=2.9,<3.0",
-  "sshtunnel>=0.4,<1.0",
-  "boto3>=1.28,<2.0",
-  "botocore>=1.31,<2.0",
-  "paramiko==3.5.1"
+    # Development dependencies
+    "pytest",
+    "pytest-mock",
+    "coverage",
+    "pytest-cov",
+    "pyyaml",
+    "pydantic",
+    "pandas",
+    "mypy-boto3-rds>=1.40.3",
+    "mypy-boto3-lambda>=1.40.7",
+    "mypy-boto3-s3>=1.40.0",
+    "mypy-boto3-secretsmanager>=1.40.0",
+    "mypy>=1.0.0",
+    "colorama>=0.4,<1.0",
+    "ddtrace>=3.2.0,<3.3.0",
+    "psycopg2>=2.9,<3.0",
+    "sshtunnel>=0.4,<1.0",
+    "boto3>=1.28,<2.0",
+    "botocore>=1.31,<2.0",
+    "paramiko==3.5.1"
 ]
 
 [tool.hatch.version]

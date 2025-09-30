@@ -96,22 +96,16 @@ class TestOptionalImports:
             'WrenchCL.Connect.AwsClientHub',
             'WrenchCL.Connect.RdsServiceGateway',
             'WrenchCL.Connect.S3ServiceGateway',
-            'WrenchCL.Connect.Lambda',
             'WrenchCL._Internal',
             'WrenchCL.Connect._Internal._ConfigurationManager',
             'WrenchCL.Connect._Internal._SshTunnelManager',
             'WrenchCL.Connect._Internal._boto_cache'
         ]
-
         for module in modules_to_remove:
-            if module in sys.modules:
-                del sys.modules[module]
+            sys.modules.pop(module, None)
         yield
-
-        # Cleanup after test
         for module in modules_to_remove:
-            if module in sys.modules:
-                del sys.modules[module]
+            sys.modules.pop(module, None)
 
     def test_aws_imports_available(self, clean_imports):
         """Test AWS imports work when dependencies are available."""
@@ -129,6 +123,7 @@ class TestOptionalImports:
     def test_aws_import_fails_missing_boto3(self, clean_imports):
         """Test import fails when boto3 is missing."""
         # Create a failing import context
+        sys.modules.pop("boto3", None)
         original_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -150,6 +145,7 @@ class TestOptionalImports:
 
     def test_aws_import_fails_missing_psycopg2(self, clean_imports):
         """Test import fails when psycopg2 is missing."""
+        sys.modules.pop("psycopg2", None)
         original_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -215,6 +211,7 @@ class TestOptionalImports:
     @pytest.mark.parametrize("missing_module", ["boto3", "psycopg2", "paramiko", "sshtunnel"])
     def test_specific_missing_modules(self, clean_imports, missing_module):
         """Test error messages for specific missing modules."""
+        sys.modules.pop(missing_module, None)
         original_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):

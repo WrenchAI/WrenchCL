@@ -1,7 +1,7 @@
 # tests/test_json_formatter_recursion.py
+import contextvars
 import json
 import logging
-import contextvars
 
 from WrenchCL._Internal.Logging.Formatters import JSONLogFormatter
 
@@ -10,8 +10,10 @@ class FakeVar:
     def __init__(self, name: str):
         self.name = name
 
+
 class FakeCtx:
     """Minimal stand-in for contextvars.Context used by _extract_generic_context()."""
+
     def __init__(self, mapping):
         # mapping: {FakeVar: value}
         self._mapping = mapping
@@ -24,26 +26,29 @@ class FakeCtx:
         # The code does: ctx.get(var)
         return self._mapping[var]
 
+
 def make_record(msg="hello"):
     return logging.LogRecord(
-        name="test",
-        level=logging.INFO,
-        pathname=__file__,
-        lineno=1,
-        msg=msg,
-        args=(),
-        exc_info=None,
-    )
+            name="test",
+            level=logging.INFO,
+            pathname=__file__,
+            lineno=1,
+            msg=msg,
+            args=(),
+            exc_info=None,
+            )
+
 
 def make_formatter(deployed=False, traced=False):
     # No coloring/highlighting needed in test; formatter.format() returns a string
     return JSONLogFormatter(
-        env_metadata={},
-        forced_color=False,
-        highlight_func=lambda s: s,
-        traced=traced,
-        deployed=deployed,
-    )
+            env_metadata={},
+            forced_color=False,
+            highlight_func=lambda s: s,
+            traced=traced,
+            deployed=deployed,
+            )
+
 
 def test_recursion_on_cyclic_context(monkeypatch):
     """Cyclic dict in context should not raise RecursionError and should still extract keys in shallow levels."""
@@ -69,6 +74,7 @@ def test_recursion_on_cyclic_context(monkeypatch):
     assert "context" in payload
     assert payload["context"].get("user_id") == "u-123"
 
+
 def test_depth_limit_prevents_deep_scan(monkeypatch):
     """Very deep nesting beyond depth limit should not blow up and should skip too-deep keys."""
     # Build a deeply nested dict: wrapper -> nested -> nested ... (100 levels) -> organization_id
@@ -91,8 +97,10 @@ def test_depth_limit_prevents_deep_scan(monkeypatch):
     assert payload["message"] == "deep"
     assert "context" not in payload
 
+
 def test_handles_objects_with___dict___and_cycles(monkeypatch):
     """Objects with __dict__ and self-references should be safe under the recursion guard."""
+
     class Node:
         def __init__(self, name):
             self.name = name
