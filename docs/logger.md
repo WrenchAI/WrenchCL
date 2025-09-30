@@ -9,7 +9,7 @@ from WrenchCL import logger
 
 # Standard log levels
 logger.debug("Debug info")
-logger.info("General info") 
+logger.info("General info")
 logger.warning("Warning message")
 logger.error("Error occurred", exc_info=True)
 logger.critical("Critical failure")
@@ -40,14 +40,14 @@ logger.configure(mode="compact")
 
 ```python
 logger.configure(
-    mode="terminal",          # Output format
-    level="INFO",            # Log level
-    color_enabled=True,      # Enable colors
-    highlight_syntax=True,   # Syntax highlighting
-    verbose=True,           # Show detailed info
-    trace_enabled=False,    # Datadog tracing
-    deployment_mode=False   # Production settings
-)
+        mode="terminal",  # Output format
+        level="INFO",  # Log level
+        color_enabled=True,  # Enable colors
+        highlight_syntax=True,  # Syntax highlighting
+        verbose=True,  # Show detailed info
+        trace_enabled=False,  # Datadog tracing
+        deployment_mode=False  # Production settings
+        )
 ```
 
 ### Environment Variables
@@ -97,10 +97,10 @@ print(logger.active_loggers)
 ```python
 # Add rotating file handler
 logger.enable_file_logging(
-    filename="app.log",
-    max_bytes=10*1024*1024,  # 10MB
-    backup_count=5
-)
+        filename="app.log",
+        max_bytes=10 * 1024 * 1024,  # 10MB
+        backup_count=5
+        )
 ```
 
 ### Colors and Markup
@@ -119,12 +119,12 @@ print(f"Colors enabled: {logger.state_manager.current_state.color_enabled}")
 
 ```python
 # Logger information
-print(logger.level)            # Current log level
-print(logger.mode)             # Current output mode  
-print(logger.highlight_syntax) # Syntax highlighting enabled
-print(logger.state)            # Full configuration state
-print(logger.handlers)         # Active handlers
-print(logger.active_loggers)   # All active loggers
+print(logger.level)  # Current log level
+print(logger.mode)  # Current output mode  
+print(logger.highlight_syntax)  # Syntax highlighting enabled
+print(logger.state)  # Full configuration state
+print(logger.handlers)  # Active handlers
+print(logger.active_loggers)  # All active loggers
 ```
 
 ## Real Examples
@@ -136,11 +136,11 @@ from WrenchCL import logger
 
 # Configure for development
 logger.configure(
-    mode="terminal",
-    level="DEBUG", 
-    color_enabled=True,
-    verbose=True
-)
+        mode="terminal",
+        level="DEBUG",
+        color_enabled=True,
+        verbose=True
+        )
 
 logger.header("Application Startup")
 logger.info("Loading configuration")
@@ -153,11 +153,11 @@ logger.debug("Config details", extra={"config_file": "app.conf"})
 # Auto-configures in AWS Lambda/ECS environments
 # Or configure manually:
 logger.configure(
-    mode="json",
-    level="INFO",
-    trace_enabled=True,  # For Datadog APM
-    deployment_mode=True
-)
+        mode="json",
+        level="INFO",
+        trace_enabled=True,  # For Datadog APM
+        deployment_mode=True
+        )
 ```
 
 ### Error Handling with Suggestions
@@ -166,6 +166,7 @@ logger.configure(
 class User:
     def __init__(self):
         self.username = "john"
+
 
 user = User()
 try:
@@ -182,9 +183,11 @@ The logger is fully thread-safe and handles concurrent access properly:
 ```python
 import threading
 
+
 def worker(worker_id):
     logger.info(f"Worker {worker_id} processing")
     logger.data({"worker": worker_id, "status": "complete"})
+
 
 # Safe concurrent logging
 threads = [threading.Thread(target=worker, args=(i,)) for i in range(10)]
@@ -195,6 +198,7 @@ for t in threads:
 ## Output Examples
 
 ### Terminal Mode
+
 ```
 INFO     -> Processing request {"user_id": 123}
 ERROR    -> Database connection failed
@@ -203,17 +207,28 @@ ERROR    -> Database connection failed
 ```
 
 ### JSON Mode
+
 ```json
 {
   "level": "INFO",
   "message": "Processing request",
-  "source": {"module": "main", "function": "process", "line": 42},
-  "log_info": {"timestamp": "2024-01-15T10:30:15Z"},
-  "trace": {"dd.service": "myapp", "dd.env": "prod"}
+  "source": {
+    "module": "main",
+    "function": "process",
+    "line": 42
+  },
+  "log_info": {
+    "timestamp": "2024-01-15T10:30:15Z"
+  },
+  "trace": {
+    "dd.service": "myapp",
+    "dd.env": "prod"
+  }
 }
 ```
 
 ### Compact Mode
+
 ```
 INFO main.py:42 -> Processing request {"user_id": 123}
 ```

@@ -37,10 +37,10 @@ hub = AwsClientHub(env_path="/path/to/.env")
 
 # With direct overrides
 hub = AwsClientHub(
-    AWS_PROFILE="production",
-    REGION_NAME="us-west-2",
-    SECRET_ARN="arn:aws:secretsmanager:..."
-)
+        AWS_PROFILE="production",
+        REGION_NAME="us-west-2",
+        SECRET_ARN="arn:aws:secretsmanager:..."
+        )
 
 # Access AWS clients
 s3_client = hub.s3
@@ -79,10 +79,10 @@ rds = RdsServiceGateway()
 
 # Connection pooling for multi-threaded apps
 rds = RdsServiceGateway(
-    multithreaded=True,
-    min_pool_size=5,
-    max_pool_size=20
-)
+        multithreaded=True,
+        min_pool_size=5,
+        max_pool_size=20
+        )
 ```
 
 ### Database Operations
@@ -90,39 +90,40 @@ rds = RdsServiceGateway(
 ```python
 # Query data
 users = rds.get_data(
-    "SELECT * FROM users WHERE active = %s",
-    payload=(True,),
-    return_dict=True
-)
+        "SELECT * FROM users WHERE active = %s",
+        payload=(True,),
+        return_dict=True
+        )
 
 # Single record
 user = rds.get_data(
-    "SELECT * FROM users WHERE id = %s", 
-    payload=(user_id,),
-    fetchall=False
-)
+        "SELECT * FROM users WHERE id = %s",
+        payload=(user_id,),
+        fetchall=False
+        )
 
 # Update operations
 rds.update_database(
-    "INSERT INTO users (name, email) VALUES (%s, %s)",
-    payload=("John", "john@example.com")
-)
+        "INSERT INTO users (name, email) VALUES (%s, %s)",
+        payload=("John", "john@example.com")
+        )
 
 # Batch operations
 user_data = [("Alice", "alice@example.com"), ("Bob", "bob@example.com")]
 rds.update_database(
-    "INSERT INTO users (name, email) VALUES %s",
-    payload=user_data
-)
+        "INSERT INTO users (name, email) VALUES %s",
+        payload=user_data
+        )
 
 # With DataFrame
 import pandas as pd
+
 df = pd.DataFrame({"name": ["Dave"], "email": ["dave@example.com"]})
 rds.update_database(
-    "INSERT INTO users (name, email) VALUES %s",
-    payload=df,
-    column_order=["name", "email"]
-)
+        "INSERT INTO users (name, email) VALUES %s",
+        payload=df,
+        column_order=["name", "email"]
+        )
 ```
 
 ### Test Mode
@@ -176,29 +177,30 @@ Error handling for AWS Lambda functions:
 ```python
 from WrenchCL.Connect import handle_lambda_response
 
+
 def lambda_handler(event, context):
     try:
         # Process request
         result = process_request(event)
         return {
-            'statusCode': 200,
-            'body': json.dumps(result)
-        }
+                'statusCode': 200,
+                'body': json.dumps(result)
+                }
     except ValidationError:
         handle_lambda_response(
-            code=400,
-            message="Invalid request",
-            params={
-                'event': str(event),
-                'context': str(context)
-            }
-        )
+                code=400,
+                message="Invalid request",
+                params={
+                        'event': str(event),
+                        'context': str(context)
+                        }
+                )
     except Exception as e:
         handle_lambda_response(
-            code=500,
-            message=f"Internal error: {str(e)}",
-            params={'event': str(event), 'context': str(context)}
-        )
+                code=500,
+                message=f"Internal error: {str(e)}",
+                params={'event': str(event), 'context': str(context)}
+                )
 ```
 
 Error codes map to appropriate HTTP status codes (400-500 range).
@@ -237,11 +239,11 @@ DB_BATCH_OVERRIDE=5000
 
 ```python
 hub = AwsClientHub(
-    AWS_PROFILE="staging",
-    SECRET_ARN="arn:aws:secretsmanager:...",
-    SSH_SERVER="staging-bastion.com",
-    PEM_PATH="/keys/staging.pem"
-)
+        AWS_PROFILE="staging",
+        SECRET_ARN="arn:aws:secretsmanager:...",
+        SSH_SERVER="staging-bastion.com",
+        PEM_PATH="/keys/staging.pem"
+        )
 
 # Services automatically use this configuration
 rds = RdsServiceGateway()
@@ -265,6 +267,7 @@ s3.upload_file(data, "bucket", "key")  # Automatically retries on failure
 ## Dependency Requirements
 
 The Connect module requires:
+
 - `boto3` - AWS SDK
 - `psycopg2-binary` - PostgreSQL adapter
 - `paramiko` - SSH client
