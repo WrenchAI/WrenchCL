@@ -47,7 +47,7 @@ def logger_stream():
     os.environ["ENV"] = "dev"
 
     logger.reinitialize()
-    logger.configure(level = 'DEBUG')
+    logger.configure(level='DEBUG')
     logger.add_new_handler(logging.StreamHandler, stream=stream, force_replace=True)
     logger.add_new_handler(logging.StreamHandler, stream=sys.stdout)
 

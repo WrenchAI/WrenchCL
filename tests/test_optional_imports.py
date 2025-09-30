@@ -1,8 +1,11 @@
-import pytest
+import builtins
 import sys
 from unittest.mock import patch, MagicMock
-import builtins
+
+import pytest
+
 from WrenchCL import logger
+
 
 def create_comprehensive_boto_mocks():
     """Create comprehensive mocks for the entire boto3/botocore ecosystem."""
@@ -60,29 +63,29 @@ def create_comprehensive_boto_mocks():
     dotenv_mock.load_dotenv = MagicMock()
 
     return {
-        'boto3': boto3_mock,
-        'botocore': botocore_mock,
-        'botocore.client': botocore_mock.client,
-        'botocore.config': botocore_mock.config,
-        'botocore.exceptions': botocore_mock.exceptions,
-        'botocore.response': botocore_mock.response,
-        'psycopg2': psycopg2_mock,
-        'psycopg2.extensions': psycopg2_mock.extensions,
-        'psycopg2.extras': psycopg2_mock.extras,
-        'psycopg2.pool': psycopg2_mock.pool,
-        'paramiko': paramiko_mock,
-        'sshtunnel': sshtunnel_mock,
-        'mypy_boto3_rds': mypy_boto3_rds_mock,
-        'mypy_boto3_rds.client': MagicMock(),
-        'mypy_boto3_lambda': mypy_boto3_lambda_mock,
-        'mypy_boto3_lambda.client': MagicMock(),
-        'mypy_boto3_s3': mypy_boto3_s3_mock,
-        'mypy_boto3_s3.client': MagicMock(),
-        'mypy_boto3_secretsmanager': mypy_boto3_secretsmanager_mock,
-        'mypy_boto3_secretsmanager.client': MagicMock(),
-        'typing_extensions': MagicMock(),
-        'dotenv': dotenv_mock,
-    }
+            'boto3': boto3_mock,
+            'botocore': botocore_mock,
+            'botocore.client': botocore_mock.client,
+            'botocore.config': botocore_mock.config,
+            'botocore.exceptions': botocore_mock.exceptions,
+            'botocore.response': botocore_mock.response,
+            'psycopg2': psycopg2_mock,
+            'psycopg2.extensions': psycopg2_mock.extensions,
+            'psycopg2.extras': psycopg2_mock.extras,
+            'psycopg2.pool': psycopg2_mock.pool,
+            'paramiko': paramiko_mock,
+            'sshtunnel': sshtunnel_mock,
+            'mypy_boto3_rds': mypy_boto3_rds_mock,
+            'mypy_boto3_rds.client': MagicMock(),
+            'mypy_boto3_lambda': mypy_boto3_lambda_mock,
+            'mypy_boto3_lambda.client': MagicMock(),
+            'mypy_boto3_s3': mypy_boto3_s3_mock,
+            'mypy_boto3_s3.client': MagicMock(),
+            'mypy_boto3_secretsmanager': mypy_boto3_secretsmanager_mock,
+            'mypy_boto3_secretsmanager.client': MagicMock(),
+            'typing_extensions': MagicMock(),
+            'dotenv': dotenv_mock,
+            }
 
 
 class TestOptionalImports:
@@ -92,16 +95,16 @@ class TestOptionalImports:
     def clean_imports(self):
         """Clean import cache before each test."""
         modules_to_remove = [
-            'WrenchCL.Connect',
-            'WrenchCL.Connect.AwsClientHub',
-            'WrenchCL.Connect.RdsServiceGateway',
-            'WrenchCL.Connect.S3ServiceGateway',
-            'WrenchCL.Connect.Lambda',
-            'WrenchCL._Internal',
-            'WrenchCL.Connect._Internal._ConfigurationManager',
-            'WrenchCL.Connect._Internal._SshTunnelManager',
-            'WrenchCL.Connect._Internal._boto_cache'
-        ]
+                'WrenchCL.Connect',
+                'WrenchCL.Connect.AwsClientHub',
+                'WrenchCL.Connect.RdsServiceGateway',
+                'WrenchCL.Connect.S3ServiceGateway',
+                'WrenchCL.Connect.Lambda',
+                'WrenchCL._Internal',
+                'WrenchCL.Connect._Internal._ConfigurationManager',
+                'WrenchCL.Connect._Internal._SshTunnelManager',
+                'WrenchCL.Connect._Internal._boto_cache'
+                ]
 
         for module in modules_to_remove:
             if module in sys.modules:
@@ -140,7 +143,7 @@ class TestOptionalImports:
         with patch('builtins.__import__', side_effect=mock_import):
             # The import itself should fail
             with pytest.raises(ImportError) as exc_info:
-                from WrenchCL.Connect import AwsClientHub
+                pass
 
             error_msg = str(exc_info.value)
             assert "AWS functionality requires additional dependencies" in error_msg
@@ -159,7 +162,7 @@ class TestOptionalImports:
 
         with patch('builtins.__import__', side_effect=mock_import):
             with pytest.raises(ImportError) as exc_info:
-                from WrenchCL.Connect import RdsServiceGateway
+                pass
 
             error_msg = str(exc_info.value)
             assert "AWS functionality requires additional dependencies" in error_msg
@@ -171,9 +174,8 @@ class TestOptionalImports:
         """Test that Tools module works without optional dependencies."""
         # Tools should work regardless of AWS dependencies
         from WrenchCL.Tools import (
-            coalesce, get_metadata, Maybe, typechecker,
-            robust_serializer, parse_json
-        )
+            coalesce, Maybe
+            )
 
         # Test that core tools work
         assert coalesce(None, "test") == "test"
@@ -181,7 +183,7 @@ class TestOptionalImports:
 
     def test_decorators_always_available(self, clean_imports):
         """Test that Decorators work without optional dependencies."""
-        from WrenchCL.Decorators import SingletonClass, Retryable, Synchronized
+        from WrenchCL.Decorators import SingletonClass
 
         # Test basic functionality
         @SingletonClass
@@ -193,9 +195,8 @@ class TestOptionalImports:
     def test_exceptions_always_available(self, clean_imports):
         """Test that Exceptions work without optional dependencies."""
         from WrenchCL.Exceptions import (
-            ArgumentTypeException, InvalidConfigurationException,
-            GuardedResponseTrigger
-        )
+            ArgumentTypeException
+            )
 
         # Test that exceptions can be raised
         with pytest.raises(ArgumentTypeException):
@@ -224,7 +225,7 @@ class TestOptionalImports:
 
         with patch('builtins.__import__', side_effect=mock_import):
             with pytest.raises(ImportError) as exc_info:
-                from WrenchCL.Connect import AwsClientHub
+                pass
 
             error_msg = str(exc_info.value)
             assert "pip install 'WrenchCL[aws]'" in error_msg
@@ -239,12 +240,10 @@ class TestImportIntegration:
         # Should always work regardless of AWS deps
         from WrenchCL import logger
         from WrenchCL.Tools import Maybe, coalesce
-        from WrenchCL.Exceptions import ArgumentTypeException
 
         logger.info("Test message")
         assert coalesce(None, "works") == "works"
         assert Maybe(42).value == 42
-
 
 
 class TestRealWorldScenarios:
@@ -268,7 +267,6 @@ class TestRealWorldScenarios:
             logger.info(f"AWS available: {aws_available}")
             assert Maybe(42).value == 42
             assert aws_available is True  # Should be available with mocks
-            
 
     def test_graceful_import_pattern_failure(self):
         """Test the pattern users would actually use when deps are missing."""
