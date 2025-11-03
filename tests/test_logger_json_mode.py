@@ -59,10 +59,11 @@ def test_json_log_format_and_metadata(logger_fixture):
 
     assert log_entry["message"] == "json test message"
     assert log_entry["level"] == "INFO"
-    trace = log_entry["trace"]
-    assert trace["dd.service"] == "ai-axis"
-    assert trace["dd.version"] == "1.2.3"
-    assert trace["dd.env"] == "dev"
+    assert log_entry["service"] == "ai-axis"
+    assert log_entry["version"] == "1.2.3"
+    assert log_entry["env"] == "dev"
+    assert "dd.trace_id" in log_entry
+    assert "dd.span_id" in log_entry
 
 
 def test_json_log_includes_exception(logger_fixture):
