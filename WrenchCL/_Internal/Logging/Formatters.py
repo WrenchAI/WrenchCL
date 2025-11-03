@@ -5,6 +5,7 @@ import contextvars
 import json
 import logging
 import os
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, Optional, Final
 
 from .ColorService import ColorService, ColorPresets, MockColorama
@@ -79,6 +80,10 @@ class JSONLogFormatter(logging.Formatter):
     # ---------- context harvesting (same spirit, preserved) ----------
     @staticmethod
     def _extract_generic_context() -> Dict[str, Any]:
+        """
+        Safely extract recognized context keys (user/org/service) from contextvars,
+        handling both dicts and __dict__-bearing objects, even if cyclic.
+        """
         context_data: Dict[str, Any] = {}
 
         user_keys = {
@@ -86,8 +91,9 @@ class JSONLogFormatter(logging.Formatter):
             "client_id", "user_name", "username",
         }
         org_keys = {"client_id", "org_id", "organization_id", "tenant_id", "team_id", "workspace_id", "project_id"}
-        svc_keys = {"service_id", "service_name", "application", "app_name", "dd_service", "aws_function_name",
-                    "aws_service", "lambda_name", "lambda_function", "aws_function", "project_name", "project"}
+        svc_keys = {"service_id", "service_name", "application", "app_name", "dd_service",
+                    "aws_function_name", "aws_service", "lambda_name", "lambda_function",
+                    "aws_function", "project_name", "project"}
 
         def add(k: str, v: Any) -> None:
             lk = (k or "").lower()
@@ -98,16 +104,68 @@ class JSONLogFormatter(logging.Formatter):
             elif lk in svc_keys:
                 context_data.setdefault("service_name", v)
 
+        visited: set[int] = set()
+
+        def inspect_obj(obj: Any) -> None:
+            """Shallow inspection of dicts or objects with __dict__, avoiding recursion."""
+            obj_id = id(obj)
+            if obj_id in visited:
+                return
+            visited.add(obj_id)
+
+            if isinstance(obj, dict):
+                for k, v in list(obj.items())[:20]:
+                    if id(v) == obj_id:
+                        continue
+                    add(k, v)
+                    if isinstance(v, (dict, object)) and not isinstance(v, (str, int, float, bool, type(None))):
+                        # Shallowly inspect children once
+                        inspect_obj(getattr(v, "__dict__", None) or {})
+            else:
+                d = getattr(obj, "__dict__", None)
+                if isinstance(d, dict):
+                    for k, v in list(d.items())[:20]:
+                        if id(v) == obj_id:
+                            continue
+                        add(k, v)
+                        if isinstance(v, (dict, object)) and not isinstance(v, (str, int, float, bool, type(None))):
+                            inspect_obj(getattr(v, "__dict__", None) or {})
+
         try:
             ctx = contextvars.copy_context()
             for var in ctx:
                 try:
-                    add(var.name, ctx.get(var))
+                    val = ctx.get(var)
+                    inspect_obj(val)
+                except RecursionError:
+                    continue
                 except Exception:
                     continue
         except Exception:
             pass
+
         return context_data
+
+
+
+    def _formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
+        """
+        Formats the record creation time safely.
+
+        Falls back to ISO 8601 UTC timestamp if the given datefmt is invalid.
+        """
+        dt = datetime.fromtimestamp(record.created, tz=timezone.utc)
+
+        # Try the provided format first
+        if datefmt:
+            try:
+                return dt.strftime(datefmt)
+            except ValueError:
+                # Fallback to a portable ISO format
+                return dt.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+        # No datefmt provided → use ISO format
+        return dt.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
     # ------------------------------- core -------------------------------
     def format(self, record: logging.LogRecord) -> str:
@@ -142,7 +200,7 @@ class JSONLogFormatter(logging.Formatter):
             "module": record.module,
             "function": record.funcName,
             "line": record.lineno,
-            "timestamp": self.formatTime(record, self._TIMEFMT),
+            "timestamp": self._formatTime(record, self._TIMEFMT),
         }
         if self.traced:
             log_record.update({
