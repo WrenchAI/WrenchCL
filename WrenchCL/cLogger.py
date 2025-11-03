@@ -724,7 +724,7 @@ class cLogger:
 
             if self.state_manager.current_state.dd_trace_enabled:
                 # attach once per-handler
-                from _Internal.Logging.DatadogTraceInjectionFilter import DatadogTraceInjectionFilter
+                from ._Internal.Logging.DatadogTraceInjectionFilter import DatadogTraceInjectionFilter
                 if not any(isinstance(f, DatadogTraceInjectionFilter) for f in handler.filters):
                     handler.addFilter(DatadogTraceInjectionFilter())
 

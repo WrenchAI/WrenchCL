@@ -241,7 +241,7 @@ class FileLogFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         raw = self._base_formatter.format(record)
-        from _Internal.Logging.logging_utils import remove_ansi
+        from .logging_utils import remove_ansi
         return remove_ansi(raw)
 
 
