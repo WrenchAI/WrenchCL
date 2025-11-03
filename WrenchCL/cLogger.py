@@ -702,19 +702,33 @@ class cLogger:
                 stacklevel=get_depth(internal=level == 'INTERNAL')
                 )
 
-    def _update_handler_formatters(self, level: LogLevel, no_format: bool, no_color: bool):
-        """Update formatters for the current log operation."""
+    def _update_handler_formatters(self, level: LogLevel, no_format: bool, no_color: bool) -> None:
+        """
+        Update formatters for the current log operation.
+        """
         config = self.state_manager.current_state
         env_metadata = self.state_manager.get_env_metadata()
 
         for handler in self.state_manager.logging_instance.handlers:
-            if not isinstance(handler, logging.NullHandler):
-                formatter = self.state_manager.formatter_factory.create_formatter(
-                        level=level, config_state=config, env_metadata=env_metadata,
-                        global_stream_configured=self.state_manager.global_stream_configured,
-                        no_format=no_format, no_color=no_color
-                        )
-                handler.setFormatter(formatter)
+            if isinstance(handler, logging.NullHandler):
+                continue
+
+            formatter = self.state_manager.formatter_factory.create_formatter(
+                level=level,
+                config_state=config,
+                env_metadata=env_metadata,
+                global_stream_configured=self.state_manager.global_stream_configured,
+                no_format=no_format,
+                no_color=no_color,
+            )
+
+            if self.state_manager.current_state.dd_trace_enabled:
+                # attach once per-handler
+                from _Internal.Logging.DatadogTraceInjectionFilter import DatadogTraceInjectionFilter
+                if not any(isinstance(f, DatadogTraceInjectionFilter) for f in handler.filters):
+                    handler.addFilter(DatadogTraceInjectionFilter())
+
+            handler.setFormatter(formatter)
 
     def _setup_ddtrace(self, trace_enabled: bool):
         """Set up ddtrace if requested."""
