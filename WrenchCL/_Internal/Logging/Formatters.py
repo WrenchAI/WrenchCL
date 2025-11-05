@@ -63,13 +63,13 @@ class JSONLogFormatter(logging.Formatter):
     _TIMEFMT: Final[str] = "%Y-%m-%dT%H:%M:%S.%fZ"
 
     def __init__(
-        self,
-        env_metadata: Dict[str, Optional[str]],
-        forced_color: bool,
-        highlight_func: Callable[[str], str],
-        traced: bool = False,
-        deployed: bool = False
-    ) -> None:
+            self,
+            env_metadata: Dict[str, Optional[str]],
+            forced_color: bool,
+            highlight_func: Callable[[str], str],
+            traced: bool = False,
+            deployed: bool = False
+            ) -> None:
         super().__init__()
         self.env_metadata = env_metadata
         self.color_mode = forced_color
@@ -87,9 +87,9 @@ class JSONLogFormatter(logging.Formatter):
         context_data: Dict[str, Any] = {}
 
         user_keys = {
-            "user_id", "usr_id", "entity_id", "user_entity_id", "subject_id",
-            "client_id", "user_name", "username",
-        }
+                "user_id", "usr_id", "entity_id", "user_entity_id", "subject_id",
+                "client_id", "user_name", "username",
+                }
         org_keys = {"client_id", "org_id", "organization_id", "tenant_id", "team_id", "workspace_id", "project_id"}
         svc_keys = {"service_id", "service_name", "application", "app_name", "dd_service",
                     "aws_function_name", "aws_service", "lambda_name", "lambda_function",
@@ -146,8 +146,6 @@ class JSONLogFormatter(logging.Formatter):
 
         return context_data
 
-
-
     def _formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
         """
         Formats the record creation time safely.
@@ -171,22 +169,22 @@ class JSONLogFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         # Resolve triad from env_metadata first, then DD_* fallbacks
         service = (
-            self.env_metadata.get("project")
-            or os.getenv("DD_SERVICE")
-            or os.getenv("PROJECT_NAME")
-            or "unknown-service"
+                self.env_metadata.get("project")
+                or os.getenv("DD_SERVICE")
+                or os.getenv("PROJECT_NAME")
+                or "unknown-service"
         )
         env = (
-            self.env_metadata.get("env")
-            or os.getenv("DD_ENV")
-            or os.getenv("ENV")
-            or "dev"
+                self.env_metadata.get("env")
+                or os.getenv("DD_ENV")
+                or os.getenv("ENV")
+                or "dev"
         )
         version = (
-            self.env_metadata.get("project_version")
-            or os.getenv("DD_VERSION")
-            or os.getenv("REPO_VERSION")
-            or "0.0.0"
+                self.env_metadata.get("project_version")
+                or os.getenv("DD_VERSION")
+                or os.getenv("REPO_VERSION")
+                or "0.0.0"
         )
 
         # Correlation IDs injected by DatadogTraceInjectionFilter (decimal strings)
@@ -195,13 +193,13 @@ class JSONLogFormatter(logging.Formatter):
 
         # Base payload — keeps your original structure
         log_record: Dict[str, Any] = {
-            "level": record.levelname,
-            "message": record.getMessage(),
-            "module": record.module,
-            "function": record.funcName,
-            "line": record.lineno,
-            "timestamp": self._formatTime(record, self._TIMEFMT),
-        }
+                "level": record.levelname,
+                "message": record.getMessage(),
+                "module": record.module,
+                "function": record.funcName,
+                "line": record.lineno,
+                "timestamp": self._formatTime(record, self._TIMEFMT),
+                }
         if self.traced:
             log_record.update({
                     "service": service,
@@ -211,7 +209,6 @@ class JSONLogFormatter(logging.Formatter):
                     "dd.span_id": dd_span_id,
                     "logger": record.name,
                     })
-
 
         # Context (preserved)
         ctx = self._extract_generic_context()
@@ -224,14 +221,13 @@ class JSONLogFormatter(logging.Formatter):
 
         # Output formatting (preserved behavior)
         dumped = (
-            json.dumps(log_record, default=str, ensure_ascii=False)
-            if self.deployed
-            else json.dumps(log_record, default=str, ensure_ascii=False, indent=2)
+                json.dumps(log_record, default=str, ensure_ascii=False)
+                if self.deployed
+                else json.dumps(log_record, default=str, ensure_ascii=False, indent=2)
         )
         if self.color_mode and not self.deployed:
             dumped = self.highlight_func(dumped)
         return dumped
-
 
 
 class FileLogFormatter(logging.Formatter):
