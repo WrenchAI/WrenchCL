@@ -29,9 +29,6 @@ class _ConfigurationManager:
         """
         Initialize config from .env (if provided), environment, and kwargs.
 
-        :param env_path: Optional path to a .env file.
-        :param kwargs: Override variables (e.g. AWS_PROFILE, SSH_SERVER).
-        :raises InvalidConfigurationException: If SECRET_ARN is missing.
         """
         if env_path:
             self.env_path = env_path
@@ -47,7 +44,7 @@ class _ConfigurationManager:
             try:
                 load_dotenv(self._resolve_path(self.env_path), override=True)
             except Exception as e:
-                logger._internal_log(f"Skipping .env load. Error: {e}")
+                logger._internal.log_internal(f"Skipping .env load. Error: {e}")
 
         self._load_from_env()
         self._apply_overrides(kwargs)

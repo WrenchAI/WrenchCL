@@ -27,8 +27,7 @@ class AwsClientHub:
         """
         Initialize the AwsClientHub singleton.
 
-        :param env_path: Optional path to a `.env` file.
-        :param kwargs: Override values for configuration (e.g., `AWS_PROFILE`, `SECRET_ARN`, etc.).
+
         """
         self.__config: Optional["_ConfigurationManager"] = None
         self.__env_path = env_path
@@ -45,7 +44,7 @@ class AwsClientHub:
                 self.reload_config(env_path=self.__env_path, **self.__kwargs)
                 self.__initialized = True
             except InvalidConfigurationException as e:
-                logger._internal_log(f"AWS Client Hub initialization deferred: {e}")
+                logger._internal.log_internal(f"AWS Client Hub initialization deferred: {e}")
         if self.__initialized:
             if need_secret:
                 self._load_rds_secret()
@@ -54,8 +53,7 @@ class AwsClientHub:
         """
         Reload configuration and secrets using a given `.env` path or kwargs.
 
-        :param env_path: Optional .env path.
-        :param kwargs: Overrides for configuration values.
+
         """
         self.__config = _ConfigurationManager()
         self.__config.reset()
@@ -158,7 +156,6 @@ class AwsClientHub:
         """
         Establish a psycopg2 connection directly or through an SSH tunnel.
 
-        :param config: Dictionary with DB + optional SSH_TUNNEL keys.
         :returns: psycopg2 DB connection
         """
         host, port = config["PGHOST"], config["PGPORT"]
@@ -167,7 +164,7 @@ class AwsClientHub:
             try:
                 self.ssh_manager = _SshTunnelManager(config)
                 host, port = self.ssh_manager.start_tunnel()
-                logger._internal_log("SSH Tunnel Connected")
+                logger._internal.log_internal("SSH Tunnel Connected")
             except Exception as e:
                 logger.error(f"SSH Tunnel failed: {e}")
                 raise
@@ -184,7 +181,6 @@ class AwsClientHub:
         """
         Retrieve a secret by ARN or default from config.
 
-        :param secret_id: Secret to fetch
         :return: Parsed dict or raw secret string
         """
         self._initialize()
