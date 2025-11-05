@@ -8,7 +8,6 @@ class ArgumentTypeException(Exception):
     """
     Exception raised when an argument of an invalid type is passed.
 
-    :param message: Custom error message to override the default.
     """
 
     def __init__(self, message: Optional[str] = None) -> None:
@@ -20,7 +19,6 @@ class ArgumentValueException(Exception):
     """
     Exception raised when an argument with an invalid value is passed.
 
-    :param message: Custom error message to override the default.
     """
 
     def __init__(self, message: Optional[str] = None) -> None:
@@ -32,10 +30,9 @@ class ValidationTypeException(Exception):
     """
     Exception raised when validation fails due to type mismatch.
 
-    :param field: Name of the field being validated.
-    :param expected: Expected type or value.
-    :param actual: Actual type or value received.
-    :param message: Custom error message to override the default.
+
+
+
     """
 
     def __init__(
@@ -56,8 +53,7 @@ class InvalidPayloadException(Exception):
     """
     Exception raised when a payload is invalid or missing required fields.
 
-    :param missing_fields: List of fields that are missing from the payload.
-    :param message: Custom error message to override the default.
+
     """
 
     def __init__(self, missing_fields: Optional[List[str]] = None, message: Optional[str] = None) -> None:

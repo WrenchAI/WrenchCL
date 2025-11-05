@@ -8,8 +8,7 @@ class ReferenceNotFoundException(Exception):
     """
     Exception raised when a required variable or value is not found.
 
-    :param variable_name: Name of the missing variable or value.
-    :param message: Custom error message to override the default.
+
     """
 
     def __init__(self, variable_name: Optional[str] = None, message: Optional[str] = None) -> None:
@@ -21,7 +20,6 @@ class SecurityViolationException(Exception):
     """
     Exception raised when a security violation is detected.
 
-    :param message: Custom error message to override the default.
     """
 
     def __init__(self, message: Optional[str] = None) -> None:

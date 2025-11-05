@@ -8,7 +8,6 @@ class IncompleteInitializationException(Exception):
     """
     Exception raised when an object is used without proper initialization.
 
-    :param message: Custom error message to override the default.
     """
 
     def __init__(self, message: Optional[str] = None) -> None:
@@ -20,7 +19,6 @@ class InitializationException(Exception):
     """
     Exception raised when an object cannot be properly initialized.
 
-    :param message: Custom error message to override the default.
     """
 
     def __init__(self, message: Optional[str] = None) -> None:
@@ -32,9 +30,8 @@ class InvalidConfigurationException(Exception):
     """
     Exception raised when a configuration is invalid or missing required values.
 
-    :param config_name: Name of the invalid configuration.
-    :param reason: Reason why the configuration is invalid.
-    :param message: Custom error message to override the default.
+
+
     """
 
     def __init__(self, config_name: Optional[str] = None, reason: Optional[str] = None, message: Optional[str] = None) -> None:
