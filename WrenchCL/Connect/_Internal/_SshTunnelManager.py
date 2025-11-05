@@ -16,7 +16,6 @@ class _SshTunnelManager:
         """
         Initialize SSH tunnel manager with DB + SSH credentials.
 
-        :param config: Dictionary with DB and SSH config:
             - PGHOST, PGPORT, PGPASSWORD, etc.
             - SSH_TUNNEL:
                 - SSH_SERVER
@@ -40,8 +39,8 @@ class _SshTunnelManager:
                 for k, v in self.ssh_config.items()
                 }
 
-        logger._internal_log(f"SSH Tunnel Manager initialized with config: {safe_config}")
-        logger._internal_log(f"SSH-specific configuration: {safe_ssh_config}")
+        logger._internal.log_internal(f"SSH Tunnel Manager initialized with config: {safe_config}")
+        logger._internal.log_internal(f"SSH-specific configuration: {safe_ssh_config}")
 
     def _validate_ssh_config(self):
         """Raise if essential SSH tunnel credentials are missing."""
@@ -58,9 +57,9 @@ class _SshTunnelManager:
         Starts the SSH tunnel.
 
         :returns: Local bind address and port tuple.
-        :raises Exception: If tunnel fails to start.
+
         """
-        logger._internal_log(
+        logger._internal.log_internal(
                 f"Starting SSH tunnel to {self.ssh_config['SSH_SERVER']}:{self.ssh_config['SSH_PORT']} "
                 f"as user {self.ssh_config['SSH_USER']}"
                 )
@@ -79,12 +78,12 @@ class _SshTunnelManager:
             logger.error(f"Failed to start SSH tunnel: {e}")
             raise
 
-        logger._internal_log(f"SSH tunnel active at 127.0.0.1:{self.tunnel.local_bind_port}")
+        logger._internal.log_internal(f"SSH tunnel active at 127.0.0.1:{self.tunnel.local_bind_port}")
         return "127.0.0.1", self.tunnel.local_bind_port
 
     def stop_tunnel(self):
         """Stops the tunnel if running."""
         if self.tunnel:
-            logger._internal_log("Stopping SSH tunnel...")
+            logger._internal.log_internal("Stopping SSH tunnel...")
             self.tunnel.stop()
-            logger._internal_log("SSH tunnel stopped.")
+            logger._internal.log_internal("SSH tunnel stopped.")

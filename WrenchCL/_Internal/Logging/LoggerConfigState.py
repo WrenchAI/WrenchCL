@@ -357,35 +357,49 @@ class LoggerStateManager:
 
             return new_state
 
-    def _apply_state_changes(self, old_state: LoggerConfigState, new_state: LoggerConfigState):
+    def _apply_state_changes(self, old_state: "LoggerConfigState", new_state: "LoggerConfigState"):
         """
         Apply ALL side effects when state changes.
         This is the ONLY place where state changes affect services.
         """
 
-        # 1. Color service
-        if (old_state.color_enabled != new_state.color_enabled) or (new_state.color_enabled and isinstance(self.color_service._color_class, MockColorama)):
+        # 1) Color service switch + dependent initialization
+        color_flip = (
+                old_state.color_enabled != new_state.color_enabled
+                or (new_state.color_enabled and isinstance(self.color_service._color_class, MockColorama))
+        )
+        if color_flip:
             if new_state.color_enabled:
                 self.color_service.enable_colors()
             else:
                 self.color_service.disable_colors()
             self._initialize_color_dependents()
-        # 2. Logger instance level
+
+        # 2) Instance logger level
         if old_state.level != new_state.level:
             self.logging_instance.setLevel(int(new_state.level))
-            # Also update all handler levels
             if self.handler_manager:
-                self.handler_manager.update_handler_levels(new_state.level)
+                # Only touch instance handlers; do NOT touch root-level handlers here
+                # Scope defaults to owned (primary/managed) to avoid clobbering user-attached handlers
+                try:
+                    self.handler_manager.update_handler_levels(new_state.level, scope='owned')
+                except TypeError:
+                    # Back-compat: older HandlerManager signature without 'scope'
+                    self.handler_manager.update_handler_levels(new_state.level)
 
-        # 3. Formatters (if mode/color/deployment changed)
-        if self._should_update_formatters(old_state, new_state):
+        # 3) (Re)bind formatters for the instance if structure changed
+        fmt_changed = self._should_update_formatters(old_state, new_state)
+        if fmt_changed and self.handler_manager:
             env_metadata = self.get_env_metadata()
-            if self.handler_manager:
+            # Recreate formatters for instance handlers
+            try:
+                self.handler_manager.update_all_formatters(new_state, env_metadata, global_stream_configured=False)
+            except TypeError:
+                # Back-compat: older signature without 'global_stream_configured'
                 self.handler_manager.update_all_formatters(new_state, env_metadata)
 
-            # Also update global handlers if configured
-        if self.global_logger_manager and self.global_logger_manager.is_global_stream_configured:
-            self.global_logger_manager.update_global_handlers(new_state, self.get_env_metadata())
+        if fmt_changed and self.global_logger_manager and self.global_logger_manager.is_global_stream_configured:
+            self.global_logger_manager.refresh_root_formatter(new_state, self.get_env_metadata())
 
     def reinitialize(self) -> LoggerConfigState:
         """Reapply environment detection."""

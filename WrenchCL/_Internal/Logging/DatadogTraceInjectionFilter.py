@@ -10,7 +10,7 @@ except Exception:
     tracer = None  # type: ignore[assignment]
 
 DD_TRACE_ID: Final[str] = "dd.trace_id"
-DD_SPAN_ID:  Final[str] = "dd.span_id"
+DD_SPAN_ID: Final[str] = "dd.span_id"
 _ZERO: Final[str] = "0"
 
 

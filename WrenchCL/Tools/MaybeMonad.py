@@ -19,7 +19,6 @@ class Maybe:
         """
         Initializes the Maybe instance with the given value.
 
-        :param value: The value to wrap.
         """
         self.value = value
         self._chain = False  # Control flag for chaining behavior
@@ -43,8 +42,7 @@ class Maybe:
         """
         Forwards the value within a new Maybe instance if chaining is enabled.
 
-        :param value: The value to forward.
-        :param force_chain: Whether to force chaining regardless of the current chain state.
+
         :returns: A Maybe instance or the raw value based on chaining state.
         """
         may_inst = Maybe(value)
@@ -55,7 +53,6 @@ class Maybe:
         """
         Handles attribute access and method calls on the wrapped value. Supports built-in functions.
 
-        :param name: The attribute or method name.
         :returns: A callable or the attribute value, wrapped in a Maybe instance if chaining.
         """
         if Maybe._is_builtin_function(name):
@@ -90,7 +87,6 @@ class Maybe:
         """
         Checks if a name corresponds to a built-in function.
 
-        :param func_name: The name to check.
         :returns: True if the name is a built-in function, False otherwise.
         """
         return callable(getattr(builtins, func_name, None))

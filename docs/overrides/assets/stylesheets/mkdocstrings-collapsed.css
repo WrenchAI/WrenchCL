@@ -1,0 +1,87 @@
+/* ==========================================================================
+   MkDocStrings — Collapsible Groups (Modules / Attributes / Methods)
+   ========================================================================== */
+
+/* --- Collapsible Containers --------------------------------------------- */
+details.collapse-children {
+  margin: 0.5rem 0 1.25rem 1.25rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  transition: border-color 0.25s ease;
+}
+
+details.collapse-children[open] {
+  border-color: var(--md-admonition-bg-color);
+  box-shadow: none !important
+  border-radius: 6px;
+}
+
+
+
+/* --- Toggle Header ------------------------------------------------------- */
+details.collapse-children summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--md-default-fg-color);
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  background: var(--md-code-bg-color);
+  border-radius: 6px 6px 0 0;
+  list-style: none;
+}
+
+details.collapse-children summary::-webkit-details-marker {
+  display: none;
+}
+
+details.collapse-children summary::before {
+  font-size: 0.8rem;
+  margin-right: 0.5rem;
+  color: var(--md-admonition-bg-color);
+  transition: transform 0.25s ease;
+}
+
+/* --- Inner Content ------------------------------------------------------- */
+.collapse-children-content {
+  padding: 0.75rem 1rem;
+  margin: 0 -.6rem;
+}
+
+.collapse-children-content > .doc.doc-object {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+
+  border-bottom: 1px solid var(--md-code-fg-color);
+  border-right: none;
+  border-top: none;
+  border-left: none;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.collapse-children-content > .doc.doc-object:first-child {
+  border-top: 1px solid var(--md-code-fg-color);
+}
+
+[data-md-color-scheme="default"] .collapse-children-content {
+  background-color: var(--md-code-bg-color);
+  margin-bottom: 0 !important;
+
+}
+
+.collapse-children-content > .doc.doc-object:hover {
+  box-shadow: 0 0 0 1px var(--md-admonition-bg-color);
+}
+
+/* --- Dark Mode ----------------------------------------------------------- */
+
+
+[data-md-color-scheme="slate"] details.collapse-children[open] {
+  border-color: var(--md-admonition-bg-color);
+
+}
+
+.md-typeset .admonition-title:before,.md-typeset summary:before {
+    background: var(--md-primary-fg-color);
+}

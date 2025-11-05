@@ -37,7 +37,7 @@ class S3ServiceGateway:
         state_config.initialize(silent=True)
         self.s3_client = _get_s3_client(config=config, profile=state_config.aws_profile, region=state_config.region_name)
         self.test_mode = False
-        logger._internal_log("S3ServiceGateway initialized with S3 client.")
+        logger._internal.log_internal("S3ServiceGateway initialized with S3 client.")
 
     @staticmethod
     def _get_mime_extension(mime_type: str) -> str:
@@ -52,7 +52,7 @@ class S3ServiceGateway:
 
         current_extension = Path(object_key).suffix
         if current_extension != correct_extension:
-            logger._internal_log(f"Correcting file extension from {current_extension} to {correct_extension}")
+            logger._internal.log_internal(f"Correcting file extension from {current_extension} to {correct_extension}")
             object_key = str(Path(object_key).with_suffix(correct_extension))
         return object_key
 
@@ -68,14 +68,13 @@ class S3ServiceGateway:
         """
         Uploads a file to S3. Handles file paths, bytes, file-like objects, and StreamingBody.
 
-        :param file: The file path, bytes, file-like object, or StreamingBody to be uploaded.
-        :type file: Union[str, Path, bytes, BytesIO, StreamingBody]
-        :param bucket_name: The name of the S3 bucket.
-        :type bucket_name: str
-        :param object_key: The key of the object in the S3 bucket.
-        :type object_key: str
-        :param return_url: Whether to return the S3 URL of the uploaded file.
-        :type return_url: bool
+
+
+
+
+
+
+
         :return: The S3 URL of the uploaded file if `return_url` is True, otherwise None.
         :rtype: Union[None, str]
         """
@@ -122,10 +121,9 @@ class S3ServiceGateway:
         """
         Retrieves an object from S3 and returns its content as a file stream.
 
-        :param bucket_name: The name of the S3 bucket.
-        :type bucket_name: str
-        :param object_key: The key of the object in the S3 bucket.
-        :type object_key: str
+
+
+
         :returns: The content of the object as a BytesIO stream.
         :rtype: io.BytesIO
         """
@@ -140,12 +138,11 @@ class S3ServiceGateway:
         """
         Downloads an object from S3 to a local file.
 
-        :param bucket_name: The name of the S3 bucket.
-        :type bucket_name: str
-        :param object_key: The key of the object in the S3 bucket.
-        :type object_key: str
-        :param local_path: The local path where the object will be saved.
-        :type local_path: str
+
+
+
+
+
         """
         logger.info(f"Downloading object: {object_key} from bucket: {bucket_name} to {local_path}")
         with open(local_path, 'wb') as f:
@@ -157,10 +154,9 @@ class S3ServiceGateway:
         """
         Retrieves the headers of an object in S3.
 
-        :param bucket_name: The name of the S3 bucket.
-        :type bucket_name: str
-        :param object_key: The key of the object in the S3 bucket.
-        :type object_key: str
+
+
+
         :returns: The headers of the object.
         :rtype: dict
         """
@@ -174,10 +170,9 @@ class S3ServiceGateway:
         """
         Deletes an object from S3.
 
-        :param bucket_name: The name of the S3 bucket.
-        :type bucket_name: str
-        :param object_key: The key of the object in the S3 bucket.
-        :type object_key: str
+
+
+
         """
         logger.info(f"Deleting object: {object_key} from bucket: {bucket_name}")
         if not self.test_mode:
@@ -189,14 +184,13 @@ class S3ServiceGateway:
         """
         Moves an object from one S3 bucket to another.
 
-        :param src_bucket_name: The source S3 bucket name.
-        :type src_bucket_name: str
-        :param src_object_key: The key of the source object in the source S3 bucket.
-        :type src_object_key: str
-        :param dst_bucket_name: The destination S3 bucket name.
-        :type dst_bucket_name: str
-        :param dst_object_key: The key of the object in the destination S3 bucket.
-        :type dst_object_key: str
+
+
+
+
+
+
+
         """
         logger.info(f"Moving object: {src_object_key} from {src_bucket_name} to {dst_bucket_name}/{dst_object_key}")
         if not self.test_mode:
@@ -210,14 +204,13 @@ class S3ServiceGateway:
         """
         Copies an object from one S3 bucket to another.
 
-        :param src_bucket_name: The source S3 bucket name.
-        :type src_bucket_name: str
-        :param src_object_key: The key of the source object in the source S3 bucket.
-        :type src_object_key: str
-        :param dst_bucket_name: The destination S3 bucket name.
-        :type dst_bucket_name: str
-        :param dst_object_key: The key of the object in the destination S3 bucket.
-        :type dst_object_key: str
+
+
+
+
+
+
+
         """
         logger.info(f"Copying object: {src_object_key} from {src_bucket_name} to {dst_bucket_name}/{dst_object_key}")
         if not self.test_mode:
@@ -230,10 +223,9 @@ class S3ServiceGateway:
         """
         Checks if an object exists in an S3 bucket.
 
-        :param bucket_name: The name of the S3 bucket.
-        :type bucket_name: str
-        :param object_key: The key of the object in the S3 bucket.
-        :type object_key: str
+
+
+
         :returns: True if the object exists, False otherwise.
         :rtype: bool
         """
@@ -245,7 +237,7 @@ class S3ServiceGateway:
         except ClientError as e:
             if e.response['Error']['Code'] == "404":
                 if self.test_mode:
-                    logger._internal_log("Mocking object existence in test mode")
+                    logger._internal.log_internal("Mocking object existence in test mode")
                     return True
                 logger.info(f"Object does not exist")
                 return False
@@ -257,10 +249,9 @@ class S3ServiceGateway:
         """
         Lists objects in an S3 bucket, optionally filtered by a prefix.
 
-        :param bucket_name: The name of the S3 bucket.
-        :type bucket_name: str
-        :param prefix: The prefix to filter the objects.
-        :type prefix: str, optional
+
+
+
         :returns: A list of object keys.
         :rtype: list
         """
@@ -268,7 +259,7 @@ class S3ServiceGateway:
         paginator = self.s3_client.get_paginator('list_objects_v2')
         page_iterator = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
         object_list = [item['Key'] for page in page_iterator for item in page.get('Contents', [])]
-        logger._internal_log(f"Objects listed in bucket: {bucket_name} with prefix: {prefix}")
+        logger._internal.log_internal(f"Objects listed in bucket: {bucket_name} with prefix: {prefix}")
         return object_list
 
     @Retryable()
@@ -276,14 +267,13 @@ class S3ServiceGateway:
         """
         Checks the permissions of an S3 bucket.
 
-        :param bucket_name: The name of the S3 bucket.
-        :type bucket_name: str
+
         :returns: The access control list (ACL) of the bucket.
         :rtype: dict
         """
         logger.info(f"Checking permissions for bucket: {bucket_name}")
         acl = self.s3_client.get_bucket_acl(Bucket=bucket_name)
-        logger._internal_log(f"Permissions checked for bucket: {bucket_name}")
+        logger._internal.log_internal(f"Permissions checked for bucket: {bucket_name}")
         return acl
 
     @Retryable()
@@ -297,23 +287,13 @@ class S3ServiceGateway:
         logger.info("Listing all S3 buckets")
         response = self.s3_client.list_buckets()
         bucket_list = [bucket['Name'] for bucket in response.get('Buckets', [])]
-        logger._internal_log("S3 buckets listed")
+        logger._internal.log_internal("S3 buckets listed")
         return bucket_list
 
     @Retryable()
     def get_signed_url(self, bucket_name: str, object_key: str, expiration_seconds: int = 3600) -> str:
         """
         Generate a signed URL for an S3 object.
-
-        :param bucket_name: Name of the S3 bucket
-        :type bucket_name: str
-        :param object_key: Key of the S3 object
-        :type object_key: str
-        :param expiration_seconds: Time in seconds for the presigned URL to remain valid
-        :type expiration_seconds: int
-        :return: Presigned URL as a string
-        :rtype: str
-        :raises: Exception if URL generation fails
         """
         logger.info(f'Generating signed URL for bucket: {bucket_name}, key: {object_key}')
         try:

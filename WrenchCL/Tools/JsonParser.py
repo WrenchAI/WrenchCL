@@ -46,7 +46,7 @@ def parse_json(response: Union[str, dict], max_depth: int = 25, verbose=False, p
     """
     try:
         if verbose:
-            logger._internal_log(f"Starting JSON parsing. Max depth: {max_depth}")
+            logger._internal.log_internal(f"Starting JSON parsing. Max depth: {max_depth}")
         parsed_json = recur_parse_json(response, max_depth=max_depth, verbose=verbose)
         if print_tree:
             show_json_tree(parsed_json)
@@ -165,7 +165,7 @@ def recur_parse_json(d: Union[dict, str], depth: int = 0, max_depth: int = 25, v
                 d[k] = list_loader(v, depth=depth + 1, max_depth=max_depth, verbose=verbose)
             indent = "--" * (depth + 1)
             if verbose:
-                logger._internal_log(f"{indent}>Parsed key '{k}': to type {type(d[k]).__name__}")
+                logger._internal.log_internal(f"{indent}>Parsed key '{k}': to type {type(d[k]).__name__}")
         return d
 
 
@@ -272,11 +272,11 @@ def safe_json_loader(content: Any, raise_error=False, depth=0, verbose=False) ->
                             indent = "--" * (depth + 2)
                             if '{' in value or '}' in value:
                                 if verbose:
-                                    logger._internal_log(f"{indent}>Malformed JSON in key '{key}': {value}")
+                                    logger._internal.log_internal(f"{indent}>Malformed JSON in key '{key}': {value}")
                                 else:
-                                    logger._internal_log(f"{indent}>Malformed JSON in key '{key}': {value}")
+                                    logger._internal.log_internal(f"{indent}>Malformed JSON in key '{key}': {value}")
                             if verbose:
-                                logger._internal_log(f"{indent}>End of structure at key: {key}, value: {value}'")
+                                logger._internal.log_internal(f"{indent}>End of structure at key: {key}, value: {value}'")
                             return parsed
                 return parsed
             elif isinstance(parsed, list):
@@ -286,24 +286,24 @@ def safe_json_loader(content: Any, raise_error=False, depth=0, verbose=False) ->
             if content.startswith('{') and content.endswith('}'):
                 if verbose:
                     indent = "--" * (depth + 1)
-                    logger._internal_log(f"{indent}>Malformed JSON in content: {content}")
-                    logger._internal_log(f"{indent}>End of structure at depth: {depth + 1}")
+                    logger._internal.log_internal(f"{indent}>Malformed JSON in content: {content}")
+                    logger._internal.log_internal(f"{indent}>End of structure at depth: {depth + 1}")
                 if raise_error:
                     if depth == 0:
                         raise
                     else:
                         if verbose:
-                            logger._internal_log(f"Failed to parse content at depth {depth + 1}, continuing with next branch: {content}")
+                            logger._internal.log_internal(f"Failed to parse content at depth {depth + 1}, continuing with next branch: {content}")
                         else:
-                            logger._internal_log(f"Failed to parse content at depth {depth + 1}, continuing with next branch")
+                            logger._internal.log_internal(f"Failed to parse content at depth {depth + 1}, continuing with next branch")
                         try:
                             content = str(content)
                         except Exception as e:
-                            logger._internal_log(f"Failed to convert content to string, returning as is: {e}")
+                            logger._internal.log_internal(f"Failed to convert content to string, returning as is: {e}")
                             pass
             else:
                 if verbose:
-                    logger._internal_log(f"String is not a JSON object, returning as is...")
+                    logger._internal.log_internal(f"String is not a JSON object, returning as is...")
             return content  # Leave malformed content as-is
 
     raise TypeError(f"safe_json_loader expected string or dict but got {type(content).__name__}")

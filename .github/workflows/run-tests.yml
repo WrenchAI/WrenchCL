@@ -5,10 +5,10 @@ on:
     branches:
       - main
       - release
-      - v4
   push:
     branches:
       - release
+      - main
   workflow_dispatch:
 
 jobs:
@@ -30,9 +30,15 @@ jobs:
         run: |
           uv venv .venv
           source .venv/bin/activate
-          uv pip install -e ".[all]"
+          uv sync --all-groups
+          uv pip install -e .
 
       - name: Run pytest with coverage
         run: |
           source .venv/bin/activate
-          pytest --cov=WrenchCL --cov-report=term --cov-report=xml tests/
+          pytest --cov --cov-branch --cov-report=xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

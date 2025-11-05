@@ -17,10 +17,9 @@ def standardize_none(data: Any, none_like_values: set = None, evaluate_as_string
         --> ('', ' ', 'null', 'none', 'nan', 'n/a', 'na', 'undefined', 'missing', 'nil', 'void', 'blank')
     Handles pandas DataFrames and Series if pandas is available.
 
-    :param data: The input data, which can be a single value, list, dict, pandas DataFrame, or Series.
-    :param none_like_values: A set of custom placeholders that should be treated as None.
+
                              If not provided, defaults to common None-like placeholders.
-    :param evaluate_as_string: Whether to attempt str() conversion on non-string values before checking.
+
     :return: The standardized data with all mistyped None values replaced with proper None.
     """
     # Default None-like values
@@ -45,9 +44,8 @@ def is_mistyped_none(value: Any, none_like_values: set, evaluate_as_string: bool
     """
     Checks if a value is a mistyped None placeholder based on a custom set of None-like values.
 
-    :param value: The value to check.
-    :param none_like_values: A set of placeholders to treat as None.
-    :param evaluate_as_string: Whether to attempt str() conversion on non-string values before checking.
+
+
     :return: True if the value is mistyped None, False otherwise.
     """
     # Check for None or NaN directly

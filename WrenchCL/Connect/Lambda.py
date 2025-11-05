@@ -157,11 +157,10 @@ def handle_lambda_response(status_code: LambdaStatusCodes, body: Union[Dict[str,
       - CORS + JSON defaults.
       - Standardized messages if body is None or empty.
 
-    :param status_code: Valid HTTP status code for Lambda proxy responses.
-    :param body: Response payload (dict, str, or None).
-    :param allow_methods: Allowed HTTP methods for CORS (default: "GET, OPTIONS, POST").
-    :param extra_headers: Optional headers to merge into the defaults.
-    :param extra_body_fields: Extra key/value pairs merged into the body if it's a dict.
+
+
+
+
     :return: LambdaResponseDict.
     """
     try:
@@ -180,7 +179,7 @@ def handle_lambda_response(status_code: LambdaStatusCodes, body: Union[Dict[str,
             body = {**body, **extra_body_fields}
 
         response = LambdaResponse(status_code, body, headers)
-        logger._internal_log(f"Lambda response: {repr(response)}")
+        logger._internal.log_internal(f"Lambda response: {repr(response)}")
         return response
     except (TypeError, ValueError) as e:
         raise TypeError("Response body is not JSON serializable") from e

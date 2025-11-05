@@ -13,10 +13,9 @@ def get_metadata(file_source, is_url=True):
     """
     Get metadata of a file from a URL or file path.
 
-    :param file_source: URL or file path of the file
-    :type file_source: str
-    :param is_url: Flag indicating if the file_source is a URL, defaults to True
-    :type is_url: bool, optional
+
+
+
     :return: Dictionary containing metadata
     :rtype: dict
     """

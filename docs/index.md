@@ -1,119 +1,82 @@
 # WrenchCL Documentation
 
-WrenchCL is a Python library focused on advanced logging with optional AWS integrations and utility tools.
+WrenchCL is a comprehensive library for seamless interactions with AWS services, AI models, and enterprise-grade utility tools.
 
-## Quick Start
+---
 
-```bash
-# Core installation
-pip install WrenchCL
+## Installation
 
-# With AWS support (requires additional dependencies)
-pip install WrenchCL[aws]
-```
+See **[Installation Guide](installation.md)** for complete setup instructions including optional dependencies.
 
-## Basic Usage
-
-```python
-from WrenchCL import logger
-
-# Basic logging
-logger.info("Application started")
-logger.error("Something failed", exc_info=True)
-
-# Structured data logging
-logger.data({"user_id": 123, "action": "login"})
-
-# Organize with headers
-logger.header("Database Operations")
-```
-
-## Package Structure
-
-WrenchCL exports only the logger from the root package. Other modules must be imported explicitly:
-
-```python
-# Core logger (always available)
-from WrenchCL import logger
-
-# Optional modules (may require additional dependencies)
-from WrenchCL.Tools import coalesce, Maybe
-from WrenchCL.Decorators import Retryable, SingletonClass
-from WrenchCL.Exceptions import InvalidConfigurationException
-
-# AWS modules (require 'aws' extra dependencies)
-from WrenchCL.Connect import AwsClientHub, RdsServiceGateway, S3ServiceGateway
-```
+---
 
 ## Core Components
 
-### Logger
+### Logger System
 
-Advanced structured logging with colorization, JSON output, and Datadog integration.
+Enterprise-grade structured logging with multi-format output, environment detection, and Datadog integration. Features include terminal colors, JSON formatting, automatic AWS Lambda detection, and APM trace correlation.
 
-### Tools (WrenchCL.Tools)
+- **[Core Interface](logger/core.md)** - Main logging methods and configuration
+- **[Configuration](logger/configuration.md)** - State management and environment detection  
+- **[Formatters](logger/formatters.md)** - JSON, terminal, and file output formatting
+- **[Handler Management](logger/handlers.md)** - Stream, file, and global logger coordination
+- **[Message Processing](logger/processing.md)** - Text markup, highlighting, and data visualization
+- **[Color System](logger/colors.md)** - Terminal colors and visual themes
+- **[Datadog Integration](logger/datadog.md)** - APM trace correlation and structured logging
 
-- `coalesce()` - Return first non-None value
-- `Maybe` - Safe nested attribute access
-- `typechecker()` - Runtime type validation
-- JSON parsing and serialization utilities
-- File type detection and image processing
+### AWS Connect
 
-### Decorators (WrenchCL.Decorators)
+Production-ready AWS service integrations with automatic configuration management, connection pooling, and intelligent error handling. Supports RDS, S3, Lambda, and Secrets Manager with SSH tunneling capabilities.
 
-- `@Retryable` - Automatic retry logic
-- `@SingletonClass` - Thread-safe singleton pattern
-- `@Synchronized` - Method synchronization
-- `@Deprecated` - Deprecation warnings
+- **[Client Hub](connect/client-hub.md)** - Centralized AWS client and session management
+- **[RDS Gateway](connect/rds.md)** - Database operations with connection pooling and batch processing
+- **[S3 Gateway](connect/s3.md)** - Object storage operations with retry logic and type detection
+- **[Lambda Utilities](connect/lambda.md)** - Response handling and status code management
+- **[Processing Tracker](connect/tracking.md)** - Job lifecycle management with TTL cleanup
+- **[Configuration](connect/configuration.md)** - Environment detection and secrets management
 
-### Connect (WrenchCL.Connect) - Requires AWS Dependencies
+### Tools & Utilities
 
-- `AwsClientHub` - Unified AWS client management
-- `RdsServiceGateway` - PostgreSQL database operations
-- `S3ServiceGateway` - S3 storage operations
-- Lambda utilities
+Essential utility functions for data manipulation, file operations, and type safety. All utilities include graceful fallbacks and handle edge cases robustly with minimal dependencies.
 
-### Exceptions (WrenchCL.Exceptions)
+- **[Data Manipulation](tools/data.md)** - Null coalescing, type checking, and data standardization
+- **[File Operations](tools/files.md)** - Type detection, metadata extraction, and image processing
+- **[JSON Processing](tools/json.md)** - Robust parsing, serialization, and malformed JSON handling
+- **[Functional Programming](tools/functional.md)** - Maybe monad for safe operations and method chaining
 
-Structured exception hierarchy with intelligent error suggestions.
+### Decorators
 
-## Configuration
+Design pattern implementations following SOLID principles. Provides behavioral, structural, and lifecycle decorators for enhanced functionality and code organization.
 
-The logger can be configured via environment variables:
+- **[Behavioral](decorators/behavioral.md)** - Retry logic and thread synchronization
+- **[Structural](decorators/structural.md)** - Singleton pattern enforcement with proper initialization
+- **[Lifecycle](decorators/lifecycle.md)** - Deprecation warnings and version management
 
-```bash
-export COLOR_MODE=true          # Enable colors
-export LOG_DD_TRACE=true        # Enable Datadog tracing
-export PROJECT_NAME=my-app      # Project context
-export ENV=production           # Environment
-```
+### Exception System
 
-Or programmatically:
+Comprehensive error handling with intelligent suggestions and hierarchical exception structure. Includes automatic error correction hints and similarity-based suggestions for common mistakes.
 
-```python
-logger.configure(
-        mode="json",  # terminal, json, or compact
-        level="INFO",  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-        color_enabled=True
-        )
-```
+- **[Arguments & Validation](exceptions/arguments.md)** - Input validation and type checking errors
+- **[Initialization](exceptions/initialization.md)** - Configuration and setup error handling
+- **[Runtime](exceptions/runtime.md)** - Security violations and reference errors
+- **[Error Suggestions](exceptions/suggestions.md)** - Smart error suggestions and auto-correction
 
-## AWS Dependencies
+---
 
-AWS functionality requires additional packages:
+## Architecture Overview
 
-```bash
-pip install boto3 psycopg2-binary paramiko sshtunnel
-# or
-pip install WrenchCL[aws]
-```
+WrenchCL follows SOLID principles with clear separation of concerns:
 
-If AWS dependencies are missing, importing Connect modules will raise helpful error messages.
+- **Core**: Lightweight logger and essential utilities (no optional deps)
+- **Connect**: AWS integrations with automatic configuration
+- **Tools**: Utility functions with graceful fallbacks
+- **Decorators**: Reusable design patterns
+- **Exceptions**: Hierarchical error handling with suggestions
 
-## Next Steps
+Each module handles its own dependencies and provides meaningful fallbacks when optional packages aren't available.
 
-- [Logger Documentation](logger.md) - Core logging features
-- [Tools Documentation](tools.md) - Utility functions
-- [AWS Connect Guide](connect.md) - AWS service integration
-- [Decorators Reference](decorators.md) - Available decorators
-- [Exception Handling](exceptions.md) - Exception hierarchy
+---
+
+## Contributing
+
+See the [GitHub repository](https://github.com/wrenchai/wrenchcl) for development guidelines and contribution instructions.

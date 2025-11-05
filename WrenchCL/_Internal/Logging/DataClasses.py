@@ -19,15 +19,15 @@ class LogLevel(str, Enum):
     mapping custom aliases to specific log levels.
 
     :ivar DEBUG: Represents the DEBUG logging level.
-    :type DEBUG: str
+
     :ivar INFO: Represents the INFO logging level.
-    :type INFO: str
+
     :ivar WARNING: Represents the WARNING logging level.
-    :type WARNING: str
+
     :ivar ERROR: Represents the ERROR logging level.
-    :type ERROR: str
+
     :ivar CRITICAL: Represents the CRITICAL logging level.
-    :type CRITICAL: str
+
     """
     DEBUG = "DEBUG"  # noqa
     INFO = "INFO"  # noqa

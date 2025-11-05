@@ -10,9 +10,8 @@ def truncate_display(value: Any, max_length: int = 200, max_items: int = 10) -> 
     """
     Safely converts any value into a string for logging, truncating fields that are too long.
 
-    :param value: Any Python object (dict, list, str, etc.).
-    :param max_length: Max characters allowed per string field before truncation.
-    :param max_items: Max items to display for lists/dicts before truncation.
+
+
     :return: A truncated string representation of the value.
     """
 

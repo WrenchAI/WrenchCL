@@ -1,0 +1,36 @@
+/* ==========================================================================
+   MkDocStrings — Global Body-Level Styling
+   ========================================================================== */
+
+/* Layout & Spacing */
+.md-content {
+  max-width: 900px;
+  margin: auto;
+  line-height: 1.6;
+}
+
+.md-typeset {
+  font-size: 0.9rem;
+}
+
+/* General Text Hierarchy */
+h1, h2, h3, h4 {
+  font-weight: 600;
+}
+
+code, pre {
+  font-family: var(--md-code-font-family);
+}
+
+/* Thematic Colors */
+:root {
+  --md-accent-bg-color--light: var(--md-accent-bg-color--light);
+  --md-accent-bg-color--light: var(--md-accent-bg-color--light--lighter);
+  --clr-bg: var(--md-default-bg-color);
+}
+
+/* Dark Mode Support */
+[data-md-color-scheme="slate"] {
+  --md-accent-bg-color--light: rgba(255, 255, 255, 0.08);
+  --clr-bg: #1c1e22;
+}
