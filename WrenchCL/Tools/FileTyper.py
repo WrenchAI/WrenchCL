@@ -28,13 +28,12 @@ def get_file_type(file_source: Union[str, Path, bytes, BytesIO, "StreamingBody"]
     """
     Determine the file type of a file from a URL, file path, Base64 string, bytes, or BytesIO.
 
-    :param file_source: URL, file path, Base64 string, bytes, or BytesIO of the file
-    :type file_source: Union[str, Path, bytes, BytesIO, StreamingBody]
-    :param is_url: Flag indicating if the file_source is a URL, defaults to True
-    :type is_url: bool, optional
+
+
+
     :return: File type based on extension or MIME type
     :rtype: Tuple[str, str]
-    :raises UnsupportedFileTypeError: If the file type cannot be determined.
+
     """
 
     if isinstance(file_source, (str, Path)):

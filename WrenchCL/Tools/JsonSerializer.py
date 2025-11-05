@@ -98,11 +98,10 @@ class single_quote_decoder(json.JSONDecoder):
     - May include Markdown block markers for JSON code blocks.
     - Contain unescaped double quotes within string values.
 
-    :param object_hook: Optional function that will be called with the result of any object literal decoded (a dict).
                         The return value of `object_hook` will be used instead of the `dict`. This can be used to
                         provide custom deserializations (e.g., to support JSON-RPC class hinting).
-    :param args: Additional positional arguments passed to the base `json.JSONDecoder`.
-    :param kwargs: Additional keyword arguments passed to the base `json.JSONDecoder`.
+
+
 
     Usage example:
         >>> import json
@@ -144,8 +143,7 @@ class single_quote_decoder(json.JSONDecoder):
         """
         Sanitizes a JSON string by escaping unescaped quotes and then loads it into a dictionary.
 
-        :param s: The JSON string to be sanitized and loaded.
-        :param strict: Whether to use strict JSON parsing.
+
         :return: The loaded JSON object as a dictionary.
         """
         js_str = s

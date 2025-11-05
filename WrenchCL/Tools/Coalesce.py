@@ -6,8 +6,7 @@ def coalesce(*args):
     """
     Returns the first non-None value in the given list of arguments. If all arguments are None, returns None.
 
-    :param args: A variable number of arguments among which the first non-None value is to be found.
-    :type args: any
+
     :return: The first argument that is not None, or None if all arguments are None.
     :rtype: any
 

@@ -13,7 +13,6 @@ def get_hash(data):
     """
     Generate SHA-1 hash for the given data.
 
-    :param data: Data in bytes
     :return: SHA-1 hash of the data
     :rtype: str
     """
@@ -29,12 +28,11 @@ def image_to_base64(image_source, is_url=True, return_hash=False):
     """
     Convert an image from a URL or file path to a Base64 string, optionally returning its SHA-1 hash.
 
-    :param image_source: URL or file path of the image
-    :type image_source: str
-    :param is_url: Flag indicating if the image_source is a URL, defaults to True
-    :type is_url: bool, optional
-    :param return_hash: Flag indicating if the SHA-1 hash of the image should be returned, defaults to False
-    :type return_hash: bool, optional
+
+
+
+
+
     :return: Base64 encoded string of the image and optionally the SHA-1 hash in order
     :rtype: str | tuple(str, str)
     """
@@ -62,8 +60,7 @@ def validate_base64(b64_string):
     """
     Validate a Base64 encoded string.
 
-    :param b64_string: Base64 encoded string
-    :type b64_string: str
+
     :return: True if the string is a valid Base64 encoded string, False otherwise
     :rtype: bool
     """
