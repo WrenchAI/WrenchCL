@@ -1,5 +1,5 @@
 """WrenchCL - Core functionality always available."""
-from .cLogger import cLogger
+from ._Internal import cLogger
 
 # noinspection PyUnusedFunction,PySameParameterValue
 logger: cLogger = cLogger()
