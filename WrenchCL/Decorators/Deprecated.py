@@ -15,7 +15,6 @@ def Deprecated(message: str = None):
     The warning message indicates that the function is no longer recommended for use and may be
     altered or removed in the future.
 
-    :param message: Optional text to specify additional information about the deprecation. If not
         provided, a default message will be used.
     :return: A decorator that when applied to a function, wraps it with the deprecation warning behavior.
     """

@@ -29,14 +29,13 @@ def Retryable(_func=None, *, max_retries=2, retry_on_exceptions=None, delay=2, v
     retries the function up to `max_retries` times, and logs warnings and errors based on verbosity. If the maximum number of retries is reached,
     it raises the last caught exception.
 
-    :param max_retries: The maximum number of retries before giving up. Default is 5.
-    :type max_retries: int
-    :param retry_on_exceptions: A tuple of exception classes to retry on. If None, retries on all exceptions.
-    :type retry_on_exceptions: tuple
-    :param delay: The delay in seconds between retries. Default is 2.
-    :type delay: int
-    :param verbose: If True, logs warnings and errors; if False, logs only errors.
-    :type verbose: bool
+
+
+
+
+
+
+
 
     :return: The result of the decorated function, if it succeeds within the allowed retries.
     """
@@ -48,7 +47,7 @@ def Retryable(_func=None, *, max_retries=2, retry_on_exceptions=None, delay=2, v
     def log_message(level, message):
         if verbose:
             if level == "warning":
-                logger._internal_log(message)
+                logger._internal.log_internal(message)
             elif level == "error":
                 logger.error(message)
         else:

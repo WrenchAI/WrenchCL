@@ -1,9 +1,8 @@
-from ..Exceptions._internal import _SingletonViolationException as SvE
-
-
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
+from ..Exceptions._internal import _SingletonViolationException
+
 
 def SingletonClass(cls: type) -> type:
     """
@@ -12,13 +11,12 @@ def SingletonClass(cls: type) -> type:
     Prevents the user-defined class from defining its own `__new__`, which would
     conflict with the singleton logic.
 
-    :param cls: The class to wrap
     :return: A singleton-enforcing subclass of the original
     """
     if "__new__" in cls.__dict__:
-        raise SvE(cls)
+        raise _SingletonViolationException(cls)
     if "__cls_instance" in cls.__dict__:
-        raise SvE(cls)
+        raise _SingletonViolationException(cls)
 
     class SingletonWrapper(cls):
         __cls_instance = None

@@ -17,9 +17,6 @@ def Synchronized(lock: threading.Lock) -> Callable[[Callable[..., Any]], Callabl
     The `synchronized` decorator can be applied to any method that requires thread-safe execution. It uses a threading
     lock to ensure that only one thread can execute the decorated method at any given time.
 
-    :param lock: A threading.Lock object used to lock the method. If no lock is provided, a ValueError is raised.
-    :type lock: threading.Lock
-    :raises ValueError: If the lock is not provided or is None.
     :returns: A decorator that wraps the target method with lock acquisition and release.
     :rtype: Callable[[Callable[..., Any]], Callable[..., Any]]
 
@@ -53,8 +50,7 @@ def Synchronized(lock: threading.Lock) -> Callable[[Callable[..., Any]], Callabl
         """
         Decorates the target method to ensure thread-safe execution using the provided lock.
 
-        :param func: The method to be decorated with thread safety.
-        :type func: function
+
         :returns: A wrapper function that acquires the lock before method execution and releases it afterward.
         :rtype: Callable[..., Any]
         """
@@ -64,8 +60,7 @@ def Synchronized(lock: threading.Lock) -> Callable[[Callable[..., Any]], Callabl
             """
             Wrapper function that executes the decorated method within a thread-safe lock.
 
-            :param args: Positional arguments for the decorated method.
-            :param kwargs: Keyword arguments for the decorated method.
+
             :returns: The result of the decorated method execution.
             :rtype: Any
             """
