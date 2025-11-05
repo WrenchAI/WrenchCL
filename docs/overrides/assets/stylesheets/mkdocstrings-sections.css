@@ -1,0 +1,22 @@
+/* ==========================================================================
+   MkDocStrings — Section Headers (Signature, Description, Groups)
+   ========================================================================== */
+
+/* --- Signature / Description Headers ------------------------------------- */
+.section-header {
+  font-weight: 600;
+  font-size: 1.05em;
+  color: var(--md-primary-fg-color);
+  margin: 1rem 0 0.5rem 0;
+  border-left: 3px solid var(--md-accent-bg-color--light);
+  padding-left: 0.75rem;
+}
+
+/* --- Group Headers (Modules / Attributes / Methods) ---------------------- */
+.doc-section-heading {
+  font-weight: 600;
+  font-size: 1.05em;
+  color: var(--md-primary-fg-color);
+  margin: 1.75rem 0 0.5rem 1rem;
+  padding-left: 0.75rem;
+}

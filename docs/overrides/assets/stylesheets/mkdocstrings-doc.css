@@ -1,0 +1,92 @@
+/* ==========================================================================
+   MkDocStrings — Documentation Object Styling
+   ========================================================================== */
+
+/* --- Base Object Blocks --------------------------------------------------- */
+.doc.doc-object {
+  margin: 2rem 0;
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+/* --- Class & Module Blocks ------------------------------------------------ */
+.doc.doc-object.doc-class,
+.doc.doc-object.doc-module {
+  margin: 2rem 0 1.5rem 0;
+  padding: 0 0 1.5rem 0;
+  border-bottom: 1px solid var(--md-accent-bg-color--light);
+  transition: border-color 0.25s ease;
+}
+
+.doc.doc-object.doc-class:hover,
+.doc.doc-object.doc-module:hover {
+  border-bottom-color: var(--md-accent-bg-color--light);
+}
+
+.doc.doc-object.doc-function .doc-function-name {
+  color: var(--md-primary-fg-color);
+  font-weight: 600;
+}
+
+
+/* --- Indentation Hierarchy ------------------------------------------------ */
+.doc.doc-object.doc-class > .doc.doc-contents.first > .doc.doc-children,
+.doc.doc-object.doc-module > .doc.doc-contents.first > .doc.doc-children {
+  margin-left: 1.25rem;
+  border-left: 2px solid var(--md-accent-bg-color--light);
+  padding-left: 1rem;
+}
+
+/* Keep deep children slightly more indented */
+.doc.doc-object.doc-class > .doc.doc-contents.first > .doc.doc-children > .doc.doc-object,
+.doc.doc-object.doc-module > .doc.doc-contents.first > .doc.doc-children > .doc.doc-object,
+.doc-signature.highlight, .doc.doc-contents.first > p{
+  margin-left: 1rem;
+  padding-left: 1rem;
+}
+
+
+/* --- Function Signature Styling ------------------------------------------ */
+.doc.doc-object.doc-function .doc-signature {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9em;
+  overflow-x: auto;
+}
+
+.doc.doc-object.doc-function .doc-signature.highlight .filename {
+  display: none !important;
+}
+
+.doc-signature.highlight > pre,
+.doc-signature.highlight > pre > code {
+
+  border-top: 1px solid var(--md-accent-bg-color--light);
+  border-bottom: 1px solid var(--md-accent-bg-color--light);
+  border-radius: 4px;
+}
+
+.doc-signature.highlight > pre > code {
+  display: block;
+  padding: 0.5rem 1rem;
+  background: var(--md-code-bg-color); /* prevents double background layer */
+}
+
+
+/* --- Headings ------------------------------------------------------------- */
+h3.doc-heading > span.doc.doc-object-name {
+  font-size: 1.05em;
+  font-weight: 600;
+  border-bottom: 1px solid var(--md-accent-bg-color--light);
+  padding-bottom: 0.25rem;
+  color: var(--md-primary-fg-color);
+  display: inline-block;
+  margin-bottom: 0.25rem;
+}
+
+/* --- Dark Mode Adjustments ----------------------------------------------- */
+[data-md-color-scheme="slate"] .doc.doc-contents.first,
+[data-md-color-scheme="slate"] .doc.doc-children {
+  border-left-color: var(--md-accent-bg-color--light);
+}
