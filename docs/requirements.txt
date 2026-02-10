@@ -18,9 +18,7 @@ click==8.2.1
     # via mkdocs
 colorama==0.4.6
     # via
-    #   click
     #   griffe
-    #   mkdocs
     #   mkdocs-material
 ghp-import==2.1.0
     # via mkdocs
@@ -114,7 +112,7 @@ six==1.17.0
     # via python-dateutil
 smmap==5.0.2
     # via gitdb
-urllib3==2.5.0
+urllib3==2.6.3
     # via requests
 watchdog==6.0.0
     # via mkdocs
