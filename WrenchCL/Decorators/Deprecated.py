@@ -26,10 +26,11 @@ def Deprecated(message: str = None):
             if key not in __depr_tracker__:
                 __depr_tracker__.add(key)
                 warnings.warn(
-                        f"{func.__module__}.{func.__name__} is deprecated {message}" or f"{func.__module__}.{func.__name__} is deprecated and may be removed in the future.",
-                        category=DeprecationWarning,
-                        stacklevel=2,
-                        )
+                    f"{func.__module__}.{func.__name__} is deprecated {message}"
+                    or f"{func.__module__}.{func.__name__} is deprecated and may be removed in the future.",
+                    category=DeprecationWarning,
+                    stacklevel=2,
+                )
             return func(*args, **kwargs)
 
         return wrapper

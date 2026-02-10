@@ -3,7 +3,7 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 import json
 import re
-from datetime import datetime, date
+from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
 from pathlib import Path
@@ -117,20 +117,22 @@ class single_quote_decoder(json.JSONDecoder):
 
     def decode(self, s, *args, **kwargs):
         # Remove everything before ```json or ```python, including the marker itself
-        s = re.sub(r'.*?```json\s*', '', s, flags=re.DOTALL)
-        s = re.sub(r'.*?```python\s*', '', s, flags=re.DOTALL)
+        s = re.sub(r".*?```json\s*", "", s, flags=re.DOTALL)
+        s = re.sub(r".*?```python\s*", "", s, flags=re.DOTALL)
 
         # Remove trailing Markdown block marker
-        s = re.sub(r'\s*```', '', s)
+        s = re.sub(r"\s*```", "", s)
 
         # Replace single quotes around keys and values with double quotes
         s = re.sub(r"(?<!\\)'(\w+)'", r'"\1"', s)  # Replace single quotes around keys
 
         # Replace single quotes around string values with double quotes, considering the context
-        s = re.sub(r'(?<!\\)\'([^\']*?)\'', r'"\1"', s)  # Replace single quotes around values
+        s = re.sub(r"(?<!\\)\'([^\']*?)\'", r'"\1"', s)  # Replace single quotes around values
 
         # Properly handle escaped double quotes within string values
-        s = re.sub(r'(?<!\\)"([^\"]*?)(?<!\\)"', lambda match: match.group(0).replace('"', '\\"'), s)
+        s = re.sub(
+            r'(?<!\\)"([^\"]*?)(?<!\\)"', lambda match: match.group(0).replace('"', '\\"'), s
+        )
 
         s = s.replace("\\'", "'")  # Fixes escaped single quotes
         s = s.replace('\\"', '"')  # Fixes double quotes within string values

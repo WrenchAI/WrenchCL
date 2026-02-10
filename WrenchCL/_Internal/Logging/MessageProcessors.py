@@ -9,8 +9,13 @@ if TYPE_CHECKING:
     from .LoggerConfigState import LoggerConfigState
 
 from .DataClasses import LogLevel, logLevels
-from .MarkupHandlers import highlight_literals, highlight_data, highlight_literals_json, add_data_markers
 from .logging_utils import ensure_str, suggest_exception
+from .MarkupHandlers import (
+    add_data_markers,
+    highlight_data,
+    highlight_literals,
+    highlight_literals_json,
+)
 
 
 class MarkupProcessor:
@@ -19,9 +24,14 @@ class MarkupProcessor:
     def __init__(self, color_service):
         self.color_service = color_service
 
-    def process_message_markup(self, msg: str, config_state: "LoggerConfigState", no_color: bool = False) -> str:
+    def process_message_markup(
+        self, msg: str, config_state: "LoggerConfigState", no_color: bool = False
+    ) -> str:
         """Apply markup to message based on configuration."""
-        if not config_state.should_markup(force_override=not no_color) or not config_state.highlight_syntax:
+        if (
+            not config_state.should_markup(force_override=not no_color)
+            or not config_state.highlight_syntax
+        ):
             return msg
 
         presets = self.color_service.get_current_presets()
@@ -44,9 +54,13 @@ class MessageProcessor:
         self.markup_processor = markup_processor
 
     def process_log_message(
-            self, level: LogLevel, args: tuple, config_state,
-            header: Optional[str] = None, no_color: bool = False
-            ) -> tuple:
+        self,
+        level: LogLevel,
+        args: tuple,
+        config_state,
+        header: Optional[str] = None,
+        no_color: bool = False,
+    ) -> tuple:
         """
         Process a log message with all formatting, markup, and special handling.
         Returns (processed_message, exc_info)
@@ -70,47 +84,45 @@ class MessageProcessor:
                 processed_args.append(suggestion)
 
         # Join message
-        msg = '\n'.join(str(arg) for arg in processed_args)
+        msg = "\n".join(str(arg) for arg in processed_args)
         # Apply markup
-        if str(level) not in ['INTERNAL', 'DEBUG']:
+        if str(level) not in ["INTERNAL", "DEBUG"]:
             msg = self.markup_processor.process_message_markup(msg, config_state, no_color=no_color)
 
         # Add header if needed
         if header and config_state.should_markup(force_override=not no_color):
             header_str = self.create_header(
-                    header, level=level,
-                    compact=config_state.is_compact_header_mode
-                    )
+                header, level=level, compact=config_state.is_compact_header_mode
+            )
             msg = f"{header_str}\n{msg}"
 
         # Format message based on config
         if config_state.single_line_mode:
             lines = msg.splitlines()
-            msg = ' '.join([line.strip() for line in lines if len(line.strip()) > 0])
-            msg = msg.replace('\n', ' ').replace('\r', '').strip()
-        elif exc_info or level == 'DATA':
+            msg = " ".join([line.strip() for line in lines if len(line.strip()) > 0])
+            msg = msg.replace("\n", " ").replace("\r", "").strip()
+        elif exc_info or level == "DATA":
             presets = self.color_service.get_current_presets()
             # noinspection PyTypeChecker
             msg = add_data_markers(msg, presets, level, True)
 
         # Final message formatting
-        if len(msg.strip().splitlines()) > 1 and not msg.startswith('\n'):
-            msg = '\n' + msg
+        if len(msg.strip().splitlines()) > 1 and not msg.startswith("\n"):
+            msg = "\n" + msg
 
         return msg, exc_info
 
     def create_header(
-            self, text: str, level: logLevels = 'HEADER', size: int = None,
-            compact: bool = False
-            ) -> Optional[str]:
+        self, text: str, level: logLevels = "HEADER", size: int = None, compact: bool = False
+    ) -> Optional[str]:
         """Create a formatted header."""
         if not level:
-            level = 'HEADER'
+            level = "HEADER"
 
         level = LogLevel(level)
         presets = self.color_service.get_current_presets()
         color = presets.get_color_by_level(level)
-        text = text.replace('_', ' ').replace('-', ' ').strip().upper()
+        text = text.replace("_", " ").replace("-", " ").strip().upper()
         char = "─"
         size = size or (40 if compact else 80)
 

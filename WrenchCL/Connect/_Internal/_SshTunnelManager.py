@@ -35,9 +35,9 @@ class _SshTunnelManager:
 
         safe_config = {k: mask(v) if k == "PGPASSWORD" else v for k, v in self.config.items()}
         safe_ssh_config = {
-                k: mask(v) if k in {"SSH_PASSWORD", "SSH_KEY_PATH"} else v
-                for k, v in self.ssh_config.items()
-                }
+            k: mask(v) if k in {"SSH_PASSWORD", "SSH_KEY_PATH"} else v
+            for k, v in self.ssh_config.items()
+        }
 
         logger._internal.log_internal(f"SSH Tunnel Manager initialized with config: {safe_config}")
         logger._internal.log_internal(f"SSH-specific configuration: {safe_ssh_config}")
@@ -60,17 +60,17 @@ class _SshTunnelManager:
 
         """
         logger._internal.log_internal(
-                f"Starting SSH tunnel to {self.ssh_config['SSH_SERVER']}:{self.ssh_config['SSH_PORT']} "
-                f"as user {self.ssh_config['SSH_USER']}"
-                )
+            f"Starting SSH tunnel to {self.ssh_config['SSH_SERVER']}:{self.ssh_config['SSH_PORT']} "
+            f"as user {self.ssh_config['SSH_USER']}"
+        )
 
         self.tunnel = SSHTunnelForwarder(
-                ssh_address_or_host=(self.ssh_config["SSH_SERVER"], self.ssh_config["SSH_PORT"]),
-                ssh_username=self.ssh_config["SSH_USER"],
-                ssh_password=self.ssh_config.get("SSH_PASSWORD"),
-                ssh_pkey=self.ssh_config.get("SSH_KEY_PATH"),
-                remote_bind_address=(self.config["PGHOST"], self.config["PGPORT"])
-                )
+            ssh_address_or_host=(self.ssh_config["SSH_SERVER"], self.ssh_config["SSH_PORT"]),
+            ssh_username=self.ssh_config["SSH_USER"],
+            ssh_password=self.ssh_config.get("SSH_PASSWORD"),
+            ssh_pkey=self.ssh_config.get("SSH_KEY_PATH"),
+            remote_bind_address=(self.config["PGHOST"], self.config["PGPORT"]),
+        )
 
         try:
             self.tunnel.start()
@@ -78,7 +78,9 @@ class _SshTunnelManager:
             logger.error(f"Failed to start SSH tunnel: {e}")
             raise
 
-        logger._internal.log_internal(f"SSH tunnel active at 127.0.0.1:{self.tunnel.local_bind_port}")
+        logger._internal.log_internal(
+            f"SSH tunnel active at 127.0.0.1:{self.tunnel.local_bind_port}"
+        )
         return "127.0.0.1", self.tunnel.local_bind_port
 
     def stop_tunnel(self):

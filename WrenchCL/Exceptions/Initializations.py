@@ -34,6 +34,11 @@ class InvalidConfigurationException(Exception):
 
     """
 
-    def __init__(self, config_name: Optional[str] = None, reason: Optional[str] = None, message: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        config_name: Optional[str] = None,
+        reason: Optional[str] = None,
+        message: Optional[str] = None,
+    ) -> None:
         msg = message or f"Configuration '{config_name}' is invalid. Reason: {reason or 'Unknown'}"
         super().__init__(msg)

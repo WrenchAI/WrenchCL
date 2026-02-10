@@ -5,21 +5,23 @@ import inspect
 import os
 import re
 from datetime import datetime
-from typing import Callable, Optional, Any
+from typing import Any, Callable, Optional
 
 
 def __set_ansi_fn() -> Callable:
-    _ansi_re = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    _ansi_re = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
     def strip_ansi(text: str) -> str:
-        return _ansi_re.sub('', text)
+        return _ansi_re.sub("", text)
 
     try:
         from ansi2txt import Ansi2Text
+
         _ansi = Ansi2Text()
 
         def strip_ansi(text: str) -> str:
             return _ansi.convert(text)
+
     except Exception:
         pass
     return strip_ansi
@@ -39,7 +41,11 @@ def ensure_str(val: bytes | str) -> Any:
 def get_depth(internal=False) -> int:
     """Get stack depth to determine log source."""
     for i, frame in enumerate(inspect.stack()):
-        if frame.filename.endswith("cLogger.py") or 'WrenchCL' in frame.filename or frame.filename == '<string>':
+        if (
+            frame.filename.endswith("cLogger.py")
+            or "WrenchCL" in frame.filename
+            or frame.filename == "<string>"
+        ):
             if internal:
                 return i + 2
             else:
@@ -52,7 +58,7 @@ def get_depth(internal=False) -> int:
 def suggest_exception(args) -> Optional[str]:
     """Generate improvement suggestions for certain exceptions."""
     suggestion = None
-    if not hasattr(args, '__iter__') and args is not None:
+    if not hasattr(args, "__iter__") and args is not None:
         args = [args]
     else:
         return suggestion
@@ -60,8 +66,9 @@ def suggest_exception(args) -> Optional[str]:
     for a in args:
         if isinstance(a, Exception) or isinstance(a, BaseException):
             ex = a
-            if hasattr(ex, 'args') and ex.args and isinstance(ex.args[0], str):
+            if hasattr(ex, "args") and ex.args and isinstance(ex.args[0], str):
                 from ...Exceptions.ExceptionSuggestor import ExceptionSuggestor
+
                 suggestion = ExceptionSuggestor.suggest(ex)
             break
     return suggestion

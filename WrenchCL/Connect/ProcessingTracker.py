@@ -7,14 +7,14 @@ import threading
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Optional, Literal
-
-from typing_extensions import TYPE_CHECKING
+from typing import Literal, Optional
 
 from Connect import AwsClientHub
 from Decorators import SingletonClass
-from ..Types.TTLSet import TTLSet
+from typing_extensions import TYPE_CHECKING
+
 from .. import logger
+from ..Types.TTLSet import TTLSet
 
 if TYPE_CHECKING:
     from mypy_boto3_rds import RDSClient
@@ -97,9 +97,9 @@ class ProcessingEvent:
         Raises:
             ValueError: If a required field is missing or invalid.
         """
-        for field in self._required_fields:
-            if getattr(self, field) in (None, ""):
-                raise ValueError(f"Missing required field: {field}")
+        for f in self._required_fields:
+            if getattr(self, f) in (None, ""):
+                raise ValueError(f"Missing required field: {f}")
         self.check_status()
 
     def check_status(self):
@@ -163,7 +163,9 @@ class ProcessingTracker:
     _finished_job_ids = TTLSet(ttl=600)
     _failed_job_ids = TTLSet(ttl=600)
 
-    def __init__(self, service_name: str, processor_name: str, sql_client: Optional["RDSClient"] = None):
+    def __init__(
+        self, service_name: str, processor_name: str, sql_client: Optional["RDSClient"] = None
+    ):
         """
         Initialize a ProcessingTracker instance for a given service/processor.
 
@@ -226,7 +228,9 @@ class ProcessingTracker:
     # -----------------------------------------------------------------------
     # Event lifecycle
     # -----------------------------------------------------------------------
-    def start_event(self, reference: str, event: dict, input_rows: Optional[int] = None) -> Optional[str]:
+    def start_event(
+        self, reference: str, event: dict, input_rows: Optional[int] = None
+    ) -> Optional[str]:
         """
         Start a new processing event and insert it into Postgres.
 
@@ -326,7 +330,9 @@ class ProcessingTracker:
             else:
                 self._failed_job_ids.add(evt.processing_id)
         else:
-            logger._internal.log_internal(f"[ProcessingTracker] Failed to persist end_event for {processing_id}")
+            logger._internal.log_internal(
+                f"[ProcessingTracker] Failed to persist end_event for {processing_id}"
+            )
         return ok
 
     def _store_status_update(self, evt: ProcessingEvent) -> bool:
@@ -377,7 +383,9 @@ class ProcessingTracker:
                     return evt.processing_id
         return None
 
-    def get_event(self, id_value: str, id_type: Literal["processing_id", "reference"] = "processing_id"):
+    def get_event(
+        self, id_value: str, id_type: Literal["processing_id", "reference"] = "processing_id"
+    ):
         """
         Retrieve an event object by ID or reference.
 
@@ -411,9 +419,13 @@ class ProcessingTracker:
             return evt
 
         if processing_id in self._finished_job_ids:
-            logger._internal.log_internal(f"[ProcessingTracker] Processing ID {processing_id} is finished")
+            logger._internal.log_internal(
+                f"[ProcessingTracker] Processing ID {processing_id} is finished"
+            )
         elif processing_id in self._failed_job_ids:
-            logger._internal.log_internal(f"[ProcessingTracker] Processing ID {processing_id} has failed")
+            logger._internal.log_internal(
+                f"[ProcessingTracker] Processing ID {processing_id} has failed"
+            )
         else:
             logger.error(f"[ProcessingTracker] Cannot find processing ID: {processing_id}")
         return None
@@ -460,7 +472,9 @@ class ProcessingTracker:
                 cursor.execute(query, (processing_id,))
                 result = cursor.fetchone()
             if not result:
-                logger._internal.log_internal(f"[ProcessingTracker] No processing event found for ID {processing_id}")
+                logger._internal.log_internal(
+                    f"[ProcessingTracker] No processing event found for ID {processing_id}"
+                )
                 return None
             return ProcessingEvent(*result)
         except Exception as e:
@@ -493,8 +507,12 @@ class ProcessingTracker:
                 result = cursor.fetchone()
             if result:
                 return result[0]
-            logger._internal.log_internal(f"[ProcessingTracker] No processing ID found for reference {reference}")
+            logger._internal.log_internal(
+                f"[ProcessingTracker] No processing ID found for reference {reference}"
+            )
             return None
         except Exception as e:
-            logger._internal.log_internal(f"[ProcessingTracker] Error fetching ID by reference: {e}")
+            logger._internal.log_internal(
+                f"[ProcessingTracker] Error fetching ID by reference: {e}"
+            )
             return None

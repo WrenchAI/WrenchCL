@@ -6,7 +6,7 @@ import logging
 import sys
 import threading
 from io import TextIOBase
-from typing import List, Dict, Optional, Type, Literal
+from typing import Dict, List, Literal, Optional, Type
 
 from typing_extensions import TYPE_CHECKING
 
@@ -41,26 +41,26 @@ class GlobalLoggerManager:
 
     # ---------- 1) Wire the root logger to WrenchCL formatters ----------
     def attach_global_stream(
-            self,
-            level: logLevels,
-            stream=sys.stdout,
-            *,
-            silence_others: bool = False,
-            exclude_loggers: Optional[List[str]] = None,
-            config_state=None,
-            env_metadata=None,
-            ) -> None:
+        self,
+        level: logLevels,
+        stream=sys.stdout,
+        *,
+        silence_others: bool = False,
+        exclude_loggers: Optional[List[str]] = None,
+        config_state=None,
+        env_metadata=None,
+    ) -> None:
         with self._lock:
             self.handler_manager.flush_all_handlers()
             root_logger = logging.getLogger()
             root_logger.setLevel(level or "INFO")
 
             formatter = self.formatter_factory.create_formatter(
-                    level=level,
-                    config_state=config_state,
-                    env_metadata=env_metadata,
-                    global_stream_configured=True,
-                    )
+                level=level,
+                config_state=config_state,
+                env_metadata=env_metadata,
+                global_stream_configured=True,
+            )
 
             handler = logging.StreamHandler(stream)
             handler.setLevel(level or "INFO")
@@ -82,11 +82,11 @@ class GlobalLoggerManager:
 
     # ---------- 2) Install exception interception & select suppression ----------
     def configure_interception(
-            self,
-            *,
-            install_hooks: bool = True,
-            std_stream_mode: StdStreamMode = StdStreamMode.NONE,
-            ) -> None:
+        self,
+        *,
+        install_hooks: bool = True,
+        std_stream_mode: StdStreamMode = StdStreamMode.NONE,
+    ) -> None:
         with self._lock:
             root_logger = logging.getLogger()
             if install_hooks and not self._hooks_installed:
@@ -97,9 +97,9 @@ class GlobalLoggerManager:
             self._apply_std_stream_suppression(std_stream_mode)
 
             root_logger.debug(
-                    f"Interception configured. hooks_installed={self._hooks_installed}, "
-                    f"std_stream_mode={self._suppression_mode.value}"
-                    )
+                f"Interception configured. hooks_installed={self._hooks_installed}, "
+                f"std_stream_mode={self._suppression_mode.value}"
+            )
 
     # ---------- 3) Fine control for stream suppression (can be called independently) ----------
     def suppress_std_streams(self, mode: StdStreamMode) -> None:
@@ -107,7 +107,7 @@ class GlobalLoggerManager:
             self._apply_std_stream_suppression(mode)
 
     # ---------- selective logger controls (unchanged logic) ----------
-    def set_named_logger_level(self, logger_name: str, level: logLevels = 'INFO') -> None:
+    def set_named_logger_level(self, logger_name: str, level: logLevels = "INFO") -> None:
         level = LogLevel(level)
         with self._lock:
             loggers = logging.root.manager.loggerDict
@@ -134,7 +134,7 @@ class GlobalLoggerManager:
         level = logging.CRITICAL + 1
         self.set_named_logger_level(logger_name, level)
 
-    def silence_other_loggers(self, exclude_logger: str = 'WrenchCL') -> None:
+    def silence_other_loggers(self, exclude_logger: str = "WrenchCL") -> None:
         silenced_count = 0
         for name in logging.root.manager.loggerDict:
             if name != exclude_logger:
@@ -157,11 +157,11 @@ class GlobalLoggerManager:
                 if isinstance(h, logging.NullHandler):
                     continue
                 fmt = self.formatter_factory.create_formatter(
-                        level=config_state.level,  # used for record decoration only
-                        config_state=config_state,
-                        env_metadata=env_metadata,
-                        global_stream_configured=True,
-                        )
+                    level=config_state.level,  # used for record decoration only
+                    config_state=config_state,
+                    env_metadata=env_metadata,
+                    global_stream_configured=True,
+                )
                 h.setFormatter(fmt)
 
     def set_root_level(self, level: "logLevels") -> None:
@@ -180,9 +180,10 @@ class GlobalLoggerManager:
     @staticmethod
     def get_active_loggers() -> List[str]:
         return [
-                name for name in logging.root.manager.loggerDict
-                if isinstance(logging.getLogger(name), logging.Logger)
-                ]
+            name
+            for name in logging.root.manager.loggerDict
+            if isinstance(logging.getLogger(name), logging.Logger)
+        ]
 
     @staticmethod
     def get_logger_info() -> Dict[str, Dict]:
@@ -191,12 +192,12 @@ class GlobalLoggerManager:
             logger = logging.getLogger(name)
             if isinstance(logger, logging.Logger):
                 info[name] = {
-                        'level': logger.level,
-                        'level_name': logging.getLevelName(logger.level),
-                        'handlers': [type(h).__name__ for h in logger.handlers],
-                        'propagate': logger.propagate,
-                        'disabled': logger.disabled
-                        }
+                    "level": logger.level,
+                    "level_name": logging.getLevelName(logger.level),
+                    "handlers": [type(h).__name__ for h in logger.handlers],
+                    "propagate": logger.propagate,
+                    "disabled": logger.disabled,
+                }
         return info
 
     def cleanup_global_handlers(self):
@@ -223,9 +224,9 @@ class GlobalLoggerManager:
 
         def handle_thread(args: threading.ExceptHookArgs):
             root_logger.error(
-                    f"Unhandled thread exception in {args.thread.name}",
-                    exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
-                    )
+                f"Unhandled thread exception in {args.thread.name}",
+                exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
+            )
 
         def handle_async(loop, context):
             exc = context.get("exception")
@@ -236,6 +237,7 @@ class GlobalLoggerManager:
         threading.excepthook = handle_thread
         try:
             import asyncio
+
             loop = asyncio.get_event_loop()
             loop.set_exception_handler(handle_async)
         except RuntimeError:
@@ -259,13 +261,17 @@ class GlobalLoggerManager:
             return
 
         class _NullStream:
-            def write(self, *_a, **_kw): return 0
+            def write(self, *_a, **_kw):
+                return 0
 
-            def flush(self): return 0
+            def flush(self):
+                return 0
 
-            def isatty(self): return False
+            def isatty(self):
+                return False
 
-            def writelines(self, *_a, **_kw): return 0
+            def writelines(self, *_a, **_kw):
+                return 0
 
         self._saved_streams = (sys.stdout, sys.stderr, sys.__stdout__, sys.__stderr__)
         null_stream = _NullStream()
@@ -285,22 +291,23 @@ class GlobalLoggerManager:
     def _log_global_stream_status(self, root_logger):
         active_loggers = self.get_active_loggers()
         handler_count = len(root_logger.handlers)
-        root_loggers = sorted({v.split('.')[0] for v in active_loggers})
+        root_loggers = sorted({v.split(".")[0] for v in active_loggers})
         if len(root_loggers) > 10:
-            joined_loggers = ', '.join(root_loggers[:10]) + f'...<{len(root_loggers) - 10} more>'
+            joined_loggers = ", ".join(root_loggers[:10]) + f"...<{len(root_loggers) - 10} more>"
         else:
-            joined_loggers = ', '.join(root_loggers)
+            joined_loggers = ", ".join(root_loggers)
         self.internal_logger(
-                f"✅ Global stream attached to root with {handler_count} handler(s).\n"
-                f"🔎 Active loggers: {len(active_loggers)}\n"
-                f"📝 Roots: {joined_loggers}"
-                )
+            f"✅ Global stream attached to root with {handler_count} handler(s).\n"
+            f"🔎 Active loggers: {len(active_loggers)}\n"
+            f"📝 Roots: {joined_loggers}"
+        )
         self.internal_logger("Global stream configured successfully.")
 
     def _log_logger_not_found(self, logger_name: str, name_map: Dict[str, str]) -> None:
         """Internal diagnostic when a target logger isn't found. Never raises."""
         try:
             from difflib import get_close_matches
+
             keys = list(name_map.keys())
             matches = get_close_matches(logger_name.lower(), keys, n=1, cutoff=0.6)
             hint = f" Did you mean '{name_map[matches[0]]}'?" if matches else ""
@@ -321,17 +328,17 @@ class HandlerManager:
 
     # HandlerManager.add_handler
     def add_handler(
-            self,
-            handler_cls: Type[logging.Handler],
-            config_state: "LoggerConfigState",
-            stream: Optional[TextIOBase] = None,
-            level: logLevels = None,
-            force_replace: bool = False,
-            base_level: str = 'INFO',
-            formatter: Optional[logging.Formatter] = None,
-            *,
-            owned: bool = True,  # <-- NEW
-            ) -> logging.Handler:
+        self,
+        handler_cls: Type[logging.Handler],
+        config_state: "LoggerConfigState",
+        stream: Optional[TextIOBase] = None,
+        level: logLevels = None,
+        force_replace: bool = False,
+        base_level: str = "INFO",
+        formatter: Optional[logging.Formatter] = None,
+        *,
+        owned: bool = True,  # <-- NEW
+    ) -> logging.Handler:
         with self._lock:
             eff_level = level or base_level
 
@@ -360,26 +367,26 @@ class HandlerManager:
             return handler
 
     def add_file_handler(
-            self,
-            filename: str,
-            config: "LoggerConfigState",
-            max_bytes: int = 10485760,  # 10MB default
-            backup_count: int = 5,
-            level: logLevels = None,
-            formatter: Optional[logging.Formatter] = None,
-            base_level: str = 'INFO'
-            ) -> Optional[logging.Handler]:
+        self,
+        filename: str,
+        config: "LoggerConfigState",
+        max_bytes: int = 10485760,  # 10MB default
+        backup_count: int = 5,
+        level: logLevels = None,
+        formatter: Optional[logging.Formatter] = None,
+        base_level: str = "INFO",
+    ) -> Optional[logging.Handler]:
         """Add a rotating file handler."""
         from logging.handlers import RotatingFileHandler
 
         with self._lock:
             handler = RotatingFileHandler(
-                    filename=filename,
-                    maxBytes=max_bytes,
-                    backupCount=backup_count,
-                    delay=True,
-                    encoding="utf-8"
-                    )
+                filename=filename,
+                maxBytes=max_bytes,
+                backupCount=backup_count,
+                delay=True,
+                encoding="utf-8",
+            )
             level = level or base_level
             handler.setLevel(level)
 
@@ -400,9 +407,8 @@ class HandlerManager:
                     pass
 
     def update_all_formatters(
-            self, config_state, env_metadata: Dict,
-            global_stream_configured: bool = False
-            ):
+        self, config_state, env_metadata: Dict, global_stream_configured: bool = False
+    ):
         """Update formatters for all handlers based on new config."""
         with self._lock:
             for handler in self.logger_instance.handlers:
@@ -410,30 +416,34 @@ class HandlerManager:
                     continue
                 if getattr(handler, "_wrench_preserve_formatter", False):
                     continue
-                owned = bool(getattr(handler, "_wrench_owned", False) or getattr(handler, "_wrench_adopted", False))
+                owned = bool(
+                    getattr(handler, "_wrench_owned", False)
+                    or getattr(handler, "_wrench_adopted", False)
+                )
                 if not owned:
                     continue
 
                 level_name = logging.getLevelName(handler.level)
                 base_fmt = self.formatter_factory.create_formatter(
-                        level=level_name,
-                        config_state=config_state,
-                        env_metadata=env_metadata,
-                        global_stream_configured=global_stream_configured,
-                        )
+                    level=level_name,
+                    config_state=config_state,
+                    env_metadata=env_metadata,
+                    global_stream_configured=global_stream_configured,
+                )
 
                 from .Formatters import FileLogFormatter
+
                 if isinstance(handler.formatter, FileLogFormatter):
                     handler.setFormatter(FileLogFormatter(base_fmt))
                 else:
                     handler.setFormatter(base_fmt)
 
     def update_handler_levels(
-            self,
-            level: LogLevel,
-            *,
-            scope: Literal['owned', 'others', 'all'] = 'owned',
-            ) -> None:
+        self,
+        level: LogLevel,
+        *,
+        scope: Literal["owned", "others", "all"] = "owned",
+    ) -> None:
         """
         Update handler levels on the WrenchCL logger instance.
 
@@ -445,9 +455,9 @@ class HandlerManager:
             target_level = logging.getLevelName(int(level))
             for h in self.logger_instance.handlers:
                 owned = bool(getattr(h, "_wrench_owned", False))
-                if scope == 'owned' and not owned:
+                if scope == "owned" and not owned:
                     continue
-                if scope == 'others' and owned:
+                if scope == "others" and owned:
                     continue
                 h.setLevel(target_level)
 
@@ -466,8 +476,8 @@ class HandlerManager:
         """Get information about all attached handlers."""
         return_dict = {}
         for handler in self.logger_instance.handlers:
-            return_dict[getattr(handler, 'name', type(handler).__name__)] = {
-                    'level': handler.level,
-                    'type': type(handler).__name__
-                    }
+            return_dict[getattr(handler, "name", type(handler).__name__)] = {
+                "level": handler.level,
+                "type": type(handler).__name__,
+            }
         return return_dict

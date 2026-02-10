@@ -3,7 +3,7 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 import logging
 
-from .DataClasses import logLevels, LogLevel
+from .DataClasses import LogLevel, logLevels
 
 
 class MockColorama:
@@ -15,6 +15,7 @@ class ColorPresets:
     Provides color presets for common log use-cases.
     Falls back to mock colors if colorama isn't installed.
     """
+
     _color_class = MockColorama
     _style_class = MockColorama
     INFO = None
@@ -50,48 +51,52 @@ class ColorPresets:
     _INTERNAL_DIM_STYLE = None
 
     def __init__(self, color, style):
-        super().__setattr__('_color_class', color)
-        super().__setattr__('_style_class', style)
-        super().__setattr__('INFO', getattr(self._color_class, 'GREEN', ''))
-        super().__setattr__('DEBUG', getattr(self._color_class, 'WHITE', ''))
-        super().__setattr__('WARNING', getattr(self._color_class, 'YELLOW', ''))
-        super().__setattr__('ERROR', getattr(self._color_class, 'RED', ''))
-        super().__setattr__('CRITICAL', getattr(self._color_class, 'MAGENTA', ''))
-        super().__setattr__('HEADER', getattr(self._color_class, 'CYAN', ''))
-        super().__setattr__('DATA', getattr(self._color_class, 'BLUE', ''))
+        super().__setattr__("_color_class", color)
+        super().__setattr__("_style_class", style)
+        super().__setattr__("INFO", getattr(self._color_class, "GREEN", ""))
+        super().__setattr__("DEBUG", getattr(self._color_class, "WHITE", ""))
+        super().__setattr__("WARNING", getattr(self._color_class, "YELLOW", ""))
+        super().__setattr__("ERROR", getattr(self._color_class, "RED", ""))
+        super().__setattr__("CRITICAL", getattr(self._color_class, "MAGENTA", ""))
+        super().__setattr__("HEADER", getattr(self._color_class, "CYAN", ""))
+        super().__setattr__("DATA", getattr(self._color_class, "BLUE", ""))
 
-        super().__setattr__('BRIGHT', getattr(self._style_class, 'BRIGHT', ''))
-        super().__setattr__('NORMAL', getattr(self._style_class, 'NORMAL', ''))
-        super().__setattr__('RESET', getattr(self._style_class, 'RESET_ALL', ''))
-        super().__setattr__("RESET_FORE", getattr(self._color_class, 'RESET', ''))
+        super().__setattr__("BRIGHT", getattr(self._style_class, "BRIGHT", ""))
+        super().__setattr__("NORMAL", getattr(self._style_class, "NORMAL", ""))
+        super().__setattr__("RESET", getattr(self._style_class, "RESET_ALL", ""))
+        super().__setattr__("RESET_FORE", getattr(self._color_class, "RESET", ""))
 
         # Literal colors
-        super().__setattr__('COLOR_TRUE', getattr(self._color_class, 'GREEN', ''))
-        super().__setattr__('COLOR_FALSE', getattr(self._color_class, 'RED', ''))
-        super().__setattr__('COLOR_NONE', getattr(self._color_class, 'WHITE', ''))
-        super().__setattr__('COLOR_NUMBER', getattr(self._color_class, 'YELLOW', ''))
-        super().__setattr__('COLOR_UUID', getattr(self._color_class, 'BLUE', ''))
-        super().__setattr__('COLOR_KEY', getattr(self._color_class, 'BLUE', ''))
+        super().__setattr__("COLOR_TRUE", getattr(self._color_class, "GREEN", ""))
+        super().__setattr__("COLOR_FALSE", getattr(self._color_class, "RED", ""))
+        super().__setattr__("COLOR_NONE", getattr(self._color_class, "WHITE", ""))
+        super().__setattr__("COLOR_NUMBER", getattr(self._color_class, "YELLOW", ""))
+        super().__setattr__("COLOR_UUID", getattr(self._color_class, "BLUE", ""))
+        super().__setattr__("COLOR_KEY", getattr(self._color_class, "BLUE", ""))
 
         # Syntax colors
-        super().__setattr__('COLOR_BRACE_OPEN', getattr(self._color_class, 'CYAN', ''))  # {
-        super().__setattr__('COLOR_BRACE_CLOSE', getattr(self._color_class, 'CYAN', ''))  # }
-        super().__setattr__('COLOR_BRACKET_OPEN', getattr(self._color_class, 'CYAN', ''))  # [
-        super().__setattr__('COLOR_BRACKET_CLOSE', getattr(self._color_class, 'CYAN', ''))  # ]
-        super().__setattr__('COLOR_PAREN_OPEN', getattr(self._color_class, 'CYAN', ''))  # (
-        super().__setattr__('COLOR_PAREN_CLOSE', getattr(self._color_class, 'CYAN', ''))  # )
-        super().__setattr__('COLOR_COLON', getattr(self._color_class, 'MAGENTA', ''))  # :
-        super().__setattr__('COLOR_COMMA', getattr(self._color_class, 'MAGENTA', ''))  # ,
+        super().__setattr__("COLOR_BRACE_OPEN", getattr(self._color_class, "CYAN", ""))  # {
+        super().__setattr__("COLOR_BRACE_CLOSE", getattr(self._color_class, "CYAN", ""))  # }
+        super().__setattr__("COLOR_BRACKET_OPEN", getattr(self._color_class, "CYAN", ""))  # [
+        super().__setattr__("COLOR_BRACKET_CLOSE", getattr(self._color_class, "CYAN", ""))  # ]
+        super().__setattr__("COLOR_PAREN_OPEN", getattr(self._color_class, "CYAN", ""))  # (
+        super().__setattr__("COLOR_PAREN_CLOSE", getattr(self._color_class, "CYAN", ""))  # )
+        super().__setattr__("COLOR_COLON", getattr(self._color_class, "MAGENTA", ""))  # :
+        super().__setattr__("COLOR_COMMA", getattr(self._color_class, "MAGENTA", ""))  # ,
 
-        super().__setattr__('_INTERNAL_DIM_COLOR', getattr(self._color_class, 'WHITE', ''))
-        super().__setattr__('_INTERNAL_DIM_STYLE', getattr(self._style_class, 'DIM', ''))
+        super().__setattr__("_INTERNAL_DIM_COLOR", getattr(self._color_class, "WHITE", ""))
+        super().__setattr__("_INTERNAL_DIM_STYLE", getattr(self._style_class, "DIM", ""))
 
     def __setattr__(self, name, value):
-        allowed_color_values = [val.lower() for val in self._color_class.__dict__.values() if val != 'RESET']
-        allowed_style_values = [val.lower() for val in self._style_class.__dict__.values() if val != 'RESET_ALL']
-        allowed_names = [val.lower() for val in self.__dict__.keys() if val != 'RESET']
+        allowed_color_values = [
+            val.lower() for val in self._color_class.__dict__.values() if val != "RESET"
+        ]
+        allowed_style_values = [
+            val.lower() for val in self._style_class.__dict__.values() if val != "RESET_ALL"
+        ]
+        allowed_names = [val.lower() for val in self.__dict__.keys() if val != "RESET"]
 
-        if not name.lower() in allowed_names:
+        if name.lower() not in allowed_names:
             raise ValueError(f"Invalid name for '{name}': {name}. Allowed names: {allowed_names}")
 
         if name.lower() in allowed_color_values:
@@ -100,24 +105,25 @@ class ColorPresets:
             value = getattr(self._style_class, value.upper())
         else:
             raise ValueError(
-                    f"Invalid value for '{name}': {value}. Allowed values: {allowed_color_values + allowed_style_values}")
+                f"Invalid value for '{name}': {value}. Allowed values: {allowed_color_values + allowed_style_values}"
+            )
 
         name = name.upper()
         super().__setattr__(name, value)
 
     def get_color_by_level(self, level: logLevels):
         level = LogLevel(level)
-        if level == 'INTERNAL':
+        if level == "INTERNAL":
             return self._INTERNAL_DIM_COLOR
-        return getattr(self, level, '')
+        return getattr(self, level, "")
 
     def get_level_style(self, level: logLevels):
         level = LogLevel(level)
-        if level in ['INFO', 'DEBUG']:
+        if level in ["INFO", "DEBUG"]:
             return self.NORMAL
-        elif level in ['WARNING', 'ERROR', 'CRITICAL', 'HEADER']:
+        elif level in ["WARNING", "ERROR", "CRITICAL", "HEADER"]:
             return self.BRIGHT
-        elif level == 'INTERNAL':
+        elif level == "INTERNAL":
             return self._INTERNAL_DIM_STYLE
         else:
             return self.NORMAL
@@ -128,10 +134,10 @@ class ColorPresets:
             str_name = logging.getLevelName(level)
         else:
             str_name = level.upper()
-        if str_name in ['CRITICAL', 'ERROR']:
-            return getattr(self, str_name, '')
+        if str_name in ["CRITICAL", "ERROR"]:
+            return getattr(self, str_name, "")
         else:
-            return ''
+            return ""
 
     def update(self, **kwargs):
         for key, value in kwargs.items():
@@ -151,6 +157,7 @@ class ColorService:
         """Enable colors and return active presets."""
         try:
             import colorama
+
             self._color_class = colorama.Fore
             self._style_class = colorama.Style
             self.presets = ColorPresets(self._color_class, self._style_class)
@@ -167,6 +174,7 @@ class ColorService:
         self.presets = ColorPresets(self._color_class, self._style_class)
         try:
             import colorama
+
             colorama.deinit()
         except ImportError:
             pass

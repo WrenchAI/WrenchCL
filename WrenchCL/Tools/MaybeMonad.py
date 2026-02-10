@@ -56,6 +56,7 @@ class Maybe:
         :returns: A callable or the attribute value, wrapped in a Maybe instance if chaining.
         """
         if Maybe._is_builtin_function(name):
+
             def wrapped_builtin_function(*args, **kwargs):
                 if self.value is None:
                     return self._forward_chain(None, True)
@@ -70,6 +71,7 @@ class Maybe:
 
             return wrapped_builtin_function
         else:
+
             def method(*args, **kwargs):
                 if self.value is None:
                     return self._forward_chain(None, True)

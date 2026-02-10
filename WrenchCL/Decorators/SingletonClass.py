@@ -27,9 +27,9 @@ def SingletonClass(cls: type) -> type:
             return cls_.__cls_instance
 
         def __init__(self, *args, **kwargs):
-            if not getattr(self, '__singleton_initialized__', False):
+            if not getattr(self, "__singleton_initialized__", False):
                 super(SingletonWrapper, self).__init__(*args, **kwargs)
-                setattr(self, '__singleton_initialized__', True)
+                setattr(self, "__singleton_initialized__", True)
 
     SingletonWrapper.__name__ = cls.__name__
     SingletonWrapper.__qualname__ = cls.__qualname__

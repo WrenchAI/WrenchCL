@@ -1,7 +1,7 @@
 #  Copyright (c) 2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
-from typing import Optional, List
+from typing import List, Optional
 
 
 class ArgumentTypeException(Exception):
@@ -36,15 +36,16 @@ class ValidationTypeException(Exception):
     """
 
     def __init__(
-            self,
-            field: Optional[str] = None,
-            expected: Optional[str] = None,
-            actual: Optional[str] = None,
-            message: Optional[str] = None
-            ) -> None:
+        self,
+        field: Optional[str] = None,
+        expected: Optional[str] = None,
+        actual: Optional[str] = None,
+        message: Optional[str] = None,
+    ) -> None:
         msg = message or (
-                f"Validation failed for field '{field}'. Expected: {expected}. Actual: {actual}."
-                if field else "Validation failed."
+            f"Validation failed for field '{field}'. Expected: {expected}. Actual: {actual}."
+            if field
+            else "Validation failed."
         )
         super().__init__(msg)
 
@@ -56,9 +57,12 @@ class InvalidPayloadException(Exception):
 
     """
 
-    def __init__(self, missing_fields: Optional[List[str]] = None, message: Optional[str] = None) -> None:
+    def __init__(
+        self, missing_fields: Optional[List[str]] = None, message: Optional[str] = None
+    ) -> None:
         msg = message or (
-                f"Payload is invalid. Missing required fields: {', '.join(missing_fields)}."
-                if missing_fields else "Payload is invalid."
+            f"Payload is invalid. Missing required fields: {', '.join(missing_fields)}."
+            if missing_fields
+            else "Payload is invalid."
         )
         super().__init__(msg)

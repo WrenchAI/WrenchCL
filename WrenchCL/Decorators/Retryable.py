@@ -11,11 +11,11 @@ from typing import TYPE_CHECKING
 import requests
 
 if TYPE_CHECKING:
-    from botocore.exceptions import ClientError, BotoCoreError
+    from botocore.exceptions import BotoCoreError, ClientError
 
 # Optional imports with fallbacks
 try:
-    from botocore.exceptions import ClientError, BotoCoreError
+    from botocore.exceptions import BotoCoreError, ClientError
 except ImportError:
     ClientError = Exception  # Fallback to base Exception
     BotoCoreError = Exception
@@ -61,14 +61,23 @@ def Retryable(_func=None, *, max_retries=2, retry_on_exceptions=None, delay=2, v
             while retry_count < max_retries:
                 try:
                     response = await func(*args, **kwargs)
-                    if hasattr(response, 'status_code') and response.status_code != 200:
+                    if hasattr(response, "status_code") and response.status_code != 200:
                         response.raise_for_status()
                     return response
-                except (JSONDecodeError, requests.exceptions.HTTPError, requests.exceptions.ConnectionError,
-                        requests.exceptions.Timeout, requests.exceptions.RequestException, ClientError,
-                        BotoCoreError) as e:
+                except (
+                    JSONDecodeError,
+                    requests.exceptions.HTTPError,
+                    requests.exceptions.ConnectionError,
+                    requests.exceptions.Timeout,
+                    requests.exceptions.RequestException,
+                    ClientError,
+                    BotoCoreError,
+                ) as e:
                     if retry_count + 1 < max_retries:
-                        log_message("warning", f"Retry {retry_count + 1}/{max_retries} failed with error: {e}")
+                        log_message(
+                            "warning",
+                            f"Retry {retry_count + 1}/{max_retries} failed with error: {e}",
+                        )
                         retry_count += 1
                         await asyncio.sleep(delay)
                     else:
@@ -76,7 +85,10 @@ def Retryable(_func=None, *, max_retries=2, retry_on_exceptions=None, delay=2, v
                         raise e
                 except retry_on_exceptions as e:
                     if retry_count + 1 < max_retries:
-                        log_message("warning", f"Retry {retry_count + 1}/{max_retries} failed with error: {e}")
+                        log_message(
+                            "warning",
+                            f"Retry {retry_count + 1}/{max_retries} failed with error: {e}",
+                        )
                         retry_count += 1
                         await asyncio.sleep(delay)
                     else:
@@ -84,11 +96,16 @@ def Retryable(_func=None, *, max_retries=2, retry_on_exceptions=None, delay=2, v
                         raise e
                 except Exception as e:
                     if retry_count + 1 < max_retries:
-                        log_message("warning", f"Retry {retry_count + 1}/{max_retries} failed with unhandled error: {e}")
+                        log_message(
+                            "warning",
+                            f"Retry {retry_count + 1}/{max_retries} failed with unhandled error: {e}",
+                        )
                         retry_count += 1
                         await asyncio.sleep(delay)
                     else:
-                        log_message("error", f"Failed after {max_retries} retries with unhandled error: {e}")
+                        log_message(
+                            "error", f"Failed after {max_retries} retries with unhandled error: {e}"
+                        )
                         raise e
 
         @wraps(func)
@@ -97,14 +114,23 @@ def Retryable(_func=None, *, max_retries=2, retry_on_exceptions=None, delay=2, v
             while retry_count < max_retries:
                 try:
                     response = func(*args, **kwargs)
-                    if hasattr(response, 'status_code') and response.status_code != 200:
+                    if hasattr(response, "status_code") and response.status_code != 200:
                         response.raise_for_status()
                     return response
-                except (JSONDecodeError, requests.exceptions.HTTPError, requests.exceptions.ConnectionError,
-                        requests.exceptions.Timeout, requests.exceptions.RequestException, ClientError,
-                        BotoCoreError) as e:
+                except (
+                    JSONDecodeError,
+                    requests.exceptions.HTTPError,
+                    requests.exceptions.ConnectionError,
+                    requests.exceptions.Timeout,
+                    requests.exceptions.RequestException,
+                    ClientError,
+                    BotoCoreError,
+                ) as e:
                     if retry_count + 1 < max_retries:
-                        log_message("warning", f"Retry {retry_count + 1}/{max_retries} failed with error: {e}")
+                        log_message(
+                            "warning",
+                            f"Retry {retry_count + 1}/{max_retries} failed with error: {e}",
+                        )
                         retry_count += 1
                         time.sleep(delay)
                     else:
@@ -112,7 +138,10 @@ def Retryable(_func=None, *, max_retries=2, retry_on_exceptions=None, delay=2, v
                         raise e
                 except retry_on_exceptions as e:
                     if retry_count + 1 < max_retries:
-                        log_message("warning", f"Retry {retry_count + 1}/{max_retries} failed with error: {e}")
+                        log_message(
+                            "warning",
+                            f"Retry {retry_count + 1}/{max_retries} failed with error: {e}",
+                        )
                         retry_count += 1
                         time.sleep(delay)
                     else:
@@ -120,11 +149,16 @@ def Retryable(_func=None, *, max_retries=2, retry_on_exceptions=None, delay=2, v
                         raise e
                 except Exception as e:
                     if retry_count + 1 < max_retries:
-                        log_message("warning", f"Retry {retry_count + 1}/{max_retries} failed with unhandled error: {e}")
+                        log_message(
+                            "warning",
+                            f"Retry {retry_count + 1}/{max_retries} failed with unhandled error: {e}",
+                        )
                         retry_count += 1
                         time.sleep(delay)
                     else:
-                        log_message("error", f"Failed after {max_retries} retries with unhandled error: {e}")
+                        log_message(
+                            "error", f"Failed after {max_retries} retries with unhandled error: {e}"
+                        )
                         raise e
 
         if asyncio.iscoroutinefunction(func):

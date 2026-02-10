@@ -10,11 +10,13 @@ from typing import Optional
 
 class _ExceptionSuggestor:
     @staticmethod
-    def suggest_similar(error: BaseException, frame_depth=20, n_suggestions=1, cutoff=0.6) -> Optional[str]:
+    def suggest_similar(
+        error: BaseException, frame_depth=20, n_suggestions=1, cutoff=0.6
+    ) -> Optional[str]:
         if not isinstance(error, BaseException):
             return None
         error_msg = error.args[0]
-        if not error.__class__.__name__.lower() in error_msg.lower():
+        if error.__class__.__name__.lower() not in error_msg.lower():
             error_msg = f"  {error.__class__.__name__}: {error_msg}"
         else:
             error_msg = f"  {error_msg}"
@@ -30,10 +32,10 @@ class _ExceptionSuggestor:
 
         for frame in reversed(inspect.stack()[:frame_depth]):
             for var in frame.frame.f_locals.values():
-                if not hasattr(var, '__class__'):
+                if not hasattr(var, "__class__"):
                     continue
                 if var.__class__.__name__ == source_obj:
-                    keys = [k for k in dir(var) if not k.startswith('__')]
+                    keys = [k for k in dir(var) if not k.startswith("__")]
                     matches = get_close_matches(missing_attr, keys, n=n_suggestions, cutoff=cutoff)
                     if matches:
                         return f"{error_msg}\n    Did you mean: {', '.join(matches)}?\n"

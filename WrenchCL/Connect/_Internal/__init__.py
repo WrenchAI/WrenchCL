@@ -9,18 +9,24 @@ try:
     import botocore
     from sshtunnel import SSHTunnelForwarder
 
+    assert SSHTunnelForwarder
+    assert botocore
+    assert boto3
+    from ._boto_cache import _fetch_secret_from_secretsmanager, _get_boto3_session, _get_s3_client
     from ._ConfigurationManager import _ConfigurationManager
     from ._SshTunnelManager import _SshTunnelManager
-    from ._boto_cache import _get_boto3_session, _fetch_secret_from_secretsmanager, _get_s3_client
 
 except ImportError as e:
     raise ImportError(
-            f"Internal AWS utilities require additional dependencies.\n"
-            f"Install with: pip install 'WrenchCL[aws]'\n"
-            f"Missing: {e}"
-            ) from e
+        f"Internal AWS utilities require additional dependencies.\n"
+        f"Install with: pip install 'WrenchCL[aws]'\n"
+        f"Missing: {e}"
+    ) from e
 
 __all__ = [
-        '_ConfigurationManager', '_SshTunnelManager',
-        '_get_boto3_session', '_fetch_secret_from_secretsmanager', '_get_s3_client'
-        ]
+    "_ConfigurationManager",
+    "_SshTunnelManager",
+    "_get_boto3_session",
+    "_fetch_secret_from_secretsmanager",
+    "_get_s3_client",
+]
