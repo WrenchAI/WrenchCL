@@ -2,27 +2,26 @@
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 from functools import lru_cache
-from typing import Optional, Any
+from typing import Any, Optional
 
 try:
-    from botocore.config import Config
     import boto3
-
+    from botocore.config import Config
 
     @lru_cache(maxsize=3)
     def _get_boto3_session(profile_name: str) -> Any:  # Use Any instead of boto3.Session
         return boto3.session.Session(profile_name=profile_name)
 
-
     @lru_cache(maxsize=6)
     def _fetch_secret_from_secretsmanager(profile: str, region: str, secret_arn: str) -> str:
-        client = _get_boto3_session(profile).client('secretsmanager', region_name=region)
-        return client.get_secret_value(SecretId=secret_arn)['SecretString']
-
+        client = _get_boto3_session(profile).client("secretsmanager", region_name=region)
+        return client.get_secret_value(SecretId=secret_arn)["SecretString"]
 
     @lru_cache(maxsize=3)
     def _get_s3_client(profile: str, region: str, config: Optional[Config] = None) -> Any:
-        client = _get_boto3_session(profile).client(service_name='s3', region_name=region, config=config)
+        client = _get_boto3_session(profile).client(
+            service_name="s3", region_name=region, config=config
+        )
         return client
 
 except ImportError:

@@ -4,7 +4,7 @@
 
 import threading
 from functools import wraps
-from typing import Callable, Any
+from typing import Any, Callable
 
 
 def Synchronized(lock: threading.Lock) -> Callable[[Callable[..., Any]], Callable[..., Any]]:

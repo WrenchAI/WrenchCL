@@ -11,7 +11,9 @@ except ImportError:
     pd = _MockPandas()
 
 
-def standardize_none(data: Any, none_like_values: set = None, evaluate_as_string: bool = False) -> Any:
+def standardize_none(
+    data: Any, none_like_values: set = None, evaluate_as_string: bool = False
+) -> Any:
     """
     Recursively standardizes mistyped None values to proper None.
         --> ('', ' ', 'null', 'none', 'nan', 'n/a', 'na', 'undefined', 'missing', 'nil', 'void', 'blank')
@@ -24,18 +26,39 @@ def standardize_none(data: Any, none_like_values: set = None, evaluate_as_string
     """
     # Default None-like values
     default_none_like_values = {
-            '', ' ', 'null', 'none', 'nan', 'n/a', 'na', 'undefined', 'missing', 'nil', 'void', 'blank'
-            }
+        "",
+        " ",
+        "null",
+        "none",
+        "nan",
+        "n/a",
+        "na",
+        "undefined",
+        "missing",
+        "nil",
+        "void",
+        "blank",
+    }
     none_like_values = none_like_values or default_none_like_values
 
     if isinstance(data, pd.DataFrame):  # Handle DataFrame
-        return data.applymap(lambda x: None if is_mistyped_none(x, none_like_values, evaluate_as_string) else standardize_none(x, none_like_values, evaluate_as_string))
+        return data.applymap(
+            lambda x: None
+            if is_mistyped_none(x, none_like_values, evaluate_as_string)
+            else standardize_none(x, none_like_values, evaluate_as_string)
+        )
     elif isinstance(data, pd.Series):  # Handle Series
-        return data.apply(lambda x: None if is_mistyped_none(x, none_like_values, evaluate_as_string) else standardize_none(x, none_like_values, evaluate_as_string))
+        return data.apply(
+            lambda x: None
+            if is_mistyped_none(x, none_like_values, evaluate_as_string)
+            else standardize_none(x, none_like_values, evaluate_as_string)
+        )
     elif isinstance(data, list):  # Handle List
         return [standardize_none(x, none_like_values, evaluate_as_string) for x in data]
     elif isinstance(data, dict):  # Handle Dict
-        return {k: standardize_none(v, none_like_values, evaluate_as_string) for k, v in data.items()}
+        return {
+            k: standardize_none(v, none_like_values, evaluate_as_string) for k, v in data.items()
+        }
     else:  # Handle single values
         return None if is_mistyped_none(data, none_like_values, evaluate_as_string) else data
 

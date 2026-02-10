@@ -8,17 +8,17 @@ import io
 import mimetypes
 from io import BytesIO
 from pathlib import Path
-from typing import Union, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Union
 
 if TYPE_CHECKING:
     from botocore.config import Config
     from botocore.exceptions import ClientError
     from botocore.response import StreamingBody
 
-from ._Internal._boto_cache import _get_s3_client
+from .. import logger
 from ..Decorators.Retryable import Retryable
 from ..Decorators.SingletonClass import SingletonClass
-from .. import logger
+from ._Internal._boto_cache import _get_s3_client
 
 
 @SingletonClass
@@ -33,9 +33,12 @@ class S3ServiceGateway:
         Initializes the S3ServiceGateway by setting up the S3 client using the AwsClientHub.
         """
         from ._Internal._ConfigurationManager import _ConfigurationManager
+
         state_config: _ConfigurationManager = _ConfigurationManager()
         state_config.initialize(silent=True)
-        self.s3_client = _get_s3_client(config=config, profile=state_config.aws_profile, region=state_config.region_name)
+        self.s3_client = _get_s3_client(
+            config=config, profile=state_config.aws_profile, region=state_config.region_name
+        )
         self.test_mode = False
         logger._internal.log_internal("S3ServiceGateway initialized with S3 client.")
 
@@ -52,7 +55,9 @@ class S3ServiceGateway:
 
         current_extension = Path(object_key).suffix
         if current_extension != correct_extension:
-            logger._internal.log_internal(f"Correcting file extension from {current_extension} to {correct_extension}")
+            logger._internal.log_internal(
+                f"Correcting file extension from {current_extension} to {correct_extension}"
+            )
             object_key = str(Path(object_key).with_suffix(correct_extension))
         return object_key
 
@@ -62,9 +67,12 @@ class S3ServiceGateway:
 
     @Retryable()
     def upload_file(
-            self, file: Union[str, Path, bytes, BytesIO, "StreamingBody"], bucket_name: str, object_key: str,
-            return_url: bool = False
-            ) -> Union[None, str]:
+        self,
+        file: Union[str, Path, bytes, BytesIO, "StreamingBody"],
+        bucket_name: str,
+        object_key: str,
+        return_url: bool = False,
+    ) -> Union[None, str]:
         """
         Uploads a file to S3. Handles file paths, bytes, file-like objects, and StreamingBody.
 
@@ -82,8 +90,10 @@ class S3ServiceGateway:
             file_path = Path(file)
             if file_path.stat().st_size == 0:
                 raise ValueError("The file is empty.")
-            logger.info(f"Uploading file from path: {file_path} to bucket: {bucket_name} as object: {object_key}")
-            with open(file_path, 'rb') as f:
+            logger.info(
+                f"Uploading file from path: {file_path} to bucket: {bucket_name} as object: {object_key}"
+            )
+            with open(file_path, "rb") as f:
                 if not self.test_mode:
                     self.s3_client.upload_fileobj(f, bucket_name, object_key)
         elif isinstance(file, bytes) or (isinstance(file, str) and not Path(file).is_file()):
@@ -91,7 +101,7 @@ class S3ServiceGateway:
             try:
                 file_content = base64.b64decode(file) if isinstance(file, str) else file
             except binascii.Error:
-                file_content = file.encode('utf-8') if isinstance(file, str) else file
+                file_content = file.encode("utf-8") if isinstance(file, str) else file
 
             if len(file_content) == 0:
                 raise ValueError("The byte content is empty.")
@@ -100,17 +110,21 @@ class S3ServiceGateway:
             logger.info(f"Uploading bytes object to bucket: {bucket_name} as object: {object_key}")
             if not self.test_mode:
                 self.s3_client.upload_fileobj(file_obj, bucket_name, object_key)
-        elif hasattr(file, 'read') and callable(file.read):
+        elif hasattr(file, "read") and callable(file.read):
             if file.seek(0, 2) == 0:  # Move to the end of the file and check the position
                 raise ValueError("The file-like object is empty.")
             file.seek(0)  # Move back to the beginning of the file
-            logger.info(f"Uploading file-like object to bucket: {bucket_name} as object: {object_key}")
+            logger.info(
+                f"Uploading file-like object to bucket: {bucket_name} as object: {object_key}"
+            )
             if not self.test_mode:
                 self.s3_client.upload_fileobj(file, bucket_name, object_key)
         else:
-            raise ValueError("The file parameter must be a file path, bytes, file-like object, or StreamingBody.")
+            raise ValueError(
+                "The file parameter must be a file path, bytes, file-like object, or StreamingBody."
+            )
 
-        logger.info(f"File uploaded")
+        logger.info("File uploaded")
 
         if return_url:
             s3_url = f"https://{bucket_name}.s3.amazonaws.com/{object_key}"
@@ -129,8 +143,8 @@ class S3ServiceGateway:
         """
         logger.info(f"Attempting to retrieve object: {object_key} from bucket: {bucket_name}")
         obj = self.s3_client.get_object(Bucket=bucket_name, Key=object_key)
-        file_stream = io.BytesIO(obj['Body'].read())
-        logger.info(f"Object retrieved")
+        file_stream = io.BytesIO(obj["Body"].read())
+        logger.info("Object retrieved")
         return file_stream
 
     @Retryable()
@@ -145,9 +159,9 @@ class S3ServiceGateway:
 
         """
         logger.info(f"Downloading object: {object_key} from bucket: {bucket_name} to {local_path}")
-        with open(local_path, 'wb') as f:
+        with open(local_path, "wb") as f:
             self.s3_client.download_fileobj(bucket_name, object_key, f)
-        logger.info(f"Object downloaded")
+        logger.info("Object downloaded")
 
     @Retryable()
     def get_object_headers(self, bucket_name: str, object_key: str) -> dict:
@@ -162,7 +176,7 @@ class S3ServiceGateway:
         """
         logger.info(f"Getting headers for object: {object_key} in bucket: {bucket_name}")
         obj = self.s3_client.head_object(Bucket=bucket_name, Key=object_key)
-        logger.info(f"Headers retrieved")
+        logger.info("Headers retrieved")
         return obj
 
     @Retryable()
@@ -177,10 +191,12 @@ class S3ServiceGateway:
         logger.info(f"Deleting object: {object_key} from bucket: {bucket_name}")
         if not self.test_mode:
             self.s3_client.delete_object(Bucket=bucket_name, Key=object_key)
-        logger.info(f"Object deleted")
+        logger.info("Object deleted")
 
     @Retryable()
-    def move_object(self, src_bucket_name: str, src_object_key: str, dst_bucket_name: str, dst_object_key: str) -> None:
+    def move_object(
+        self, src_bucket_name: str, src_object_key: str, dst_bucket_name: str, dst_object_key: str
+    ) -> None:
         """
         Moves an object from one S3 bucket to another.
 
@@ -192,15 +208,22 @@ class S3ServiceGateway:
 
 
         """
-        logger.info(f"Moving object: {src_object_key} from {src_bucket_name} to {dst_bucket_name}/{dst_object_key}")
+        logger.info(
+            f"Moving object: {src_object_key} from {src_bucket_name} to {dst_bucket_name}/{dst_object_key}"
+        )
         if not self.test_mode:
-            self.s3_client.copy_object(Bucket=dst_bucket_name, Key=dst_object_key,
-                                       CopySource={'Bucket': src_bucket_name, 'Key': src_object_key})
+            self.s3_client.copy_object(
+                Bucket=dst_bucket_name,
+                Key=dst_object_key,
+                CopySource={"Bucket": src_bucket_name, "Key": src_object_key},
+            )
             self.s3_client.delete_object(Bucket=src_bucket_name, Key=src_object_key)
-        logger.info(f"Object moved")
+        logger.info("Object moved")
 
     @Retryable()
-    def copy_object(self, src_bucket_name: str, src_object_key: str, dst_bucket_name: str, dst_object_key: str) -> None:
+    def copy_object(
+        self, src_bucket_name: str, src_object_key: str, dst_bucket_name: str, dst_object_key: str
+    ) -> None:
         """
         Copies an object from one S3 bucket to another.
 
@@ -212,11 +235,16 @@ class S3ServiceGateway:
 
 
         """
-        logger.info(f"Copying object: {src_object_key} from {src_bucket_name} to {dst_bucket_name}/{dst_object_key}")
+        logger.info(
+            f"Copying object: {src_object_key} from {src_bucket_name} to {dst_bucket_name}/{dst_object_key}"
+        )
         if not self.test_mode:
-            self.s3_client.copy_object(Bucket=dst_bucket_name, Key=dst_object_key,
-                                       CopySource={'Bucket': src_bucket_name, 'Key': src_object_key})
-        logger.info(f"Object copied")
+            self.s3_client.copy_object(
+                Bucket=dst_bucket_name,
+                Key=dst_object_key,
+                CopySource={"Bucket": src_bucket_name, "Key": src_object_key},
+            )
+        logger.info("Object copied")
 
     @Retryable()
     def check_object_existence(self, bucket_name: str, object_key: str) -> bool:
@@ -232,14 +260,14 @@ class S3ServiceGateway:
         logger.info(f"Checking existence for object: {object_key} in bucket: {bucket_name}")
         try:
             self.s3_client.head_object(Bucket=bucket_name, Key=object_key)
-            logger.info(f"Object exists")
+            logger.info("Object exists")
             return True
         except ClientError as e:
-            if e.response['Error']['Code'] == "404":
+            if e.response["Error"]["Code"] == "404":
                 if self.test_mode:
                     logger._internal.log_internal("Mocking object existence in test mode")
                     return True
-                logger.info(f"Object does not exist")
+                logger.info("Object does not exist")
                 return False
             else:
                 raise
@@ -255,11 +283,13 @@ class S3ServiceGateway:
         :returns: A list of object keys.
         :rtype: list
         """
-        logger.info(f"Listing objects")
-        paginator = self.s3_client.get_paginator('list_objects_v2')
+        logger.info("Listing objects")
+        paginator = self.s3_client.get_paginator("list_objects_v2")
         page_iterator = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
-        object_list = [item['Key'] for page in page_iterator for item in page.get('Contents', [])]
-        logger._internal.log_internal(f"Objects listed in bucket: {bucket_name} with prefix: {prefix}")
+        object_list = [item["Key"] for page in page_iterator for item in page.get("Contents", [])]
+        logger._internal.log_internal(
+            f"Objects listed in bucket: {bucket_name} with prefix: {prefix}"
+        )
         return object_list
 
     @Retryable()
@@ -286,25 +316,30 @@ class S3ServiceGateway:
         """
         logger.info("Listing all S3 buckets")
         response = self.s3_client.list_buckets()
-        bucket_list = [bucket['Name'] for bucket in response.get('Buckets', [])]
+        bucket_list = [bucket["Name"] for bucket in response.get("Buckets", [])]
         logger._internal.log_internal("S3 buckets listed")
         return bucket_list
 
     @Retryable()
-    def get_signed_url(self, bucket_name: str, object_key: str, expiration_seconds: int = 3600) -> str:
+    def get_signed_url(
+        self, bucket_name: str, object_key: str, expiration_seconds: int = 3600
+    ) -> str:
         """
         Generate a signed URL for an S3 object.
         """
-        logger.info(f'Generating signed URL for bucket: {bucket_name}, key: {object_key}')
+        logger.info(f"Generating signed URL for bucket: {bucket_name}, key: {object_key}")
         try:
-            url = self.s3_client.generate_presigned_url('get_object', Params={'Bucket': bucket_name, 'Key': object_key},
-                                                        ExpiresIn=expiration_seconds)
+            url = self.s3_client.generate_presigned_url(
+                "get_object",
+                Params={"Bucket": bucket_name, "Key": object_key},
+                ExpiresIn=expiration_seconds,
+            )
             if url:
-                logger.info(f'Signed URL generated successfully: {url}')
+                logger.info(f"Signed URL generated successfully: {url}")
                 return url
             else:
-                logger.error('Failed to generate signed URL')
-                raise ValueError('Generated URL is invalid')
+                logger.error("Failed to generate signed URL")
+                raise ValueError("Generated URL is invalid")
         except ClientError as e:
-            logger.error(f'Error generating signed URL: {e}')
-            raise ValueError('Failed to generate signed URL') from e
+            logger.error(f"Error generating signed URL: {e}")
+            raise ValueError("Failed to generate signed URL") from e

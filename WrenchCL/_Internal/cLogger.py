@@ -19,7 +19,7 @@ from .Logging.LoggerConfigState import LoggerStateManager
 class cLogger(BaseLogger):
     """
     WrenchCL's structured, colorized logger with Datadog integration.
-    
+
     Features:
     • Structured formatting with syntax highlighting
     • Multiple modes: terminal (colored), json (structured), compact (minimal)
@@ -60,7 +60,11 @@ class cLogger(BaseLogger):
     def add_stream(self, stream=None, level: logLevels = None, formatter=None):
         """Add a stream handler for log output"""
         import logging
+
         return self.managed.add(
-                handler_cls=logging.StreamHandler, stream=stream,
-                level=level, formatter=formatter, owned=True
-                )
+            handler_cls=logging.StreamHandler,
+            stream=stream,
+            level=level,
+            formatter=formatter,
+            owned=True,
+        )

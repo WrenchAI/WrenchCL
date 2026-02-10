@@ -36,9 +36,9 @@ def main():
     logger.managed.sync()  # sync all handler levels
 
     # Silence other loggers
-    logger.managed.silence(['requests', 'urllib3', 'boto3'])
-    logger.managed.silence('all')  # silence everything except WrenchCL
-    logger.managed.set_level('my_package', 'WARNING')
+    logger.managed.silence(["requests", "urllib3", "boto3"])
+    logger.managed.silence("all")  # silence everything except WrenchCL
+    logger.managed.set_level("my_package", "WARNING")
 
     # Stream/system management - controlling entire logging system
     logger.streams.attach(level="INFO", silence_others=True)

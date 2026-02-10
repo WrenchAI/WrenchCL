@@ -5,7 +5,7 @@
 import json
 import math
 from datetime import datetime, timedelta
-from typing import Optional, Any, Union, List, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
 from uuid import UUID
 
 if TYPE_CHECKING:
@@ -15,11 +15,11 @@ import psycopg2
 import psycopg2.extensions
 import psycopg2.extras
 from psycopg2.pool import ThreadedConnectionPool
-from .AwsClientHub import AwsClientHub
-from ..Decorators.SingletonClass import SingletonClass
-from .. import logger
 
+from .. import logger
 from .._Internal._MockPandas import _MockPandas
+from ..Decorators.SingletonClass import SingletonClass
+from .AwsClientHub import AwsClientHub
 
 try:
     import pandas as pd
@@ -35,7 +35,9 @@ class RdsServiceGateway:
     Ensures that a single instance is used throughout the application via the Singleton pattern.
     """
 
-    def __init__(self, multithreaded: bool = False, min_pool_size: int = 1, max_pool_size: int = 10):
+    def __init__(
+        self, multithreaded: bool = False, min_pool_size: int = 1, max_pool_size: int = 10
+    ):
         """
         Initializes the RdsServiceGateway by establishing a connection or connection pool
         depending on the multithreading mode.
@@ -55,7 +57,9 @@ class RdsServiceGateway:
 
         if self.multithreaded:
             # Initialize a threaded connection pool using the URI
-            self.pool: Optional[psycopg2.pool] = ThreadedConnectionPool(minconn=min_pool_size, maxconn=max_pool_size, dsn=self.db_uri)
+            self.pool: Optional[psycopg2.pool] = ThreadedConnectionPool(
+                minconn=min_pool_size, maxconn=max_pool_size, dsn=self.db_uri
+            )
         else:
             # Establish a single connection if multithreading is not enabled
             self.connection: Optional["RDSClient"] = self.client_manager.db
@@ -85,9 +89,14 @@ class RdsServiceGateway:
             self.pool.putconn(conn)
 
     def get_data(
-            self, query: str, payload: Optional[tuple] = None, fetchall: bool = True, return_dict: bool = True,
-            show_query: bool = False, raise_on_error: bool = False
-            ) -> Optional[Any]:
+        self,
+        query: str,
+        payload: Optional[tuple] = None,
+        fetchall: bool = True,
+        return_dict: bool = True,
+        show_query: bool = False,
+        raise_on_error: bool = False,
+    ) -> Optional[Any]:
         """
         Fetch data from the database based on the input query and parameters.
         """
@@ -95,12 +104,18 @@ class RdsServiceGateway:
         try:
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 if show_query:
-                    logger._internal.log_internal("Mogrified Query:\n", cursor.mogrify(query, payload))
+                    logger._internal.log_internal(
+                        "Mogrified Query:\n", cursor.mogrify(query, payload)
+                    )
                 else:
-                    logger._internal.log_internal("Mogrified Query:\n", cursor.mogrify(query, payload))
+                    logger._internal.log_internal(
+                        "Mogrified Query:\n", cursor.mogrify(query, payload)
+                    )
                 cursor.execute(query, payload)
                 data = cursor.fetchall() if fetchall else cursor.fetchone()
-                logger._internal.log_internal("Fetched data\n: %s", str(data)[:100] if fetchall else str(data))
+                logger._internal.log_internal(
+                    "Fetched data\n: %s", str(data)[:100] if fetchall else str(data)
+                )
             if return_dict and data is not None:
                 return [dict(row) for row in data] if fetchall else dict(data)
             elif data is None:
@@ -119,9 +134,14 @@ class RdsServiceGateway:
             self.release_connection(conn)
 
     def update_database(
-            self, query: str, payload: Union[tuple, list[tuple], pd.DataFrame], returning: bool = False,
-            column_order: Optional[List[str]] = None, raise_on_error: bool = True, test_mode: bool = False
-            ) -> Optional[List[tuple]]:
+        self,
+        query: str,
+        payload: Union[tuple, list[tuple], pd.DataFrame],
+        returning: bool = False,
+        column_order: Optional[List[str]] = None,
+        raise_on_error: bool = True,
+        test_mode: bool = False,
+    ) -> Optional[List[tuple]]:
         """
         Updates the database by executing the specified SQL query with the given payload.
 
@@ -176,7 +196,9 @@ class RdsServiceGateway:
                 logger._internal.log_internal("Payload is a list of tuples.")
                 # Execute batch query for list of tuples payload
                 with conn.cursor() as cursor:
-                    psycopg2.extras.execute_values(cursor, query, payload, page_size=self.config.db_batch_size)
+                    psycopg2.extras.execute_values(
+                        cursor, query, payload, page_size=self.config.db_batch_size
+                    )
                     return_value = cursor.fetchall() if returning else None
                     if not test_mode:
                         conn.commit()
@@ -190,23 +212,31 @@ class RdsServiceGateway:
                 logger._internal.log_internal("Payload is a DataFrame with specified column order.")
                 # Batch processing for DataFrame payloads with specified column order
                 if returning:
-                    raise ValueError("Returning values not compatible with batch processing, please use dictionary input")
+                    raise ValueError(
+                        "Returning values not compatible with batch processing, please use dictionary input"
+                    )
                 if not set(column_order).issubset(payload.columns):
                     missing_columns = set(column_order) - set(payload.columns)
-                    raise ValueError(f"The following columns are missing from the payload: {missing_columns}")
+                    raise ValueError(
+                        f"The following columns are missing from the payload: {missing_columns}"
+                    )
 
                 with conn.cursor() as cursor:
                     data_batch = []
                     batch_counter = 1
                     total_batches = math.ceil(len(payload) / self.config.db_batch_size)
 
-                    for i, row in enumerate(payload.itertuples(index=False, name='Row')):
+                    for i, row in enumerate(payload.itertuples(index=False, name="Row")):
                         data_batch.append(tuple(getattr(row, col) for col in column_order))
 
                         if len(data_batch) == self.config.db_batch_size or i == len(payload) - 1:
-                            psycopg2.extras.execute_values(cursor, query, data_batch, page_size=self.config.db_batch_size)
+                            psycopg2.extras.execute_values(
+                                cursor, query, data_batch, page_size=self.config.db_batch_size
+                            )
                             data_batch = []
-                            logger._internal.log_internal(f"Processed batch {batch_counter}/{total_batches} successfully")
+                            logger._internal.log_internal(
+                                f"Processed batch {batch_counter}/{total_batches} successfully"
+                            )
                             batch_counter += 1
 
                     if batch_counter == 1:
@@ -223,9 +253,14 @@ class RdsServiceGateway:
             conn.rollback()
             if isinstance(e, IndexError):
                 try:
-                    logger.warning(f"Error processing batch: IndexError | Got {query.count('%s')} placeholders and {len(payload)} values. {e}")
+                    logger.warning(
+                        f"Error processing batch: IndexError | Got {query.count('%s')} placeholders and {len(payload)} values. {e}"
+                    )
                 except Exception as nested_exception:
-                    logger.warning(f"Error processing batch: {str(e)}; Nested error: {str(nested_exception)}", exc_info=True)
+                    logger.warning(
+                        f"Error processing batch: {str(e)}; Nested error: {str(nested_exception)}",
+                        exc_info=True,
+                    )
             else:
                 logger.warning(f"Error processing batch: {str(e)}", exc_info=True)
             if raise_on_error:
@@ -241,7 +276,9 @@ class RdsServiceGateway:
 
 
         """
-        formatted_query = query % tuple(map(lambda x: f"'{x}'" if isinstance(x, str) else x, payload))
+        formatted_query = query % tuple(
+            map(lambda x: f"'{x}'" if isinstance(x, str) else x, payload)
+        )
         print(formatted_query)
 
     def get_cursor(self) -> "psycopg2.extensions.cursor":
@@ -277,7 +314,9 @@ class RdsServiceGateway:
         for col in df.columns:
             if pd.api.types.is_object_dtype(df[col]):
                 # Use json.dumps for objects like dicts or lists, otherwise cast to string
-                df[col] = df[col].apply(lambda x: json.dumps(x) if isinstance(x, (dict, list)) else x)
+                df[col] = df[col].apply(
+                    lambda x: json.dumps(x) if isinstance(x, (dict, list)) else x
+                )
             elif pd.api.types.is_datetime64_any_dtype(df[col]):
                 # Convert datetime types to Python datetime
                 df[col] = df[col].apply(lambda x: x.to_pydatetime() if pd.notnull(x) else None)

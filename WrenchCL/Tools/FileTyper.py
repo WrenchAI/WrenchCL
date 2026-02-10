@@ -5,7 +5,7 @@ import base64
 import mimetypes
 from io import BytesIO
 from pathlib import Path
-from typing import Union, Tuple
+from typing import Tuple, Union
 
 import requests
 from filetype import filetype
@@ -24,7 +24,9 @@ class UnsupportedFileTypeError(Exception):
     pass
 
 
-def get_file_type(file_source: Union[str, Path, bytes, BytesIO, "StreamingBody"], is_url: bool = True) -> Tuple[str, str]:
+def get_file_type(
+    file_source: Union[str, Path, bytes, BytesIO, "StreamingBody"], is_url: bool = True
+) -> Tuple[str, str]:
     """
     Determine the file type of a file from a URL, file path, Base64 string, bytes, or BytesIO.
 
@@ -42,18 +44,18 @@ def get_file_type(file_source: Union[str, Path, bytes, BytesIO, "StreamingBody"]
         else:
             mime_type, _ = mimetypes.guess_type(str(file_source))
             if mime_type:
-                return mimetypes.guess_extension(mime_type) or '', mime_type
+                return mimetypes.guess_extension(mime_type) or "", mime_type
             else:
                 if is_url:
                     response = requests.get(str(file_source))
                     response.raise_for_status()
                     base64_data = response.content
                 else:
-                    with open(file_source, 'rb') as f:
+                    with open(file_source, "rb") as f:
                         base64_data = f.read()
 
     elif isinstance(file_source, bytes):
-        if validate_base64(file_source.decode('utf-8')):
+        if validate_base64(file_source.decode("utf-8")):
             base64_data = base64.b64decode(file_source)
         else:
             base64_data = file_source
@@ -74,6 +76,7 @@ def get_file_type(file_source: Union[str, Path, bytes, BytesIO, "StreamingBody"]
             return kind.extension, kind.mime
 
     raise UnsupportedFileTypeError("Could not determine the file type.")
+
 
 # Example usage:
 # file_type = get_file_type("https://example.com/file.txt")

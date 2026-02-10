@@ -27,23 +27,28 @@ def get_metadata(file_source, is_url=True):
         response = requests.head(file_source)
         response.raise_for_status()
 
-        metadata['content_type'] = response.headers.get('Content-Type')
-        metadata['content_length'] = response.headers.get('Content-Length')
-        metadata['last_modified'] = response.headers.get('Last-Modified')
-        metadata['url'] = file_source
+        metadata["content_type"] = response.headers.get("Content-Type")
+        metadata["content_length"] = response.headers.get("Content-Length")
+        metadata["last_modified"] = response.headers.get("Last-Modified")
+        metadata["url"] = file_source
 
-        if metadata['last_modified']:
-            metadata['last_modified'] = datetime.strptime(metadata['last_modified'], '%a, %d %b %Y %H:%M:%S %Z')
+        if metadata["last_modified"]:
+            metadata["last_modified"] = datetime.strptime(
+                metadata["last_modified"], "%a, %d %b %Y %H:%M:%S %Z"
+            )
     else:
         # Handle the file path case
-        metadata['file_path'] = file_source
-        metadata['file_size'] = os.path.getsize(file_source)
-        metadata['creation_time'] = datetime.fromtimestamp(os.path.getctime(file_source)).isoformat()
+        metadata["file_path"] = file_source
+        metadata["file_size"] = os.path.getsize(file_source)
+        metadata["creation_time"] = datetime.fromtimestamp(
+            os.path.getctime(file_source)
+        ).isoformat()
 
         mime_type, _ = mimetypes.guess_type(file_source)
-        metadata['mime_type'] = mime_type
+        metadata["mime_type"] = mime_type
 
     return metadata
+
 
 # Example usage:
 # metadata = get_metadata("https://example.com/file.txt")

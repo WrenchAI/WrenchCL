@@ -29,6 +29,7 @@ class LogLevel(str, Enum):
     :ivar CRITICAL: Represents the CRITICAL logging level.
 
     """
+
     DEBUG = "DEBUG"  # noqa
     INFO = "INFO"  # noqa
     WARNING = "WARNING"  # noqa
@@ -36,13 +37,13 @@ class LogLevel(str, Enum):
     CRITICAL = "CRITICAL"  # noqa
 
     __aMap__ = {
-            "WARN": "WARNING",
-            "ERR": "ERROR",
-            "CRI": "CRITICAL",
-            "INTERNAL": "INTERNAL",
-            "DATA": "DATA",
-            "HEADER": "HEADER"
-            }
+        "WARN": "WARNING",
+        "ERR": "ERROR",
+        "CRI": "CRITICAL",
+        "INTERNAL": "INTERNAL",
+        "DATA": "DATA",
+        "HEADER": "HEADER",
+    }
 
     __byMap__ = {"INTERNAL": "DEBUG", "DATA": "INFO", "HEADER": "INFO"}
 
@@ -84,6 +85,7 @@ logLevels = Union[int, str, LogLevel]
 @dataclass
 class LogOptions:
     """Configuration options for logging behavior and formatting."""
+
     no_format: bool = False
     no_color: bool = False
     stack_info: bool = False
@@ -96,9 +98,9 @@ class LogOptions:
 
     def __init__(self, opts=None, no_format=False, no_color=False, stack_info=False):
         if isinstance(opts, dict):
-            self.no_format = opts.get('no_format', no_format)
-            self.no_color = opts.get('no_color', no_color)
-            self.stack_info = opts.get('stack_info', stack_info)
+            self.no_format = opts.get("no_format", no_format)
+            self.no_color = opts.get("no_color", no_color)
+            self.stack_info = opts.get("stack_info", stack_info)
         elif isinstance(opts, LogOptions):
             # If we were passed another instance, copy it
             self.no_format = opts.no_format
@@ -109,6 +111,4 @@ class LogOptions:
             self.no_color = no_color
             self.stack_info = stack_info
         else:
-            raise TypeError(
-                    f"LogOptions expects dict, LogOptions, or None, got {type(opts)}"
-                    )
+            raise TypeError(f"LogOptions expects dict, LogOptions, or None, got {type(opts)}")

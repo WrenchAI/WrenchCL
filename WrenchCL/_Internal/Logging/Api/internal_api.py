@@ -27,9 +27,11 @@ class InternalAPI:
         if trace_enabled:
             try:
                 import ddtrace
+
                 ddtrace.patch(logging=True)
                 self.log_internal("Datadog trace injection enabled")
                 import os
+
                 os.environ["DD_TRACE_ENABLED"] = "true"
             except ImportError:
                 self.log_internal("Datadog trace injection disabled - missing ddtrace")
@@ -55,17 +57,18 @@ class InternalAPI:
 
             # Build base formatter for current log context
             base_fmt = self.parent.state_manager.formatter_factory.create_formatter(
-                    level=level,
-                    config_state=config,
-                    env_metadata=env_metadata,
-                    global_stream_configured=self.parent.state_manager.global_stream_configured,
-                    no_format=no_format,
-                    no_color=no_color,
-                    )
+                level=level,
+                config_state=config,
+                env_metadata=env_metadata,
+                global_stream_configured=self.parent.state_manager.global_stream_configured,
+                no_format=no_format,
+                no_color=no_color,
+            )
 
             # If the handler uses a file wrapper, preserve the wrapper
 
             from ..Formatters import FileLogFormatter
+
             if isinstance(handler.formatter, FileLogFormatter):
                 handler.setFormatter(FileLogFormatter(base_fmt))
             else:
@@ -74,13 +77,20 @@ class InternalAPI:
             # Attach DD filter once
             if self.parent.state_manager.current_state.dd_trace_enabled:
                 from ..DatadogTraceInjectionFilter import DatadogTraceInjectionFilter
+
                 if not any(isinstance(f, DatadogTraceInjectionFilter) for f in handler.filters):
                     handler.addFilter(DatadogTraceInjectionFilter())
 
     def mini_state(self):
         """Log initial status information"""
         config = self.parent.state_manager.current_state
-        if config.mode == 'json':
-            self.log_internal({"Color": config.color_enabled, "Mode": config.mode.capitalize(), "Deployment": config.deployed})
+        if config.mode == "json":
+            self.log_internal({
+                "Color": config.color_enabled,
+                "Mode": config.mode.capitalize(),
+                "Deployment": config.deployed,
+            })
         else:
-            self.log_internal(f"Logger -> Color:{config.color_enabled} | Mode:{config.mode.capitalize()} | Deployment:{config.deployed}")
+            self.log_internal(
+                f"Logger -> Color:{config.color_enabled} | Mode:{config.mode.capitalize()} | Deployment:{config.deployed}"
+            )

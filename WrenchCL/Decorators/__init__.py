@@ -5,4 +5,4 @@ from .Retryable import Retryable
 from .SingletonClass import SingletonClass
 from .Synchronized import Synchronized
 
-__all__ = ['Retryable', 'SingletonClass', 'Synchronized', 'Deprecated']
+__all__ = ["Retryable", "SingletonClass", "Synchronized", "Deprecated"]

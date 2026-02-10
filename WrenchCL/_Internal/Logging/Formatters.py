@@ -6,10 +6,10 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, Optional, Final
+from typing import Any, Callable, Dict, Final, Optional
 
-from .ColorService import ColorService, ColorPresets, MockColorama
-from .DataClasses import logLevels, LogLevel
+from .ColorService import ColorPresets, ColorService, MockColorama
+from .DataClasses import LogLevel, logLevels
 
 
 class CustomFormatter(logging.Formatter):
@@ -18,16 +18,16 @@ class CustomFormatter(logging.Formatter):
         self.presets = presets
 
     def formatStack(self, exc_info: str) -> str:
-        dim_color = self.presets._INTERNAL_DIM_COLOR or ''
-        dim_style = self.presets._INTERNAL_DIM_STYLE or ''
-        reset = self.presets.RESET or ''
+        dim_color = self.presets._INTERNAL_DIM_COLOR or ""
+        dim_style = self.presets._INTERNAL_DIM_STYLE or ""
+        reset = self.presets.RESET or ""
         return f"{dim_color}{dim_style}{exc_info}{reset}"
 
     def formatException(self, ei) -> str:
         original = super().formatException(ei)
-        dim_color = self.presets._INTERNAL_DIM_COLOR or ''
-        dim_style = self.presets._INTERNAL_DIM_STYLE or ''
-        reset = self.presets.RESET or ''
+        dim_color = self.presets._INTERNAL_DIM_COLOR or ""
+        dim_style = self.presets._INTERNAL_DIM_STYLE or ""
+        reset = self.presets.RESET or ""
         return f"{dim_color}{dim_style}{original}{reset}"
 
 
@@ -63,13 +63,13 @@ class JSONLogFormatter(logging.Formatter):
     _TIMEFMT: Final[str] = "%Y-%m-%dT%H:%M:%S.%fZ"
 
     def __init__(
-            self,
-            env_metadata: Dict[str, Optional[str]],
-            forced_color: bool,
-            highlight_func: Callable[[str], str],
-            traced: bool = False,
-            deployed: bool = False
-            ) -> None:
+        self,
+        env_metadata: Dict[str, Optional[str]],
+        forced_color: bool,
+        highlight_func: Callable[[str], str],
+        traced: bool = False,
+        deployed: bool = False,
+    ) -> None:
         super().__init__()
         self.env_metadata = env_metadata
         self.color_mode = forced_color
@@ -87,13 +87,38 @@ class JSONLogFormatter(logging.Formatter):
         context_data: Dict[str, Any] = {}
 
         user_keys = {
-                "user_id", "usr_id", "entity_id", "user_entity_id", "subject_id",
-                "client_id", "user_name", "username",
-                }
-        org_keys = {"client_id", "org_id", "organization_id", "tenant_id", "team_id", "workspace_id", "project_id"}
-        svc_keys = {"service_id", "service_name", "application", "app_name", "dd_service",
-                    "aws_function_name", "aws_service", "lambda_name", "lambda_function",
-                    "aws_function", "project_name", "project"}
+            "user_id",
+            "usr_id",
+            "entity_id",
+            "user_entity_id",
+            "subject_id",
+            "client_id",
+            "user_name",
+            "username",
+        }
+        org_keys = {
+            "client_id",
+            "org_id",
+            "organization_id",
+            "tenant_id",
+            "team_id",
+            "workspace_id",
+            "project_id",
+        }
+        svc_keys = {
+            "service_id",
+            "service_name",
+            "application",
+            "app_name",
+            "dd_service",
+            "aws_function_name",
+            "aws_service",
+            "lambda_name",
+            "lambda_function",
+            "aws_function",
+            "project_name",
+            "project",
+        }
 
         def add(k: str, v: Any) -> None:
             lk = (k or "").lower()
@@ -118,7 +143,9 @@ class JSONLogFormatter(logging.Formatter):
                     if id(v) == obj_id:
                         continue
                     add(k, v)
-                    if isinstance(v, (dict, object)) and not isinstance(v, (str, int, float, bool, type(None))):
+                    if isinstance(v, (dict, object)) and not isinstance(
+                        v, (str, int, float, bool, type(None))
+                    ):
                         # Shallowly inspect children once
                         inspect_obj(getattr(v, "__dict__", None) or {})
             else:
@@ -128,7 +155,9 @@ class JSONLogFormatter(logging.Formatter):
                         if id(v) == obj_id:
                             continue
                         add(k, v)
-                        if isinstance(v, (dict, object)) and not isinstance(v, (str, int, float, bool, type(None))):
+                        if isinstance(v, (dict, object)) and not isinstance(
+                            v, (str, int, float, bool, type(None))
+                        ):
                             inspect_obj(getattr(v, "__dict__", None) or {})
 
         try:
@@ -169,22 +198,17 @@ class JSONLogFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         # Resolve triad from env_metadata first, then DD_* fallbacks
         service = (
-                self.env_metadata.get("project")
-                or os.getenv("DD_SERVICE")
-                or os.getenv("PROJECT_NAME")
-                or "unknown-service"
+            self.env_metadata.get("project")
+            or os.getenv("DD_SERVICE")
+            or os.getenv("PROJECT_NAME")
+            or "unknown-service"
         )
-        env = (
-                self.env_metadata.get("env")
-                or os.getenv("DD_ENV")
-                or os.getenv("ENV")
-                or "dev"
-        )
+        env = self.env_metadata.get("env") or os.getenv("DD_ENV") or os.getenv("ENV") or "dev"
         version = (
-                self.env_metadata.get("project_version")
-                or os.getenv("DD_VERSION")
-                or os.getenv("REPO_VERSION")
-                or "0.0.0"
+            self.env_metadata.get("project_version")
+            or os.getenv("DD_VERSION")
+            or os.getenv("REPO_VERSION")
+            or "0.0.0"
         )
 
         # Correlation IDs injected by DatadogTraceInjectionFilter (decimal strings)
@@ -193,22 +217,22 @@ class JSONLogFormatter(logging.Formatter):
 
         # Base payload — keeps your original structure
         log_record: Dict[str, Any] = {
-                "level": record.levelname,
-                "message": record.getMessage(),
-                "module": record.module,
-                "function": record.funcName,
-                "line": record.lineno,
-                "timestamp": self._formatTime(record, self._TIMEFMT),
-                }
+            "level": record.levelname,
+            "message": record.getMessage(),
+            "module": record.module,
+            "function": record.funcName,
+            "line": record.lineno,
+            "timestamp": self._formatTime(record, self._TIMEFMT),
+        }
         if self.traced:
             log_record.update({
-                    "service": service,
-                    "env": env,
-                    "version": version,
-                    "dd.trace_id": dd_trace_id,
-                    "dd.span_id": dd_span_id,
-                    "logger": record.name,
-                    })
+                "service": service,
+                "env": env,
+                "version": version,
+                "dd.trace_id": dd_trace_id,
+                "dd.span_id": dd_span_id,
+                "logger": record.name,
+            })
 
         # Context (preserved)
         ctx = self._extract_generic_context()
@@ -221,9 +245,9 @@ class JSONLogFormatter(logging.Formatter):
 
         # Output formatting (preserved behavior)
         dumped = (
-                json.dumps(log_record, default=str, ensure_ascii=False)
-                if self.deployed
-                else json.dumps(log_record, default=str, ensure_ascii=False, indent=2)
+            json.dumps(log_record, default=str, ensure_ascii=False)
+            if self.deployed
+            else json.dumps(log_record, default=str, ensure_ascii=False, indent=2)
         )
         if self.color_mode and not self.deployed:
             dumped = self.highlight_func(dumped)
@@ -238,6 +262,7 @@ class FileLogFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         raw = self._base_formatter.format(record)
         from .logging_utils import remove_ansi
+
         return remove_ansi(raw)
 
 
@@ -248,6 +273,7 @@ class FormatterFactory:
     This factory encapsulates all the complex formatter creation logic
     that was previously scattered throughout cLogger.
     """
+
     from .ColorService import ColorService
 
     def __init__(self, color_service: ColorService):
@@ -255,14 +281,14 @@ class FormatterFactory:
         self.env_prefix_generator = EnvPrefixGenerator(color_service)
 
     def create_formatter(
-            self,
-            level: logLevels,
-            config_state,
-            env_metadata: Dict,
-            global_stream_configured: bool = False,
-            no_format: bool = False,
-            no_color: bool = False
-            ) -> logging.Formatter:
+        self,
+        level: logLevels,
+        config_state,
+        env_metadata: Dict,
+        global_stream_configured: bool = False,
+        no_format: bool = False,
+        no_color: bool = False,
+    ) -> logging.Formatter:
         """
         Create appropriate formatter based on level and configuration.
 
@@ -274,33 +300,41 @@ class FormatterFactory:
 
         # Simple cases first
         if no_format and no_color:
-            return logging.Formatter(fmt='%(message)s')
+            return logging.Formatter(fmt="%(message)s")
         # Determine active presets
         active_preset = self.color_service.get_current_presets()
         if not config_state.should_use_color(no_color):
             # Create mock presets for this formatter
             active_preset = ColorPresets(MockColorama, MockColorama)
         # JSON formatter case
-        if config_state.should_use_json_formatter and level != 'INTERNAL':
+        if config_state.should_use_json_formatter and level != "INTERNAL":
             return JSONLogFormatter(
-                    env_metadata,
-                    config_state.force_markup,
-                    self._get_highlight_function(),  # We'll need to inject this
-                    config_state.should_enable_dd_trace_logging,
-                    config_state.deployed
-                    )
+                env_metadata,
+                config_state.force_markup,
+                self._get_highlight_function(),  # We'll need to inject this
+                config_state.should_enable_dd_trace_logging,
+                config_state.deployed,
+            )
 
         # Terminal formatter case
         return self._create_terminal_formatter(
-                LogLevel(level), config_state, env_metadata, active_preset,
-                global_stream_configured, no_format
-                )
+            LogLevel(level),
+            config_state,
+            env_metadata,
+            active_preset,
+            global_stream_configured,
+            no_format,
+        )
 
     def _create_terminal_formatter(
-            self, level: LogLevel, config_state,
-            env_metadata: Dict, active_preset: ColorPresets,
-            global_stream_configured: bool, no_format: bool
-            ) -> CustomFormatter:
+        self,
+        level: LogLevel,
+        config_state,
+        env_metadata: Dict,
+        active_preset: ColorPresets,
+        global_stream_configured: bool,
+        no_format: bool,
+    ) -> CustomFormatter:
         """Create a terminal formatter with all the styling."""
 
         # Get colors and styles for this level
@@ -308,87 +342,108 @@ class FormatterFactory:
         style = active_preset.get_level_style(level)
         message_color = active_preset.get_message_color(level)
         # Determine dimmed colors
-        if level in ['ERROR', 'CRITICAL', 'WARNING']:
+        if level in ["ERROR", "CRITICAL", "WARNING"]:
             dimmed_color = active_preset.get_color_by_level(level)
         else:
-            dimmed_color = active_preset.get_color_by_level(LogLevel('INTERNAL'))
+            dimmed_color = active_preset.get_color_by_level(LogLevel("INTERNAL"))
 
-        dimmed_style = active_preset.get_level_style(LogLevel('INTERNAL'))
+        dimmed_style = active_preset.get_level_style(LogLevel("INTERNAL"))
 
         # Special handling for INTERNAL level
-        if level == 'INTERNAL':
+        if level == "INTERNAL":
             color = active_preset.CRITICAL
-            style = active_preset.get_level_style(LogLevel('INTERNAL'))
+            style = active_preset.get_level_style(LogLevel("INTERNAL"))
 
         # Build format components
         components = self._build_format_components(
-                LogLevel(level), config_state, env_metadata, active_preset,
-                color, style, message_color, dimmed_color, dimmed_style,
-                global_stream_configured, no_format
-                )
+            LogLevel(level),
+            config_state,
+            env_metadata,
+            active_preset,
+            color,
+            style,
+            message_color,
+            dimmed_color,
+            dimmed_style,
+            global_stream_configured,
+            no_format,
+        )
 
         # Assemble final format
         fmt = f"{active_preset.RESET}{components['format']}{active_preset.RESET}"
 
-        return CustomFormatter(fmt, datefmt='%H:%M:%S', presets=active_preset)
+        return CustomFormatter(fmt, datefmt="%H:%M:%S", presets=active_preset)
 
     def _build_format_components(
-            self, level: LogLevel, config_state, env_metadata: Dict,
-            active_preset: ColorPresets, color: str, style: str,
-            message_color: str, dimmed_color: str, dimmed_style: str,
-            global_stream_configured: bool, no_format: bool
-            ) -> Dict[str, str]:
+        self,
+        level: LogLevel,
+        config_state,
+        env_metadata: Dict,
+        active_preset: ColorPresets,
+        color: str,
+        style: str,
+        message_color: str,
+        dimmed_color: str,
+        dimmed_style: str,
+        global_stream_configured: bool,
+        no_format: bool,
+    ) -> Dict[str, str]:
         """Build the various components of the log format string."""
 
         # File/function info section
         file_section = f"{dimmed_color}{dimmed_style}%(filename)s:%(lineno)d - %(funcName)s]{active_preset.RESET}"
 
         # Verbose timestamp section
-        verbose_section = f"{dimmed_color}{dimmed_style}[%(asctime)s|{file_section}{active_preset.RESET}"
+        verbose_section = (
+            f"{dimmed_color}{dimmed_style}[%(asctime)s|{file_section}{active_preset.RESET}"
+        )
 
         # Environment prefix
         app_env_section = self.env_prefix_generator.generate_prefix(
-                env_metadata, config_state, dimmed_color, dimmed_style, color, style
-                )
+            env_metadata, config_state, dimmed_color, dimmed_style, color, style
+        )
 
         # Level name section
         level_name_section = self._get_level_name_section(level, color, style, active_preset)
 
         # Other sections
         colored_arrow_section = f"{color}{style} -> {active_preset.RESET}"
-        if str(level) not in ['INTERNAL', 'DEBUG']:
+        if str(level) not in ["INTERNAL", "DEBUG"]:
             message_section = f"{style}{message_color}%(message)s{active_preset.RESET}"
         else:
             message_section = f"{dimmed_color}{dimmed_style}%(message)s{active_preset.RESET}"
 
         # Logger name section (for global streams)
-        name_section = f"{color}{style}[%(name)s] - {active_preset.RESET}" if global_stream_configured else ""
+        name_section = (
+            f"{color}{style}[%(name)s] - {active_preset.RESET}" if global_stream_configured else ""
+        )
 
         # Choose format based on mode and level
-        if config_state.mode == 'compact':
-            format_str = f"{level_name_section}{file_section}{colored_arrow_section}{message_section}"
+        if config_state.mode == "compact":
+            format_str = (
+                f"{level_name_section}{file_section}{colored_arrow_section}{message_section}"
+            )
         elif no_format:
             format_str = "%(message)s"
-        elif level == 'INTERNAL':
+        elif level == "INTERNAL":
             format_str = f"{level_name_section}{colored_arrow_section}{message_section}"
         else:
             format_str = f"{app_env_section}{name_section}{level_name_section}{verbose_section}{colored_arrow_section}{message_section}"
 
         return {
-                'format': format_str,
-                'file_section': file_section,
-                'verbose_section': verbose_section,
-                'app_env_section': app_env_section,
-                'level_name_section': level_name_section,
-                'colored_arrow_section': colored_arrow_section,
-                'message_section': message_section,
-                'name_section': name_section
-                }
+            "format": format_str,
+            "file_section": file_section,
+            "verbose_section": verbose_section,
+            "app_env_section": app_env_section,
+            "level_name_section": level_name_section,
+            "colored_arrow_section": colored_arrow_section,
+            "message_section": message_section,
+            "name_section": name_section,
+        }
 
     def _get_level_name_section(
-            self, level: LogLevel, color: str, style: str,
-            active_preset: ColorPresets
-            ) -> str:
+        self, level: LogLevel, color: str, style: str, active_preset: ColorPresets
+    ) -> str:
         """Get the formatted level name section."""
         if level == "INTERNAL":
             return f"{color}{style} [WrenchCL]{active_preset.RESET}"
@@ -401,6 +456,7 @@ class FormatterFactory:
         """Get the highlight function - this would be injected from markup processor."""
         # This would be provided by a MarkupProcessor service
         from .MarkupHandlers import highlight_literals
+
         return highlight_literals
 
 
@@ -411,38 +467,51 @@ class EnvPrefixGenerator:
         self.color_service = color_service
 
     def generate_prefix(
-            self, env_metadata: Dict, config_state,
-            dimmed_color: str, dimmed_style: str,
-            color: str, style: str
-            ) -> str:
+        self,
+        env_metadata: Dict,
+        config_state,
+        dimmed_color: str,
+        dimmed_style: str,
+        color: str,
+        style: str,
+    ) -> str:
         """Generate environment prefix for log messages."""
 
         if config_state.should_strip_ansi:
-            dimmed_color = dimmed_style = color = style = ''
+            dimmed_color = dimmed_style = color = style = ""
 
         prefix = []
         first_color_flag = False
         presets = self.color_service.get_current_presets()
 
-        if env_metadata.get('project') and config_state.should_show_env_prefix:
+        if env_metadata.get("project") and config_state.should_show_env_prefix:
             prefix.append(f"{color}{style}{env_metadata['project'].upper()}{presets.RESET}")
             first_color_flag = True
 
-        if env_metadata.get('env') and config_state.should_show_env_prefix:
+        if env_metadata.get("env") and config_state.should_show_env_prefix:
             color_to_use = dimmed_color if first_color_flag else color
             style_to_use = dimmed_style if first_color_flag else style
-            prefix.append(f"{color_to_use}{style_to_use}{env_metadata['env'].upper()}{presets.RESET}")
+            prefix.append(
+                f"{color_to_use}{style_to_use}{env_metadata['env'].upper()}{presets.RESET}"
+            )
 
-        if env_metadata.get('project_version') and config_state.should_show_env_prefix:
+        if env_metadata.get("project_version") and config_state.should_show_env_prefix:
             color_to_use = dimmed_color if first_color_flag else color
             style_to_use = dimmed_style if first_color_flag else style
-            prefix.append(f"{color_to_use}{style_to_use}{env_metadata['project_version']}{presets.RESET}")
+            prefix.append(
+                f"{color_to_use}{style_to_use}{env_metadata['project_version']}{presets.RESET}"
+            )
 
-        if env_metadata.get('run_id') and config_state.should_show_env_prefix:
+        if env_metadata.get("run_id") and config_state.should_show_env_prefix:
             color_to_use = dimmed_color if first_color_flag else color
             style_to_use = dimmed_style if first_color_flag else style
-            prefix.append(f"{color_to_use}{style_to_use}{env_metadata['run_id'].upper()}{presets.RESET}")
+            prefix.append(
+                f"{color_to_use}{style_to_use}{env_metadata['run_id'].upper()}{presets.RESET}"
+            )
 
         if prefix:
-            return f' {color}{style}:{presets.RESET} '.join(prefix) + f" {color}{style}|{presets.RESET} "
-        return ''
+            return (
+                f" {color}{style}:{presets.RESET} ".join(prefix)
+                + f" {color}{style}|{presets.RESET} "
+            )
+        return ""

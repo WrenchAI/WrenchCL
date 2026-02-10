@@ -2,7 +2,7 @@
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 import logging
-from typing import Final, Optional
+from typing import Final
 
 try:
     from ddtrace import tracer  # type: ignore
@@ -25,7 +25,10 @@ class DatadogTraceInjectionFilter(logging.Filter):
 
     def filter(self, record: logging.LogRecord) -> bool:
         # If already populated by another filter or logs injection, keep going.
-        if getattr(record, DD_TRACE_ID, None) is not None and getattr(record, DD_SPAN_ID, None) is not None:
+        if (
+            getattr(record, DD_TRACE_ID, None) is not None
+            and getattr(record, DD_SPAN_ID, None) is not None
+        ):
             return True
 
         trace_id: str = _ZERO

@@ -1,33 +1,35 @@
 #  Copyright (c) 2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
+import importlib.util
 import logging
 import os
 import sys
 import threading
 import time
-from dataclasses import replace, dataclass
-from typing import Optional, Literal, Dict, Any
+from dataclasses import dataclass, replace
+from typing import Any, Dict, Literal, Optional
 
 from .ColorService import ColorService, MockColorama
 from .DataClasses import LogLevel, logLevels
 from .Formatters import FormatterFactory
-from .LogManagers import HandlerManager, GlobalLoggerManager
-from .MessageProcessors import MarkupProcessor, MessageProcessor
 from .logging_utils import generate_run_id
+from .LogManagers import GlobalLoggerManager, HandlerManager
+from .MessageProcessors import MarkupProcessor, MessageProcessor
 
 
 @dataclass(frozen=True)  # Immutable config state
 class LoggerConfigState:
     """Immutable configuration state - no mutations allowed."""
-    mode: str = 'terminal'  # 'terminal', 'json', or 'compact'
+
+    mode: str = "terminal"  # 'terminal', 'json', or 'compact'
     highlight_syntax: bool = True
     verbose: bool = False
     deployed: bool = False
     dd_trace_enabled: bool = False
     color_enabled: bool = True
     force_markup: bool = False
-    level: LogLevel = LogLevel('INFO')
+    level: LogLevel = LogLevel("INFO")
 
     # Derived properties - computed from base config
     def should_markup(self, force_override: bool = False) -> bool:
@@ -44,7 +46,7 @@ class LoggerConfigState:
             return False
 
         # Force markup handling
-        if self.force_markup and self.mode == 'json':
+        if self.force_markup and self.mode == "json":
             return False
 
         return True
@@ -58,12 +60,12 @@ class LoggerConfigState:
     @property
     def single_line_mode(self) -> bool:
         """Determines if logs should be formatted as single lines."""
-        return self.mode == 'compact' or self.deployed
+        return self.mode == "compact" or self.deployed
 
     @property
     def should_use_json_formatter(self) -> bool:
         """Determines if JSON formatter should be used."""
-        return self.mode == 'json'
+        return self.mode == "json"
 
     @property
     def should_show_env_prefix(self) -> bool:
@@ -84,15 +86,12 @@ class LoggerConfigState:
     @property
     def should_highlight_json_literals(self) -> bool:
         """Determines if JSON literals should be highlighted."""
-        return (self.mode == 'json'
-                and not self.deployed
-                and self.should_markup)
+        return self.mode == "json" and not self.deployed and self.should_markup
 
     @property
     def should_highlight_data(self) -> bool:
         """Determines if data highlighting should be applied."""
-        return (self.mode != 'json'
-                and self.should_markup)
+        return self.mode != "json" and self.should_markup
 
     @property
     def should_add_data_markers(self) -> bool:
@@ -102,12 +101,12 @@ class LoggerConfigState:
     @property
     def should_enable_dd_trace_logging(self) -> bool:
         """Determines if Datadog trace logging should be enabled."""
-        return self.dd_trace_enabled and self.mode == 'json'
+        return self.dd_trace_enabled and self.mode == "json"
 
     @property
     def is_compact_header_mode(self) -> bool:
         """Determines if headers should use compact formatting."""
-        return self.mode == 'compact'
+        return self.mode == "compact"
 
     def should_format_message(self, no_format: bool = False) -> bool:
         """Determines if message formatting should be applied."""
@@ -131,30 +130,22 @@ class EnvironmentDetector:
 
         # AWS Lambda detection
         if os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
-            overrides.update({
-                    'deployed': True,
-                    'color_enabled': False,
-                    'mode': 'json'
-                    })
+            overrides.update({"deployed": True, "color_enabled": False, "mode": "json"})
 
         # AWS general detection
         if os.environ.get("AWS_EXECUTION_ENV"):
-            overrides.update({
-                    'deployed': True,
-                    'color_enabled': False,
-                    'mode': 'json'
-                    })
+            overrides.update({"deployed": True, "color_enabled": False, "mode": "json"})
 
         # Environment variable overrides
         color_mode = os.environ.get("COLOR_MODE", "").lower()
         if color_mode:
-            overrides['color_enabled'] = color_mode == "true"
+            overrides["color_enabled"] = color_mode == "true"
 
         dd_trace = os.environ.get("LOG_DD_TRACE", "").lower()
         if dd_trace:
-            overrides['dd_trace_enabled'] = dd_trace == "true"
+            overrides["dd_trace_enabled"] = dd_trace == "true"
             if dd_trace == "true":
-                overrides['mode'] = 'json'
+                overrides["mode"] = "json"
 
         return overrides
 
@@ -162,10 +153,14 @@ class EnvironmentDetector:
     def get_env_metadata() -> Dict[str, Optional[str]]:
         """Extract environment metadata from system environment variables."""
         return {
-                "env": os.getenv("ENV") or os.getenv('DD_ENV') or os.getenv("AWS_EXECUTION_ENV"),
-                "project": os.getenv("PROJECT_NAME") or os.getenv('COMPOSE_PROJECT_NAME') or os.getenv("AWS_LAMBDA_FUNCTION_NAME"),
-                "project_version": os.getenv("PROJECT_VERSION") or os.getenv("LAMBDA_TASK_ROOT") or os.getenv('REPO_VERSION'),
-                }
+            "env": os.getenv("ENV") or os.getenv("DD_ENV") or os.getenv("AWS_EXECUTION_ENV"),
+            "project": os.getenv("PROJECT_NAME")
+            or os.getenv("COMPOSE_PROJECT_NAME")
+            or os.getenv("AWS_LAMBDA_FUNCTION_NAME"),
+            "project_version": os.getenv("PROJECT_VERSION")
+            or os.getenv("LAMBDA_TASK_ROOT")
+            or os.getenv("REPO_VERSION"),
+        }
 
 
 class LoggerStateManager:
@@ -175,13 +170,14 @@ class LoggerStateManager:
     2. ALL state-dependent services
     3. State application logic
     """
+
     _lock = threading.RLock()
     __logger_instance: Optional[logging.Logger] = None
 
     # State
     _state = LoggerConfigState()
     _run_id = generate_run_id()
-    __base_level = 'INFO'
+    __base_level = "INFO"
     __start_time = None
     __initialized = False
 
@@ -202,10 +198,10 @@ class LoggerStateManager:
         Needs internal_log callback from cLogger since that's UI/logging, not state.
         """
         self.global_logger_manager = GlobalLoggerManager(
-                formatter_factory=self.formatter_factory,
-                handler_manager=self.handler_manager,
-                internal_logger=internal_log_callback
-                )
+            formatter_factory=self.formatter_factory,
+            handler_manager=self.handler_manager,
+            internal_logger=internal_log_callback,
+        )
 
     def _initialize_color_dependents(self):
         self.markup_processor = MarkupProcessor(self.color_service)
@@ -217,9 +213,9 @@ class LoggerStateManager:
 
     def _init_color_service(self):
         try:
-            import colorama
-            self.color_service.enable_colors()
-        except ImportError:
+            if importlib.util.find_spec("colorama") is not None:
+                self.color_service.enable_colors()
+        except ValueError:
             pass
 
     def setup(self) -> bool:
@@ -228,7 +224,9 @@ class LoggerStateManager:
                 return False
             self.handler_manager.flush_all_handlers()
             self.logging_instance.setLevel(int(LogLevel(self.__base_level)))
-            self.handler_manager.add_handler(logging.StreamHandler, self.current_state, stream=sys.stdout, force_replace=True)
+            self.handler_manager.add_handler(
+                logging.StreamHandler, self.current_state, stream=sys.stdout, force_replace=True
+            )
             self.logging_instance.propagate = False
             self.__initialized = True
             return True
@@ -237,7 +235,7 @@ class LoggerStateManager:
     def logging_instance(self) -> logging.Logger:
         with self._lock:
             if not self.__logger_instance:
-                self.__logger_instance = logging.getLogger('WrenchCL')
+                self.__logger_instance = logging.getLogger("WrenchCL")
             return self.__logger_instance
 
     @property
@@ -294,17 +292,17 @@ class LoggerStateManager:
             return LogLevel(self.__base_level)
 
     def configure(
-            self,
-            mode: Optional[Literal['terminal', 'json', 'compact']] = None,
-            level: Optional[logLevels] = None,
-            color_enabled: Optional[bool] = None,
-            highlight_syntax: Optional[bool] = None,
-            verbose: Optional[bool] = None,
-            trace_enabled: Optional[bool] = None,
-            deployment_mode: Optional[bool] = None,
-            force_markup: Optional[bool] = None,
-            suppress_autoconfig: Optional[bool] = False
-            ) -> LoggerConfigState:
+        self,
+        mode: Optional[Literal["terminal", "json", "compact"]] = None,
+        level: Optional[logLevels] = None,
+        color_enabled: Optional[bool] = None,
+        highlight_syntax: Optional[bool] = None,
+        verbose: Optional[bool] = None,
+        trace_enabled: Optional[bool] = None,
+        deployment_mode: Optional[bool] = None,
+        force_markup: Optional[bool] = None,
+        suppress_autoconfig: Optional[bool] = False,
+    ) -> LoggerConfigState:
         """
         Configure state and apply ALL side effects.
         No external callbacks needed - everything happens here.
@@ -313,40 +311,40 @@ class LoggerStateManager:
             changes = {}
 
             if mode is not None:
-                changes['mode'] = mode
+                changes["mode"] = mode
                 if not suppress_autoconfig:
-                    if mode == 'json' and deployment_mode is None:
-                        changes['deployed'] = True
-                    if mode == 'terminal':
+                    if mode == "json" and deployment_mode is None:
+                        changes["deployed"] = True
+                    if mode == "terminal":
                         if deployment_mode is True:
-                            changes['deployed'] = True
-                            changes['color_enabled'] = False
-                            changes['highlight_syntax'] = False
-                            changes['verbose'] = False
-                            changes['dd_trace_enabled'] = False
-                            changes['force_markup'] = False
+                            changes["deployed"] = True
+                            changes["color_enabled"] = False
+                            changes["highlight_syntax"] = False
+                            changes["verbose"] = False
+                            changes["dd_trace_enabled"] = False
+                            changes["force_markup"] = False
                         else:
-                            changes['color_enabled'] = True
-                            changes['highlight_syntax'] = True
-                            changes['verbose'] = False
-                            changes['deployed'] = False
-                            changes['dd_trace_enabled'] = False
-                            changes['force_markup'] = False
+                            changes["color_enabled"] = True
+                            changes["highlight_syntax"] = True
+                            changes["verbose"] = False
+                            changes["deployed"] = False
+                            changes["dd_trace_enabled"] = False
+                            changes["force_markup"] = False
 
             if level is not None:
-                changes['level'] = LogLevel(level)
+                changes["level"] = LogLevel(level)
             if color_enabled is not None:
-                changes['color_enabled'] = color_enabled
+                changes["color_enabled"] = color_enabled
             if highlight_syntax is not None:
-                changes['highlight_syntax'] = highlight_syntax
+                changes["highlight_syntax"] = highlight_syntax
             if verbose is not None:
-                changes['verbose'] = verbose
+                changes["verbose"] = verbose
             if deployment_mode is not None:
-                changes['deployed'] = deployment_mode
+                changes["deployed"] = deployment_mode
             if trace_enabled is not None:
-                changes['dd_trace_enabled'] = trace_enabled
+                changes["dd_trace_enabled"] = trace_enabled
             if force_markup is not None:
-                changes['force_markup'] = force_markup
+                changes["force_markup"] = force_markup
 
             old_state = self._state
             new_state = replace(self._state, **changes)
@@ -364,9 +362,8 @@ class LoggerStateManager:
         """
 
         # 1) Color service switch + dependent initialization
-        color_flip = (
-                old_state.color_enabled != new_state.color_enabled
-                or (new_state.color_enabled and isinstance(self.color_service._color_class, MockColorama))
+        color_flip = old_state.color_enabled != new_state.color_enabled or (
+            new_state.color_enabled and isinstance(self.color_service._color_class, MockColorama)
         )
         if color_flip:
             if new_state.color_enabled:
@@ -382,7 +379,7 @@ class LoggerStateManager:
                 # Only touch instance handlers; do NOT touch root-level handlers here
                 # Scope defaults to owned (primary/managed) to avoid clobbering user-attached handlers
                 try:
-                    self.handler_manager.update_handler_levels(new_state.level, scope='owned')
+                    self.handler_manager.update_handler_levels(new_state.level, scope="owned")
                 except TypeError:
                     # Back-compat: older HandlerManager signature without 'scope'
                     self.handler_manager.update_handler_levels(new_state.level)
@@ -393,12 +390,18 @@ class LoggerStateManager:
             env_metadata = self.get_env_metadata()
             # Recreate formatters for instance handlers
             try:
-                self.handler_manager.update_all_formatters(new_state, env_metadata, global_stream_configured=False)
+                self.handler_manager.update_all_formatters(
+                    new_state, env_metadata, global_stream_configured=False
+                )
             except TypeError:
                 # Back-compat: older signature without 'global_stream_configured'
                 self.handler_manager.update_all_formatters(new_state, env_metadata)
 
-        if fmt_changed and self.global_logger_manager and self.global_logger_manager.is_global_stream_configured:
+        if (
+            fmt_changed
+            and self.global_logger_manager
+            and self.global_logger_manager.is_global_stream_configured
+        ):
             self.global_logger_manager.refresh_root_formatter(new_state, self.get_env_metadata())
 
     def reinitialize(self) -> LoggerConfigState:
@@ -412,8 +415,8 @@ class LoggerStateManager:
     def create_temporary_state(self, **overrides) -> LoggerConfigState:
         """Create temporary state without applying it."""
         with self._lock:
-            if overrides.get('level') is not None and not isinstance(overrides['level'], LogLevel):
-                overrides['level'] = LogLevel(overrides['level'])
+            if overrides.get("level") is not None and not isinstance(overrides["level"], LogLevel):
+                overrides["level"] = LogLevel(overrides["level"])
             return replace(self._state, **overrides)
 
     def apply_temporary_state(self, temp_state: LoggerConfigState) -> LoggerConfigState:
@@ -438,14 +441,18 @@ class LoggerStateManager:
         """Apply environment-based configuration."""
         env_overrides = self._env_detector.detect_deployment()
         if env_overrides:
-            if env_overrides.get('level') is not None and not isinstance(env_overrides['level'], LogLevel):
-                env_overrides['level'] = LogLevel(env_overrides['level'])
+            if env_overrides.get("level") is not None and not isinstance(
+                env_overrides["level"], LogLevel
+            ):
+                env_overrides["level"] = LogLevel(env_overrides["level"])
             old_state = self._state
             self._state = replace(self._state, **env_overrides)
             self._apply_state_changes(old_state, self._state)
 
     @staticmethod
     def _should_update_formatters(old_config, new_config) -> bool:
-        return (old_config.mode != new_config.mode or
-                old_config.color_enabled != new_config.color_enabled or
-                old_config.deployed != new_config.deployed)
+        return (
+            old_config.mode != new_config.mode
+            or old_config.color_enabled != new_config.color_enabled
+            or old_config.deployed != new_config.deployed
+        )

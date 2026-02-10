@@ -5,7 +5,10 @@ import inspect
 import re
 from collections.abc import Mapping
 from difflib import get_close_matches
-from typing import Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Union
+
+if TYPE_CHECKING:
+    import pandas
 
 
 class ExceptionSuggestor:
@@ -16,15 +19,15 @@ class ExceptionSuggestor:
 
     @classmethod
     def suggest_similar(
-            cls,
-            missing_key: str,
-            available_keys: Iterable[str],
-            n_suggestions: int = 1,
-            cutoff: float = 0.6,
-            case_insensitive: bool = True,
-            return_message: bool = True,
-            custom_message: Optional[str] = None
-            ) -> Union[str, List[str], None]:
+        cls,
+        missing_key: str,
+        available_keys: Iterable[str],
+        n_suggestions: int = 1,
+        cutoff: float = 0.6,
+        case_insensitive: bool = True,
+        return_message: bool = True,
+        custom_message: Optional[str] = None,
+    ) -> Union[str, List[str], None]:
         keys = list(map(str, available_keys))
         key = str(missing_key)
 
@@ -47,57 +50,66 @@ class ExceptionSuggestor:
         return matches_original_case
 
     @classmethod
-    def suggest_for_pandas_column(cls, missing_column: str, dataframe_columns: Iterable[str]) -> Optional[str]:
+    def suggest_for_pandas_column(
+        cls, missing_column: str, dataframe_columns: Iterable[str]
+    ) -> Optional[str]:
         return cls.suggest_similar(
-                missing_key=missing_column,
-                available_keys=dataframe_columns,
-                n_suggestions=1,
-                cutoff=0.6,
-                case_insensitive=True,
-                return_message=True,
-                custom_message="Column '{}' not found. Did you mean: {}?".format(missing_column, '{}')
-                )
+            missing_key=missing_column,
+            available_keys=dataframe_columns,
+            n_suggestions=1,
+            cutoff=0.6,
+            case_insensitive=True,
+            return_message=True,
+            custom_message="Column '{}' not found. Did you mean: {}?".format(missing_column, "{}"),
+        )
 
     @classmethod
     def suggest_for_dict_key(cls, missing_key: str, dict_keys: Iterable[str]) -> Optional[str]:
         return cls.suggest_similar(
-                missing_key=missing_key,
-                available_keys=dict_keys,
-                n_suggestions=3,
-                cutoff=0.7,
-                case_insensitive=True,
-                return_message=True,
-                custom_message="Key '{}' not found. Possible matches: {}".format(missing_key, '{}')
-                )
+            missing_key=missing_key,
+            available_keys=dict_keys,
+            n_suggestions=3,
+            cutoff=0.7,
+            case_insensitive=True,
+            return_message=True,
+            custom_message="Key '{}' not found. Possible matches: {}".format(missing_key, "{}"),
+        )
 
     @classmethod
-    def suggest_for_cli_option(cls, invalid_option: str, valid_options: Iterable[str]) -> Optional[str]:
+    def suggest_for_cli_option(
+        cls, invalid_option: str, valid_options: Iterable[str]
+    ) -> Optional[str]:
         return cls.suggest_similar(
-                missing_key=invalid_option,
-                available_keys=valid_options,
-                n_suggestions=3,
-                cutoff=0.5,
-                case_insensitive=False,
-                return_message=True,
-                custom_message="Unrecognized option '{}'. Did you mean: {}?".format(invalid_option, '{}')
-                )
+            missing_key=invalid_option,
+            available_keys=valid_options,
+            n_suggestions=3,
+            cutoff=0.5,
+            case_insensitive=False,
+            return_message=True,
+            custom_message="Unrecognized option '{}'. Did you mean: {}?".format(
+                invalid_option, "{}"
+            ),
+        )
 
     @classmethod
-    def suggest_for_api_field(cls, missing_field: str, valid_fields: Iterable[str]) -> Optional[str]:
+    def suggest_for_api_field(
+        cls, missing_field: str, valid_fields: Iterable[str]
+    ) -> Optional[str]:
         return cls.suggest_similar(
-                missing_key=missing_field,
-                available_keys=valid_fields,
-                n_suggestions=2,
-                cutoff=0.65,
-                case_insensitive=True,
-                return_message=True,
-                custom_message="Field '{}' not found. Closest matches: {}".format(missing_field, '{}')
-                )
+            missing_key=missing_field,
+            available_keys=valid_fields,
+            n_suggestions=2,
+            cutoff=0.65,
+            case_insensitive=True,
+            return_message=True,
+            custom_message="Field '{}' not found. Closest matches: {}".format(missing_field, "{}"),
+        )
 
     @classmethod
     def _is_pandas_df(cls, obj):
         try:
             import pandas as pd
+
             if isinstance(obj, pd.DataFrame):
                 return True
         except ImportError:
@@ -106,6 +118,7 @@ class ExceptionSuggestor:
 
         try:
             from .._Internal._MockPandas import _MockPandas  # Adjust import
+
             if isinstance(obj, _MockPandas.DataFrame):
                 return True
         except ImportError:
@@ -115,11 +128,13 @@ class ExceptionSuggestor:
         return False
 
     @classmethod
-    def _suggest_for_exception(cls, error: BaseException, frame_depth=20, n_suggestions=1, cutoff=0.6) -> Optional[str]:
+    def _suggest_for_exception(
+        cls, error: BaseException, frame_depth=20, n_suggestions=1, cutoff=0.6
+    ) -> Optional[str]:
         if not isinstance(error, BaseException):
             return None
         error_msg = error.args[0]
-        if not error.__class__.__name__.lower() in error_msg.lower():
+        if error.__class__.__name__.lower() not in error_msg.lower():
             error_msg = f"  {error.__class__.__name__}: {error_msg}"
         else:
             error_msg = f"  {error_msg}"
@@ -135,17 +150,21 @@ class ExceptionSuggestor:
 
         for frame in reversed(inspect.stack()[:frame_depth]):
             for var in frame.frame.f_locals.values():
-                if not hasattr(var, '__class__'):
+                if not hasattr(var, "__class__"):
                     continue
                 if var.__class__.__name__ == source_obj:
-                    keys = [k for k in dir(var) if not k.startswith('__')]
+                    keys = [k for k in dir(var) if not k.startswith("__")]
                     matches = get_close_matches(missing_attr, keys, n=n_suggestions, cutoff=cutoff)
                     if matches:
                         return f"{error_msg}\n    Did you mean: {', '.join(matches)}?\n"
         return error_msg
 
     @classmethod
-    def suggest(cls, obj: Union[BaseException, 'pandas.DataFrame', dict, tuple, set, list, object], missing_key: str = None) -> Optional[str]:
+    def suggest(
+        cls,
+        obj: Union[BaseException, "pandas.DataFrame", dict, tuple, set, list, object],
+        missing_key: str = None,
+    ) -> Optional[str]:
         """
         Auto-detect object type and route to appropriate suggestion method.
         """
@@ -165,11 +184,13 @@ class ExceptionSuggestor:
 
         else:
             return cls.suggest_similar(
-                    missing_key=missing_key,
-                    available_keys=dir(obj),
-                    n_suggestions=2,
-                    cutoff=0.5,
-                    case_insensitive=True,
-                    return_message=True,
-                    custom_message="Attribute '{}' not found. Closest matches: {}".format(missing_key, '{}')
-                    )
+                missing_key=missing_key,
+                available_keys=dir(obj),
+                n_suggestions=2,
+                cutoff=0.5,
+                case_insensitive=True,
+                return_message=True,
+                custom_message="Attribute '{}' not found. Closest matches: {}".format(
+                    missing_key, "{}"
+                ),
+            )

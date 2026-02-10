@@ -22,7 +22,9 @@ class _ConfigurationManager:
     Configuration is loaded in order: optional .env → environment vars → kwargs.
     """
 
-    def __init__(self, ):
+    def __init__(
+        self,
+    ):
         self.reset()
 
     def initialize(self, env_path: Optional[str] = None, silent: bool = False, **kwargs):
@@ -35,8 +37,10 @@ class _ConfigurationManager:
 
         if self._initialized:
             if not silent:
-                raise InvalidConfigurationException(config_name="InternalConfig",
-                                                    reason="Configuration has already been initialized. call reset() first.")
+                raise InvalidConfigurationException(
+                    config_name="InternalConfig",
+                    reason="Configuration has already been initialized. call reset() first.",
+                )
             else:
                 return
 
@@ -104,7 +108,9 @@ class _ConfigurationManager:
         self.pgport_override = os.getenv("PGPORT_OVERRIDE", self.pgport_override)
 
         self.db_batch_size = int(os.getenv("DB_BATCH_OVERRIDE", self.db_batch_size))
-        self.aws_deployment = str(os.getenv("AWS_DEPLOYMENT", self.aws_deployment)).lower() == "true"
+        self.aws_deployment = (
+            str(os.getenv("AWS_DEPLOYMENT", self.aws_deployment)).lower() == "true"
+        )
 
     def _apply_overrides(self, kwargs: dict):
         """Apply keyword argument overrides."""
@@ -123,7 +129,9 @@ class _ConfigurationManager:
         self.pgport_override = kwargs.get("PGPORT_OVERRIDE", self.pgport_override)
 
         self.db_batch_size = int(kwargs.get("DB_BATCH_OVERRIDE", self.db_batch_size))
-        self.aws_deployment = str(kwargs.get("AWS_DEPLOYMENT", self.aws_deployment)).lower() == "true"
+        self.aws_deployment = (
+            str(kwargs.get("AWS_DEPLOYMENT", self.aws_deployment)).lower() == "true"
+        )
 
     def load_rds_secret(self, secret_dict: dict):
         """Populate DB connection fields from a secret dictionary."""
@@ -131,7 +139,9 @@ class _ConfigurationManager:
         self.db_pass = secret_dict.get("password") or self.db_pass
         self.db_name = secret_dict.get("dbname") or self.db_name
         self.db_host = secret_dict.get("host") or self.db_host
-        self.db_port = Maybe(secret_dict.get("port")).int().out() if secret_dict.get("port") else None
+        self.db_port = (
+            Maybe(secret_dict.get("port")).int().out() if secret_dict.get("port") else None
+        )
         if self.db_user and self.db_pass and self.db_name and self.db_host:
             return True
         else:

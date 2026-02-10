@@ -17,7 +17,7 @@ def get_hash(data):
     :rtype: str
     """
     if isinstance(data, str):
-        data = data.encode('utf-8')
+        data = data.encode("utf-8")
 
     sha1 = hashlib.sha1()
     sha1.update(data)
@@ -47,7 +47,7 @@ def image_to_base64(image_source, is_url=True, return_hash=False):
             image_data = BytesIO(image_file.read()).getvalue()
 
     # Encode the image data to Base64
-    base64_string = base64.b64encode(image_data).decode('utf-8')
+    base64_string = base64.b64encode(image_data).decode("utf-8")
 
     if return_hash:
         image_hash = get_hash(image_data)

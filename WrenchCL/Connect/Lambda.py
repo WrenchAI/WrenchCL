@@ -3,44 +3,62 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
 import json
-from typing import Any, Dict, Optional, Union, Literal, get_args, TypedDict
+from typing import Any, Dict, Literal, Optional, TypedDict, Union, get_args
 
 from .. import logger
 from ..Tools import RobustJSONEncoder
 from ..Tools.truncate_display import truncate_display
 
 # Allowed Lambda proxy response codes
-LambdaStatusCodes = Literal[200, 201, 202, 204, 301, 302, 304, 307, 308, 400, 401, 403, 404, 405, 409, 429, 500, 502, 503, 504]
+LambdaStatusCodes = Literal[
+    200,
+    201,
+    202,
+    204,
+    301,
+    302,
+    304,
+    307,
+    308,
+    400,
+    401,
+    403,
+    404,
+    405,
+    409,
+    429,
+    500,
+    502,
+    503,
+    504,
+]
 
 STATUS_CODE_MESSAGES: Dict[int, str] = {
-        # 2xx: Success
-        200: "OK: The request was successful.",
-        201: "Created: A new resource has been created successfully.",
-        202: "Accepted: The request has been accepted for processing, but is not yet complete.",
-        204: "No Content: The request succeeded, but there is no content to return.",
-
-        # 3xx: Redirection
-        301: "Moved Permanently: The resource has been moved to a new URI permanently.",
-        302: "Found: The resource is temporarily available at a different URI.",
-        304: "Not Modified: The resource has not changed since the last request.",
-        307: "Temporary Redirect: The request should be repeated with a different URI (same method).",
-        308: "Permanent Redirect: The request should be repeated with a new URI (same method).",
-
-        # 4xx: Client Errors
-        400: "Bad Request: The request could not be understood or was missing required parameters.",
-        401: "Unauthorized: Authentication is required or has failed.",
-        403: "Forbidden: You do not have permission to access this resource.",
-        404: "Not Found: The requested resource could not be found.",
-        405: "Method Not Allowed: The HTTP method is not supported for this resource.",
-        409: "Conflict: The request could not be completed due to a conflict with the current state.",
-        429: "Too Many Requests: You have sent too many requests in a given timeframe.",
-
-        # 5xx: Server Errors
-        500: "Internal Server Error: An unexpected server error occurred.",
-        502: "Bad Gateway: The server received an invalid response from an upstream service.",
-        503: "Service Unavailable: The server is temporarily unable to handle the request.",
-        504: "Gateway Timeout: The server did not receive a timely response from an upstream service.",
-        }
+    # 2xx: Success
+    200: "OK: The request was successful.",
+    201: "Created: A new resource has been created successfully.",
+    202: "Accepted: The request has been accepted for processing, but is not yet complete.",
+    204: "No Content: The request succeeded, but there is no content to return.",
+    # 3xx: Redirection
+    301: "Moved Permanently: The resource has been moved to a new URI permanently.",
+    302: "Found: The resource is temporarily available at a different URI.",
+    304: "Not Modified: The resource has not changed since the last request.",
+    307: "Temporary Redirect: The request should be repeated with a different URI (same method).",
+    308: "Permanent Redirect: The request should be repeated with a new URI (same method).",
+    # 4xx: Client Errors
+    400: "Bad Request: The request could not be understood or was missing required parameters.",
+    401: "Unauthorized: Authentication is required or has failed.",
+    403: "Forbidden: You do not have permission to access this resource.",
+    404: "Not Found: The requested resource could not be found.",
+    405: "Method Not Allowed: The HTTP method is not supported for this resource.",
+    409: "Conflict: The request could not be completed due to a conflict with the current state.",
+    429: "Too Many Requests: You have sent too many requests in a given timeframe.",
+    # 5xx: Server Errors
+    500: "Internal Server Error: An unexpected server error occurred.",
+    502: "Bad Gateway: The server received an invalid response from an upstream service.",
+    503: "Service Unavailable: The server is temporarily unable to handle the request.",
+    504: "Gateway Timeout: The server did not receive a timely response from an upstream service.",
+}
 
 
 class LambdaBodyProtocol(TypedDict, total=False):
@@ -61,13 +79,18 @@ class LambdaResponse:
     _body: LambdaBodyProtocol
     _serialized_body: str
     _default_headers: Dict[str, str] = {
-            "Content-Type": "application/json; charset=utf-8",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-            "Access-Control-Allow-Headers": "*",
-            }
+        "Content-Type": "application/json; charset=utf-8",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+        "Access-Control-Allow-Headers": "*",
+    }
 
-    def __init__(self, status_code: LambdaStatusCodes, body: Union[Dict[str, Any], str, None], headers: Dict[str, str]) -> None:
+    def __init__(
+        self,
+        status_code: LambdaStatusCodes,
+        body: Union[Dict[str, Any], str, None],
+        headers: Dict[str, str],
+    ) -> None:
         self.statusCode = status_code
         self.headers = headers
         self.body = body
@@ -111,10 +134,10 @@ class LambdaResponse:
         if value is not None and not isinstance(value, (dict, str)):
             value = str(value)
         if not isinstance(value, dict):
-            value = {'data': value}
-        if 'message' in value:
-            __im = value.pop('message')
-        value['message'] = self._message if __im is None else f"{self._message} | {__im}"
+            value = {"data": value}
+        if "message" in value:
+            __im = value.pop("message")
+        value["message"] = self._message if __im is None else f"{self._message} | {__im}"
         serialized_body = json.dumps(value, cls=RobustJSONEncoder)
         self._body = LambdaBodyProtocol(**value)
         self._serialized_body = serialized_body
@@ -122,10 +145,10 @@ class LambdaResponse:
     def as_dict(self) -> SerializedLambdaResponse:
         """Return AWS Lambda-compatible dict."""
         return {
-                "statusCode": self.statusCode,
-                "headers": self.headers,
-                "body": self._serialized_body,
-                }
+            "statusCode": self.statusCode,
+            "headers": self.headers,
+            "body": self._serialized_body,
+        }
 
     def json(self):
         return json.dumps(self.as_dict(), cls=RobustJSONEncoder)
@@ -150,7 +173,13 @@ class LambdaResponse:
 
 
 # Standardized short messages for supported codes
-def handle_lambda_response(status_code: LambdaStatusCodes, body: Union[Dict[str, Any], str, None] = None, allow_methods: str = "GET, OPTIONS, POST", extra_headers: Optional[Dict[str, str]] = None, **extra_body_fields: Any) -> LambdaResponse:
+def handle_lambda_response(
+    status_code: LambdaStatusCodes,
+    body: Union[Dict[str, Any], str, None] = None,
+    allow_methods: str = "GET, OPTIONS, POST",
+    extra_headers: Optional[Dict[str, str]] = None,
+    **extra_body_fields: Any,
+) -> LambdaResponse:
     """
     Build a minimal AWS Lambda proxy response with:
       - Strictly typed HTTP status codes.
@@ -165,12 +194,12 @@ def handle_lambda_response(status_code: LambdaStatusCodes, body: Union[Dict[str,
     """
     try:
         headers = {
-                "Content-Type": "application/json; charset=utf-8",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": allow_methods,
-                "Access-Control-Allow-Headers": "*",
-                **(extra_headers or {}),
-                }
+            "Content-Type": "application/json; charset=utf-8",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": allow_methods,
+            "Access-Control-Allow-Headers": "*",
+            **(extra_headers or {}),
+        }
 
         # If body is None, fall back to a standardized message
         if body is None:

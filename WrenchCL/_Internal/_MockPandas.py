@@ -2,6 +2,7 @@
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
+
 class _MockPandas:
     """A mock pandas class for environments where pandas is not installed."""
 
