@@ -341,7 +341,7 @@ class FormatterFactory:
         """Build the various components of the log format string."""
 
         # File/function info section
-        file_section = f"{dimmed_color}{dimmed_style}%(filename)s:%(funcName)s:%(lineno)d]{active_preset.RESET}"
+        file_section = f"{dimmed_color}{dimmed_style}%(filename)s:%(lineno)d - %(funcName)s]{active_preset.RESET}"
 
         # Verbose timestamp section
         verbose_section = f"{dimmed_color}{dimmed_style}[%(asctime)s|{file_section}{active_preset.RESET}"
