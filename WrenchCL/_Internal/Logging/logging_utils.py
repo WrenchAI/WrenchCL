@@ -40,17 +40,20 @@ def ensure_str(val: bytes | str) -> Any:
 
 def get_depth(internal=False) -> int:
     """Get stack depth to determine log source."""
-    for i, frame in enumerate(inspect.stack()):
-        if (
-            frame.filename.endswith("cLogger.py")
-            or "WrenchCL" in frame.filename
-            or frame.filename == "<string>"
-        ):
-            if internal:
-                return i + 2
-            else:
-                continue
-        return i
+    try:
+        for i, frame in enumerate(inspect.stack()):
+            if (
+                frame.filename.endswith("cLogger.py")
+                or "WrenchCL" in frame.filename
+                or frame.filename == "<string>"
+            ):
+                if internal:
+                    return i + 2
+                else:
+                    continue
+            return i
+    except Exception:
+        pass
     # Fallback: If stack inspection fails, return depth 1 (assume direct caller).
     return 1
 

@@ -147,16 +147,18 @@ class ExceptionSuggestor:
 
         source_obj = obj_match.group(1) if obj_match else None
         missing_attr = key_match.group(1)
-
-        for frame in reversed(inspect.stack()[:frame_depth]):
-            for var in frame.frame.f_locals.values():
-                if not hasattr(var, "__class__"):
-                    continue
-                if var.__class__.__name__ == source_obj:
-                    keys = [k for k in dir(var) if not k.startswith("__")]
-                    matches = get_close_matches(missing_attr, keys, n=n_suggestions, cutoff=cutoff)
-                    if matches:
-                        return f"{error_msg}\n    Did you mean: {', '.join(matches)}?\n"
+        try:
+            for frame in reversed(inspect.stack()[:frame_depth]):
+                for var in frame.frame.f_locals.values():
+                    if not hasattr(var, "__class__"):
+                        continue
+                    if var.__class__.__name__ == source_obj:
+                        keys = [k for k in dir(var) if not k.startswith("__")]
+                        matches = get_close_matches(missing_attr, keys, n=n_suggestions, cutoff=cutoff)
+                        if matches:
+                            return f"{error_msg}\n    Did you mean: {', '.join(matches)}?\n"
+        except Exception:
+            pass
         return error_msg
 
     @classmethod
