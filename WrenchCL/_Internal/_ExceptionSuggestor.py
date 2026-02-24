@@ -36,7 +36,9 @@ class _ExceptionSuggestor:
                         continue
                     if var.__class__.__name__ == source_obj:
                         keys = [k for k in dir(var) if not k.startswith("__")]
-                        matches = get_close_matches(missing_attr, keys, n=n_suggestions, cutoff=cutoff)
+                        matches = get_close_matches(
+                            missing_attr, keys, n=n_suggestions, cutoff=cutoff
+                        )
                         if matches:
                             return f"{error_msg}\n    Did you mean: {', '.join(matches)}?\n"
         except Exception:
