@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Automation Break-Even — Wrench.ai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root {
+  --bg-base:     #101417;
+  --bg-surface:  #0d0e12;
+  --bg-elevated: #15171c;
+  --accent:      #5E80A8;
+  --accent-warm: #F1956F;
+  --success:     #6DD48F;
+  --warning:     #FFCC71;
+  --danger:      #FF8D80;
+  --text-pri:    #CDD6DF;
+  --text-sec:    #8199B0;
+  --text-muted:  #687B8E;
+  --border:      #36404A;
+  --border-sub:  #1a1e24;
+  --r-sm: 6px; --r-md: 10px; --r-lg: 16px;
+  --font-ui:   'Poppins', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg-base);
+  color: var(--text-pri);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding: 28px 32px 32px;
+}
+
+.hdr { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 20px; }
+.hdr-left { display: flex; flex-direction: column; gap: 0; }
+.logo-img { height: 26px; width: auto; margin-bottom: 10px; display: block; }
+.wordmark-fallback { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; display: none; }
+.wordmark-fallback em { font-style: normal; color: var(--accent); }
+.hdr-title { font-size: 20px; font-weight: 600; color: var(--text-pri); }
+.hdr-sub { font-size: 12px; color: var(--text-sec); margin-top: 3px; }
+.formula {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 10px 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-sec);
+  line-height: 2;
+  text-align: right;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.formula strong { color: var(--accent); font-weight: 500; }
+
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px 24px;
+}
+.card-lbl {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--text-muted); margin-bottom: 18px;
+}
+
+.input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 32px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-sec); }
+.num-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 9px 12px;
+  transition: border-color 0.15s;
+}
+.num-wrap:focus-within { border-color: var(--accent); }
+.pfx { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+input[type="number"] {
+  background: none; border: none; outline: none;
+  color: var(--text-pri); font-family: var(--font-mono);
+  font-size: 14px; font-weight: 500; width: 100%;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+.slide-field { display: flex; flex-direction: column; gap: 6px; }
+.slide-row { display: flex; align-items: center; gap: 14px; }
+input[type="range"] {
+  flex: 1; -webkit-appearance: none;
+  height: 3px; border-radius: 2px;
+  background: var(--border); outline: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
+  transition: transform 0.1s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.sval { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--accent); min-width: 60px; text-align: right; }
+
+.kpi-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin: 14px 0; }
+.kpi { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px 16px; }
+.kpi-l { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 6px; }
+.kpi-v { font-family: var(--font-mono); font-size: 22px; font-weight: 500; color: var(--text-pri); line-height: 1.2; }
+.kpi-v.ok   { color: var(--success); }
+.kpi-v.warn { color: var(--warning); }
+.kpi-v.bad  { color: var(--danger);  }
+.kpi-s { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+.chart-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.chart-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); }
+.legend { display: flex; gap: 18px; }
+.leg { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text-muted); }
+.leg-line { width: 18px; height: 2px; border-radius: 1px; }
+.leg-dash { width: 18px; border-top: 2px dashed rgba(255,141,128,0.45); }
+.leg-dot  { width: 8px; height: 8px; border-radius: 50%; background: #FFCC71; }
+
+.footer { margin-top: 16px; text-align: center; font-size: 11px; color: var(--text-muted); }
+.footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <img
+      class="logo-img"
+      src="https://resources.wrench.ai/wp-content/uploads/2025/07/logo-text-horizontal-grey.svg"
+      alt="Wrench.ai"
+      onerror="this.style.display='none';document.getElementById('wm-fb').style.display='block';"
+    >
+    <div id="wm-fb" class="wordmark-fallback"><em>WRENCH</em>.AI</div>
+    <div class="hdr-title">AI Automation Break-Even</div>
+    <div class="hdr-sub">How fast does this automation pay for itself?</div>
+  </div>
+  <div class="formula">
+    <strong>Break-even (wks)</strong> = Fixed cost ÷ Weekly margin<br>
+    <strong>Weekly margin</strong> = (Value/run − Cost/run) × Freq/wk<br>
+    <strong>Value / run</strong> = (Min saved ÷ 60) × Hourly rate
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-lbl">Parameters</div>
+  <div class="input-grid">
+
+    <div class="field">
+      <div class="field-lbl">Setup cost — fixed, one-time</div>
+      <div class="num-wrap">
+        <span class="pfx">$</span>
+        <input type="number" id="fc" value="1000" min="0" step="100">
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-lbl">Hourly rate</div>
+      <div class="num-wrap">
+        <span class="pfx">$</span>
+        <input type="number" id="hr" value="75" min="1" step="5">
+        <span class="pfx">/ hr</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-lbl">Incremental cost per run</div>
+      <div class="num-wrap">
+        <span class="pfx">$</span>
+        <input type="number" id="ic" value="0.10" min="0" step="0.01">
+        <span class="pfx">/ run</span>
+      </div>
+    </div>
+
+    <div></div>
+
+    <div class="slide-field">
+      <div class="field-lbl">Minutes saved / run — <span id="mo" style="color:var(--accent);font-family:var(--font-mono);">15 min</span></div>
+      <div class="slide-row">
+        <input type="range" id="rmin" min="1" max="120" value="15" step="1">
+        <span class="sval" id="mo2">15 min</span>
+      </div>
+    </div>
+
+    <div class="slide-field">
+      <div class="field-lbl">Runs per week — <span id="fo" style="color:var(--accent);font-family:var(--font-mono);">20×</span></div>
+      <div class="slide-row">
+        <input type="range" id="rfrq" min="1" max="500" value="20" step="1">
+        <span class="sval" id="fo2">20×</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi">
+    <div class="kpi-l">Value / run</div>
+    <div class="kpi-v" id="m1">—</div>
+    <div class="kpi-s">time saved × rate</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-l">Margin / run</div>
+    <div class="kpi-v" id="m2">—</div>
+    <div class="kpi-s">value − incr. cost</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-l">Break-even</div>
+    <div class="kpi-v" id="m3">—</div>
+    <div class="kpi-s">fixed ÷ weekly margin</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-l">Annual net ROI</div>
+    <div class="kpi-v" id="m4">—</div>
+    <div class="kpi-s">after setup cost</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="chart-hdr">
+    <div class="chart-title">Cumulative net value — 52 weeks</div>
+    <div class="legend">
+      <div class="leg"><div class="leg-line" style="background:#5E80A8;"></div> net value</div>
+      <div class="leg"><div class="leg-dot"></div> break-even pt</div>
+      <div class="leg"><div class="leg-dash"></div> zero</div>
+    </div>
+  </div>
+  <canvas id="chart"></canvas>
+</div>
+
+<div class="footer">
+  Wrench.ai · <a href="https://wrench.ai" target="_blank">wrench.ai</a> · Fixed costs ÷ marginal contribution
+</div>
+
+<script>
+const g = id => document.getElementById(id);
+let ch = null;
+
+function fmt$(n, d=0) {
+  const a = Math.abs(n);
+  const s = a >= 100000 ? (a/1000).toFixed(0)+'k'
+          : a >= 1000   ? a.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d})
+          : a.toFixed(d);
+  return (n<0?'-':'')+'$'+s;
+}
+
+function fmtW(w) {
+  if (!isFinite(w)||w>520) return '>10yr';
+  if (w<1) return Math.round(w*7)+'d';
+  if (w<52) return w.toFixed(1)+' wks';
+  return (w/52).toFixed(1)+' yrs';
+}
+
+function calc() {
+  const fixed = parseFloat(g('fc').value)||0;
+  const rate  = parseFloat(g('hr').value)||0;
+  const mins  = parseFloat(g('rmin').value)||0;
+  const freq  = parseFloat(g('rfrq').value)||0;
+  const incr  = parseFloat(g('ic').value)||0;
+
+  g('mo').textContent = g('mo2').textContent = mins+' min';
+  g('fo').textContent = g('fo2').textContent = freq+'×';
+
+  const valRun  = (mins/60)*rate;
+  const margRun = valRun - incr;
+  const wkMarg  = margRun * freq;
+  const beWks   = wkMarg>0 ? fixed/wkMarg : Infinity;
+  const annROI  = wkMarg*52 - fixed;
+
+  g('m1').textContent = fmt$(valRun,2);
+  g('m1').className   = 'kpi-v';
+
+  g('m2').textContent = fmt$(margRun,2);
+  g('m2').className   = 'kpi-v '+(margRun>=0?'ok':'bad');
+
+  g('m3').textContent = margRun<=0 ? 'Never' : fmtW(beWks);
+  g('m3').className   = 'kpi-v '+(margRun<=0?'bad':beWks<=13?'ok':beWks<=26?'warn':'');
+
+  g('m4').textContent = fmt$(annROI,0);
+  g('m4').className   = 'kpi-v '+(annROI>=0?'ok':'bad');
+
+  buildChart(fixed, wkMarg, beWks);
+}
+
+function buildChart(fixed, wkMarg, beWks) {
+  const W = 52;
+  const netPts  = Array.from({length:W+1},(_,w)=>({x:w, y:Math.round(-fixed+wkMarg*w)}));
+  const zeroPts = Array.from({length:W+1},(_,w)=>({x:w, y:0}));
+  const bePts   = Array.from({length:W+1},(_,i)=>({x:i, y:null}));
+
+  if (isFinite(beWks)&&beWks>=0&&beWks<=W) {
+    const idx = Math.min(Math.round(beWks), W);
+    bePts[idx] = {x:idx, y:0};
+  }
+
+  const yVals = netPts.map(p=>p.y);
+  const minY  = Math.min(...yVals, 0) * 1.08;
+  const maxY  = Math.max(...yVals, 100) * 1.08;
+
+  if (ch) ch.destroy();
+  ch = new Chart(g('chart'), {
+    type:'line',
+    data:{
+      datasets:[
+        {
+          label:'Net value',
+          data: netPts,
+          borderColor:'#5E80A8',
+          borderWidth:2,
+          pointRadius:0,
+          fill:{target:{value:0}, above:'rgba(94,128,168,0.09)', below:'rgba(255,141,128,0.06)'},
+          tension:0,
+        },
+        {
+          label:'Zero',
+          data: zeroPts,
+          borderColor:'rgba(255,141,128,0.32)',
+          borderWidth:1,
+          borderDash:[5,5],
+          pointRadius:0,
+          fill:false,
+        },
+        {
+          label:'Break-even',
+          data: bePts,
+          borderColor:'transparent',
+          backgroundColor:'#FFCC71',
+          pointRadius:7,
+          pointHoverRadius:10,
+          fill:false,
+          showLine:false,
+        }
+      ]
+    },
+    options:{
+      parsing:false,
+      responsive:true,
+      maintainAspectRatio:true,
+      aspectRatio:3.2,
+      animation:{duration:220},
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#15171c',
+          borderColor:'#36404A',
+          borderWidth:1,
+          titleColor:'#8199B0',
+          bodyColor:'#CDD6DF',
+          padding:10,
+          bodyFont:{family:"'JetBrains Mono',monospace",size:12},
+          callbacks:{
+            title: items=>'Week '+items[0].parsed.x,
+            label: ctx=>ctx.datasetIndex===0?' '+fmt$(ctx.parsed.y,0):null,
+          },
+          filter: item=>item.datasetIndex===0,
+        },
+      },
+      scales:{
+        x:{
+          type:'linear', min:0, max:52,
+          grid:{color:'#1a1e24'},
+          ticks:{
+            color:'#687B8E',
+            font:{family:"'JetBrains Mono',monospace",size:10},
+            stepSize:13,
+            callback: v=>v===0?'0':'wk '+v,
+          },
+          border:{color:'#36404A'},
+        },
+        y:{
+          min:minY, max:maxY,
+          grid:{color:'#1a1e24'},
+          ticks:{
+            color:'#687B8E',
+            font:{family:"'JetBrains Mono',monospace",size:10},
+            maxTicksLimit:6,
+            callback: v=>Math.abs(v)>=1000?(v<0?'-':'')+'$'+Math.round(Math.abs(v)/1000)+'k':fmt$(v,0),
+          },
+          border:{color:'#36404A'},
+        }
+      }
+    }
+  });
+}
+
+['fc','hr','ic'].forEach(id=>g(id).addEventListener('input',calc));
+['rmin','rfrq'].forEach(id=>g(id).addEventListener('input',calc));
+calc();
+</script>
+</body>
+</html>
