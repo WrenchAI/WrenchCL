@@ -358,7 +358,7 @@ class LoggerStateManager:
             if force_markup is not None:
                 changes["force_markup"] = force_markup
             if prefix is not _UNSET:
-                changes["log_prefix"] = prefix  # None explicitly clears the prefix
+                changes["log_prefix"] = str(prefix) if prefix is not None else None
             if show_thread_name is not None:
                 changes["show_thread_name"] = show_thread_name
 
