@@ -193,6 +193,10 @@ class BaseLogger:
         with self._lock:
             self.state_manager.set_new_run_id()
 
+    def cycle_run(self):
+        """Generate a fresh run ID — call at the start of each Lambda invocation or job cycle."""
+        self.initiate_new_run()
+
     def set_prefix(self, prefix: Optional[str] = None) -> None:
         """Set a contextual prefix prepended to all log output as [run_id | prefix | ...]"""
         self.state_manager.set_prefix(prefix)
