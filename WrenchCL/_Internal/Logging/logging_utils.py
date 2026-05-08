@@ -1,7 +1,9 @@
 #  Copyright (c) 2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
+import random
 import re
+import string
 import sys
 import threading
 from types import FrameType
@@ -73,6 +75,7 @@ def _measure_base_level() -> int:
 
     _logger = logging.getLogger("_wcl_depth_probe")
     _logger.propagate = False
+    _logger.setLevel(logging.DEBUG)
     _h = _Probe()
     _logger.addHandler(_h)
     try:
@@ -129,9 +132,15 @@ def suggest_exception(args) -> Optional[str]:
     return suggestion
 
 
+_RUN_ID_CHARS: str = string.ascii_uppercase + string.digits
+
+
 def generate_run_id() -> str:
-    """Generate a unique 5-character uppercase alphanumeric run ID."""
-    import random
-    import string
-    chars = string.ascii_uppercase + string.digits
-    return "".join(random.choices(chars, k=5))
+    """
+    Generate a unique 5-character uppercase alphanumeric run ID.
+
+    ID space is 36^5 (~60 M). Collision probability reaches ~50% at roughly
+    7,700 simultaneously active IDs — sufficient for log correlation within a
+    single service instance but not intended as a cryptographic identifier.
+    """
+    return "".join(random.choices(_RUN_ID_CHARS, k=5))
