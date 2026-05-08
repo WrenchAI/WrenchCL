@@ -10,6 +10,7 @@ from contextlib import contextmanager
 from typing import Any, Literal, Optional, Union
 
 from ..DataClasses import LogLevel, LogOptions, logLevels
+from ..LoggerConfigState import _UNSET
 from .internal_api import InternalAPI
 
 
@@ -155,6 +156,8 @@ class BaseLogger:
         trace_enabled: Optional[bool] = None,
         deployment_mode: Optional[bool] = None,
         suppress_autoconfig: bool = True,
+        prefix: object = _UNSET,
+        show_thread_name: Optional[bool] = None,
     ) -> None:
         """Configure logger behavior and settings"""
         if trace_enabled is not None:
@@ -170,6 +173,8 @@ class BaseLogger:
             trace_enabled=trace_enabled,
             deployment_mode=deployment_mode,
             suppress_autoconfig=suppress_autoconfig,
+            prefix=prefix,
+            show_thread_name=show_thread_name,
         )
         self.level = new_config.level
 
@@ -187,6 +192,50 @@ class BaseLogger:
         """Generate and assign a new run ID for process tracking"""
         with self._lock:
             self.state_manager.set_new_run_id()
+
+    def cycle_run(self):
+        """Generate a fresh run ID — call at the start of each Lambda invocation or job cycle."""
+        self.initiate_new_run()
+
+    def set_prefix(self, prefix: Optional[str] = None) -> None:
+        """Set a contextual prefix prepended to all log output as [run_id | prefix | ...]"""
+        self.state_manager.set_prefix(prefix)
+
+    def prefix(self, value: str):
+        """
+        Scoped log prefix — use as a context manager or decorator.
+
+        As a context manager:
+            with logger.prefix("api-handler"):
+                logger.info("...")   # shows prefix
+
+        As a decorator:
+            @logger.prefix("MyService")
+            def process(self):
+                logger.info("...")   # shows prefix for the whole call
+        """
+        from functools import wraps
+        from ..ContextFilter import _log_prefix_var
+
+        class _PrefixScope:
+            def __enter__(self_):
+                self_._token = _log_prefix_var.set(value)
+                return self_
+
+            def __exit__(self_, *args):
+                _log_prefix_var.reset(self_._token)
+
+            def __call__(self_, func):
+                @wraps(func)
+                def wrapper(*args, **kwargs):
+                    token = _log_prefix_var.set(value)
+                    try:
+                        return func(*args, **kwargs)
+                    finally:
+                        _log_prefix_var.reset(token)
+                return wrapper
+
+        return _PrefixScope()
 
     def header(
         self,
