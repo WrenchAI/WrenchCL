@@ -197,6 +197,42 @@ class BaseLogger:
         """Set a contextual prefix prepended to all log output as [run_id | prefix | ...]"""
         self.state_manager.set_prefix(prefix)
 
+    def prefix(self, value: str):
+        """
+        Scoped log prefix — use as a context manager or decorator.
+
+        As a context manager:
+            with logger.prefix("api-handler"):
+                logger.info("...")   # shows prefix
+
+        As a decorator:
+            @logger.prefix("MyService")
+            def process(self):
+                logger.info("...")   # shows prefix for the whole call
+        """
+        from functools import wraps
+        from ..ContextFilter import _log_prefix_var
+
+        class _PrefixScope:
+            def __enter__(self_):
+                self_._token = _log_prefix_var.set(value)
+                return self_
+
+            def __exit__(self_, *args):
+                _log_prefix_var.reset(self_._token)
+
+            def __call__(self_, func):
+                @wraps(func)
+                def wrapper(*args, **kwargs):
+                    token = _log_prefix_var.set(value)
+                    try:
+                        return func(*args, **kwargs)
+                    finally:
+                        _log_prefix_var.reset(token)
+                return wrapper
+
+        return _PrefixScope()
+
     def header(
         self,
         text: str,

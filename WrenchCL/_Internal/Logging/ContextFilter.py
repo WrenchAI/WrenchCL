@@ -3,10 +3,14 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 import logging
 import threading
-from typing import TYPE_CHECKING
+from contextvars import ContextVar
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from .LoggerConfigState import LoggerStateManager
+
+
+_log_prefix_var: ContextVar[Optional[str]] = ContextVar("wrench_log_prefix", default=None)
 
 
 class ContextPrefixFilter(logging.Filter):
@@ -35,7 +39,8 @@ class ContextPrefixFilter(logging.Filter):
             return True
 
         run_id: str = self._state_manager.run_id or ""
-        prefix: str = state.log_prefix or ""
+        scoped_prefix: Optional[str] = _log_prefix_var.get()
+        prefix: str = scoped_prefix if scoped_prefix is not None else (state.log_prefix or "")
         thread_name: str = threading.current_thread().name if state.show_thread_name else ""
         logger_name: str = record.name or ""
 
