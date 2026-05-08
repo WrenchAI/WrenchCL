@@ -10,6 +10,7 @@ from contextlib import contextmanager
 from typing import Any, Literal, Optional, Union
 
 from ..DataClasses import LogLevel, LogOptions, logLevels
+from ..LoggerConfigState import _UNSET
 from .internal_api import InternalAPI
 
 
@@ -155,6 +156,8 @@ class BaseLogger:
         trace_enabled: Optional[bool] = None,
         deployment_mode: Optional[bool] = None,
         suppress_autoconfig: bool = True,
+        prefix: object = _UNSET,
+        show_thread_name: Optional[bool] = None,
     ) -> None:
         """Configure logger behavior and settings"""
         if trace_enabled is not None:
@@ -170,6 +173,8 @@ class BaseLogger:
             trace_enabled=trace_enabled,
             deployment_mode=deployment_mode,
             suppress_autoconfig=suppress_autoconfig,
+            prefix=prefix,
+            show_thread_name=show_thread_name,
         )
         self.level = new_config.level
 
@@ -187,6 +192,10 @@ class BaseLogger:
         """Generate and assign a new run ID for process tracking"""
         with self._lock:
             self.state_manager.set_new_run_id()
+
+    def set_prefix(self, prefix: Optional[str] = None) -> None:
+        """Set a contextual prefix prepended to all log output as [run_id | prefix | ...]"""
+        self.state_manager.set_prefix(prefix)
 
     def header(
         self,

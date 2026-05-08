@@ -17,6 +17,8 @@ from .logging_utils import generate_run_id
 from .LogManagers import GlobalLoggerManager, HandlerManager
 from .MessageProcessors import MarkupProcessor, MessageProcessor
 
+_UNSET: object = object()
+
 
 @dataclass(frozen=True)  # Immutable config state
 class LoggerConfigState:
@@ -29,6 +31,8 @@ class LoggerConfigState:
     dd_trace_enabled: bool = False
     color_enabled: bool = True
     force_markup: bool = False
+    log_prefix: Optional[str] = None
+    show_thread_name: bool = False
     level: LogLevel = LogLevel("INFO")
 
     # Derived properties - computed from base config
@@ -229,6 +233,8 @@ class LoggerStateManager:
             )
             self.logging_instance.propagate = False
             self.__initialized = True
+            from .ContextFilter import ContextPrefixFilter
+            self.logging_instance.addFilter(ContextPrefixFilter(self))
             return True
 
     @property
@@ -251,6 +257,10 @@ class LoggerStateManager:
         with self._lock:
             self._run_id = generate_run_id()
         return self._run_id
+
+    def set_prefix(self, prefix: Optional[str] = None) -> None:
+        """Set or clear the contextual log prefix shown in all output."""
+        self.configure(prefix=prefix)
 
     @property
     def initialized(self) -> bool:
@@ -302,6 +312,8 @@ class LoggerStateManager:
         deployment_mode: Optional[bool] = None,
         force_markup: Optional[bool] = None,
         suppress_autoconfig: Optional[bool] = False,
+        prefix: object = _UNSET,
+        show_thread_name: Optional[bool] = None,
     ) -> LoggerConfigState:
         """
         Configure state and apply ALL side effects.
@@ -345,6 +357,10 @@ class LoggerStateManager:
                 changes["dd_trace_enabled"] = trace_enabled
             if force_markup is not None:
                 changes["force_markup"] = force_markup
+            if prefix is not _UNSET:
+                changes["log_prefix"] = prefix  # None explicitly clears the prefix
+            if show_thread_name is not None:
+                changes["show_thread_name"] = show_thread_name
 
             old_state = self._state
             new_state = replace(self._state, **changes)

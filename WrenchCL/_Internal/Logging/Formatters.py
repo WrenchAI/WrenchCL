@@ -224,6 +224,17 @@ class JSONLogFormatter(logging.Formatter):
             "line": record.lineno,
             "timestamp": self._formatTime(record, self._TIMEFMT),
         }
+
+        run_id = getattr(record, "wrench_run_id", "")
+        if run_id:
+            log_record["run_id"] = run_id
+        prefix = getattr(record, "wrench_prefix", "")
+        if prefix:
+            log_record["prefix"] = prefix
+        thread_name = getattr(record, "wrench_thread_name", "")
+        if thread_name:
+            log_record["thread_name"] = thread_name
+
         if self.traced:
             log_record.update({
                 "service": service,
@@ -428,7 +439,8 @@ class FormatterFactory:
         elif level == "INTERNAL":
             format_str = f"{level_name_section}{colored_arrow_section}{message_section}"
         else:
-            format_str = f"{app_env_section}{name_section}{level_name_section}{verbose_section}{colored_arrow_section}{message_section}"
+            context_section = "%(wrench_context)s" if not global_stream_configured else ""
+            format_str = f"{app_env_section}{context_section}{name_section}{level_name_section}{verbose_section}{colored_arrow_section}{message_section}"
 
         return {
             "format": format_str,
