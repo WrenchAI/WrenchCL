@@ -191,11 +191,11 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
     <div></div>
 
     <div class="slide-field">
-      <div class="field-lbl">Projected uplift — <span id="uo" style="color:var(--accent);font-family:var(--font-mono);">10%</span></div>
+      <div class="field-lbl">Projected uplift — <span id="uo" style="color:var(--accent);font-family:var(--font-mono);">0.1%</span></div>
       <div class="field-hint">Expected % increase in conversions from Wrench</div>
       <div class="slide-row">
-        <input type="range" id="up" min="1" max="100" value="10" step="1">
-        <span class="sval" id="uo2">10%</span>
+        <input type="range" id="up" min="0.1" max="50" value="0.1" step="0.1">
+        <span class="sval" id="uo2">0.1%</span>
       </div>
     </div>
 
@@ -275,27 +275,32 @@ function calc() {
   const baseConvs   = parseFloat(g('cv').value)||1;
   const upliftPct   = parseFloat(g('up').value)||0;
 
-  g('uo').textContent = g('uo2').textContent = upliftPct+'%';
+  g('uo').textContent = g('uo2').textContent = upliftPct.toFixed(1)+'%';
 
-  const upliftConvs  = baseConvs * (upliftPct/100);
-  const monthlyContr = upliftConvs * margin;
-  const beConvs      = pilotCost / margin;
+  const upliftConvs  = baseConvs * (upliftPct/100);       // additional conversions/mo
+  const monthlyContr = upliftConvs * margin;               // $ contribution/mo
+  const beConvs      = pilotCost / margin;                 // conversions needed total
   const beMos        = monthlyContr > 0 ? pilotCost / monthlyContr : Infinity;
   const annROI       = (monthlyContr * 12) - pilotCost;
 
+  // KPI 1: break-even conversions
   g('m1').textContent = fmtN(beConvs);
   g('m1').className   = 'kpi-v';
 
+  // KPI 2: monthly uplift value
   g('m2').textContent = fmt$(monthlyContr, 0);
   g('m2').className   = 'kpi-v '+(monthlyContr > 0 ? 'ok' : 'bad');
 
+  // KPI 3: months to break-even
   g('m3').textContent = monthlyContr <= 0 ? 'Never' : fmtM(beMos);
   g('m3').className   = 'kpi-v '+(monthlyContr<=0?'bad':beMos<=3?'ok':beMos<=9?'warn':'');
 
+  // KPI 4: annual net ROI
   g('m4').textContent = fmt$(annROI, 0);
   g('m4').className   = 'kpi-v '+(annROI >= 0 ? 'ok' : 'bad');
 
-  g('fn-convs').textContent  = Math.round(upliftConvs).toLocaleString();
+  // Footnote
+  g('fn-convs').textContent  = upliftConvs < 1 ? upliftConvs.toFixed(2) : upliftConvs < 10 ? upliftConvs.toFixed(1) : Math.round(upliftConvs).toLocaleString();
   g('fn-margin').textContent = fmt$(margin, 0);
   g('fn-mo').textContent     = fmt$(monthlyContr, 0);
   g('fn-pilot').textContent  = fmt$(pilotCost, 0);
