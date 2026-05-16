@@ -72,7 +72,7 @@ body {
 }
 
 .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 32px; }
-.cvr-stat { font-size: 11px; color: var(--text-muted); margin-top: 14px; padding: 8px 12px; background: var(--bg-elevated); border-radius: var(--r-sm); border: 1px solid var(--border-sub); font-family: var(--font-mono); }
+.cvr-stat { font-size: 11px; color: var(--text-muted); margin-top: 8px; padding: 6px 10px; background: var(--bg-elevated); border-radius: var(--r-sm); border: 1px solid var(--border-sub); font-family: var(--font-mono); }
 .cvr-stat strong { color: var(--text-sec); font-weight: 500; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-sec); }
@@ -149,13 +149,13 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
     >
     <div id="wm-fb" class="wordmark-fallback"><em>WRENCH</em>.AI</div>
     <div class="hdr-title">Pilot Break-Even</div>
-    <div class="hdr-sub">Do the incremental conversions justify the cost of scoring every lead?</div>
+    <div class="hdr-sub">How many incremental conversions does the pilot need to generate?</div>
   </div>
   <div class="formula">
-    <strong>Monthly gross</strong> = Uplift convs × Margin<br>
-    <strong>Monthly net</strong> = Monthly gross − Platform cost/mo<br>
-    <strong>Months to break-even</strong> = Pilot cost ÷ Monthly net<br>
-    <strong>Annual net ROI</strong> = (Monthly net × 12) − Pilot cost
+    <strong>Monthly gross</strong> = Uplift convs &times; Margin<br>
+    <strong>Monthly net</strong> = Monthly gross &minus; Platform cost/mo<br>
+    <strong>Months to break-even</strong> = Pilot cost &divide; Monthly net<br>
+    <strong>Annual net ROI</strong> = (Monthly net &times; 12) &minus; Pilot cost
   </div>
 </div>
 
@@ -164,7 +164,7 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
   <div class="input-grid">
 
     <div class="field">
-      <div class="field-lbl">Pilot cost — fixed investment</div>
+      <div class="field-lbl">Pilot cost &mdash; fixed investment</div>
       <div class="field-hint">One-time cost of the pilot engagement</div>
       <div class="num-wrap">
         <span class="pfx">$</span>
@@ -174,7 +174,7 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
     <div class="field">
       <div class="field-lbl">Monthly platform cost</div>
-      <div class="field-hint">Ongoing Wrench fee — scores all leads, converting or not</div>
+      <div class="field-hint">Ongoing Wrench fee &mdash; scores all leads, converting or not</div>
       <div class="num-wrap">
         <span class="pfx">$</span>
         <input type="number" id="mpc" value="2000" min="0" step="250">
@@ -211,7 +211,7 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
     </div>
 
     <div class="slide-field">
-      <div class="field-lbl">Projected uplift — <span id="uo" style="color:var(--accent);font-family:var(--font-mono);">0.1%</span></div>
+      <div class="field-lbl">Projected uplift &mdash; <span id="uo" style="color:var(--accent);font-family:var(--font-mono);">0.1%</span></div>
       <div class="field-hint">Expected % increase in conversions from Wrench</div>
       <div class="slide-row">
         <input type="range" id="up" min="0.1" max="50" value="0.1" step="0.1">
@@ -220,35 +220,35 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
     </div>
 
   </div>
-  <div class="cvr-stat">Baseline conversion rate: <strong id="cvr-pct">—</strong> &nbsp;·&nbsp; <strong id="non-conv">—</strong> non-converting leads/mo scored at your expense</div>
+  <div class="cvr-stat" id="cvr-row">Baseline conversion rate: <strong id="cvr-pct">&mdash;</strong> &nbsp;&middot;&nbsp; <strong id="non-conv">&mdash;</strong> non-converting leads/mo scored at your expense</div>
 </div>
 
 <div class="kpi-row">
   <div class="kpi">
     <div class="kpi-l">Break-even conversions</div>
-    <div class="kpi-v" id="m1">—</div>
+    <div class="kpi-v" id="m1">&mdash;</div>
     <div class="kpi-s">to recover pilot cost alone</div>
   </div>
   <div class="kpi">
     <div class="kpi-l">Monthly net contribution</div>
-    <div class="kpi-v" id="m2">—</div>
-    <div class="kpi-s" id="m2s">uplift gross − platform cost</div>
+    <div class="kpi-v" id="m2">&mdash;</div>
+    <div class="kpi-s" id="m2s">uplift gross &minus; platform cost</div>
   </div>
   <div class="kpi">
     <div class="kpi-l">Months to break-even</div>
-    <div class="kpi-v" id="m3">—</div>
-    <div class="kpi-s">pilot cost ÷ monthly net</div>
+    <div class="kpi-v" id="m3">&mdash;</div>
+    <div class="kpi-s">pilot cost &divide; monthly net</div>
   </div>
   <div class="kpi">
     <div class="kpi-l">Annual net ROI</div>
-    <div class="kpi-v" id="m4">—</div>
+    <div class="kpi-v" id="m4">&mdash;</div>
     <div class="kpi-s">after pilot + platform costs</div>
   </div>
 </div>
 
 <div class="card">
   <div class="chart-hdr">
-    <div class="chart-title">Cumulative net contribution — 24 months</div>
+    <div class="chart-title">Cumulative net contribution &mdash; 24 months</div>
     <div class="legend">
       <div class="leg"><div class="leg-line" style="background:#5E80A8;"></div> net value</div>
       <div class="leg"><div class="leg-dot"></div> break-even pt</div>
@@ -258,12 +258,12 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
   <canvas id="chart"></canvas>
   <hr class="divider">
   <div class="footnote">
-    <strong>How to read this:</strong> Wrench scores <span id="fn-tl">—</span> leads/mo. At <span id="fn-uplift">—</span> uplift, that generates <span id="fn-convs">—</span> additional conversions × <span id="fn-margin">—</span> margin = <span id="fn-gross">—</span>/mo gross. After the <span id="fn-mpc">—</span>/mo platform cost, monthly net is <span id="fn-net">—</span>. The <span id="fn-pilot">—</span> pilot cost is recovered at month <span id="fn-be">—</span>.
+    <strong>How to read this:</strong> Wrench scores <span id="fn-tl">&mdash;</span> leads/mo. At <span id="fn-uplift">&mdash;</span> uplift, that generates <span id="fn-convs">&mdash;</span> additional conversions &times; <span id="fn-margin">&mdash;</span> margin = <span id="fn-gross">&mdash;</span>/mo gross. After the <span id="fn-mpc">&mdash;</span>/mo platform cost, monthly net is <span id="fn-net">&mdash;</span>. The <span id="fn-pilot">&mdash;</span> pilot cost is recovered at month <span id="fn-be">&mdash;</span>.
   </div>
 </div>
 
 <div class="footer">
-  Wrench.ai · <a href="https://wrench.ai" target="_blank">wrench.ai</a> · (Uplift × Margin) − Platform cost = Monthly net
+  Wrench.ai &middot; <a href="https://wrench.ai" target="_blank">wrench.ai</a> &middot; Pilot cost &divide; marginal contribution per conversion
 </div>
 
 <script>
@@ -311,8 +311,8 @@ function calc() {
   const beMos        = monthlyNet > 0 ? pilotCost / monthlyNet : Infinity;
   const annROI       = (monthlyNet * 12) - pilotCost;
 
-  const cvrPct  = Math.min(baseConvs / totalLeads * 100, 100);
-  const nonConv = Math.max(0, totalLeads - baseConvs);
+  const cvrPct       = Math.min(baseConvs / totalLeads * 100, 100);
+  const nonConv      = Math.max(0, totalLeads - baseConvs);
   g('cvr-pct').textContent  = cvrPct.toFixed(2)+'%';
   g('non-conv').textContent = Math.round(nonConv).toLocaleString();
 
@@ -355,9 +355,12 @@ function buildChart(pilotCost, monthlyNet, beMos) {
     bePts[idx] = {x:idx, y:0};
   }
 
-  const yVals = netPts.map(p=>p.y);
-  const minY  = Math.min(...yVals, 0) * 1.1;
-  const maxY  = Math.max(...yVals, 100) * 1.1;
+  const yVals   = netPts.map(p=>p.y);
+  const dataMin = Math.min(...yVals);
+  const dataMax = Math.max(...yVals);
+  const pad     = Math.max(Math.abs(dataMax - dataMin) * 0.15, Math.abs(pilotCost) * 0.15, 100);
+  const minY    = dataMin - pad;
+  const maxY    = dataMax + pad;
 
   if (ch) ch.destroy();
   ch = new Chart(g('chart'), {
