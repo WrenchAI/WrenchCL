@@ -168,7 +168,7 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
       <div class="field-hint">One-time cost of the pilot engagement</div>
       <div class="num-wrap">
         <span class="pfx">$</span>
-        <input type="number" id="pc" value="5000" min="0" step="500">
+        <input type="number" id="pc" value="20000" min="0" step="500">
       </div>
     </div>
 
@@ -177,7 +177,7 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
       <div class="field-hint">Ongoing Wrench fee &mdash; scores all leads, converting or not</div>
       <div class="num-wrap">
         <span class="pfx">$</span>
-        <input type="number" id="mpc" value="2000" min="0" step="250">
+        <input type="number" id="mpc" value="10000" min="0" step="250">
         <span class="pfx">/ mo</span>
       </div>
     </div>
@@ -186,7 +186,7 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
       <div class="field-lbl">Total leads scored / month</div>
       <div class="field-hint">Full pool Wrench processes each month</div>
       <div class="num-wrap">
-        <input type="number" id="tl" value="1000" min="1" step="100">
+        <input type="number" id="tl" value="10000" min="1" step="100">
         <span class="pfx">leads</span>
       </div>
     </div>
@@ -196,7 +196,7 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
       <div class="field-hint">Net profit contribution per incremental conversion</div>
       <div class="num-wrap">
         <span class="pfx">$</span>
-        <input type="number" id="mc" value="500" min="1" step="50">
+        <input type="number" id="mc" value="1500" min="1" step="50">
         <span class="pfx">/ conv</span>
       </div>
     </div>
@@ -205,7 +205,7 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
       <div class="field-lbl">Current conversions / month</div>
       <div class="field-hint">Baseline volume before Wrench</div>
       <div class="num-wrap">
-        <input type="number" id="cv" value="100" min="1" step="10">
+        <input type="number" id="cv" value="1000" min="1" step="10">
         <span class="pfx">/ mo</span>
       </div>
     </div>
@@ -215,17 +215,17 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
       <div class="field-hint">Avg revenue per converted customer &mdash; shows gross revenue impact</div>
       <div class="num-wrap">
         <span class="pfx">$</span>
-        <input type="number" id="rv" value="0" min="0" step="100">
+        <input type="number" id="rv" value="5000" min="0" step="100">
         <span class="pfx">/ conv</span>
       </div>
     </div>
 
     <div class="slide-field" style="grid-column: 1 / -1;">
-      <div class="field-lbl">Projected uplift &mdash; <span id="uo" style="color:var(--accent);font-family:var(--font-mono);">0.1%</span></div>
+      <div class="field-lbl">Projected uplift &mdash; <span id="uo" style="color:var(--accent);font-family:var(--font-mono);">1.0%</span></div>
       <div class="field-hint">Expected % increase in conversions from Wrench</div>
       <div class="slide-row">
-        <input type="range" id="up" min="0.1" max="50" value="0.1" step="0.1">
-        <span class="sval" id="uo2">0.1%</span>
+        <input type="range" id="up" min="0.1" max="50" value="1" step="0.1">
+        <span class="sval" id="uo2">1.0%</span>
       </div>
     </div>
 
