@@ -111,7 +111,7 @@ input[type="range"]::-webkit-slider-thumb {
 input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 .sval { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--accent); min-width: 60px; text-align: right; }
 
-.kpi-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin: 14px 0; }
+.kpi-row { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 12px; margin: 14px 0; }
 .kpi { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px 16px; }
 .kpi-l { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 6px; }
 .kpi-v { font-family: var(--font-mono); font-size: 22px; font-weight: 500; color: var(--text-pri); line-height: 1.2; }
@@ -210,7 +210,17 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
       </div>
     </div>
 
-    <div class="slide-field">
+    <div class="field">
+      <div class="field-lbl">Revenue per conversion <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></div>
+      <div class="field-hint">Avg revenue per converted customer &mdash; shows gross revenue impact</div>
+      <div class="num-wrap">
+        <span class="pfx">$</span>
+        <input type="number" id="rv" value="0" min="0" step="100">
+        <span class="pfx">/ conv</span>
+      </div>
+    </div>
+
+    <div class="slide-field" style="grid-column: 1 / -1;">
       <div class="field-lbl">Projected uplift &mdash; <span id="uo" style="color:var(--accent);font-family:var(--font-mono);">0.1%</span></div>
       <div class="field-hint">Expected % increase in conversions from Wrench</div>
       <div class="slide-row">
@@ -228,6 +238,11 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
     <div class="kpi-l">Break-even conversions</div>
     <div class="kpi-v" id="m1">&mdash;</div>
     <div class="kpi-s">to recover pilot cost alone</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-l">Annual gross revenue</div>
+    <div class="kpi-v" id="m0" style="color:var(--accent);">&mdash;</div>
+    <div class="kpi-s" id="m0s">enter revenue/conv to see</div>
   </div>
   <div class="kpi">
     <div class="kpi-l">Monthly net contribution</div>
@@ -301,6 +316,7 @@ function calc() {
   const margin       = parseFloat(g('mc').value)||1;
   const baseConvs    = parseFloat(g('cv').value)||1;
   const upliftPct    = parseFloat(g('up').value)||0;
+  const revPerConv   = parseFloat(g('rv').value)||0;
 
   g('uo').textContent = g('uo2').textContent = upliftPct.toFixed(1)+'%';
 
@@ -310,27 +326,42 @@ function calc() {
   const beConvs      = pilotCost / margin;
   const beMos        = monthlyNet > 0 ? pilotCost / monthlyNet : Infinity;
   const annROI       = (monthlyNet * 12) - pilotCost;
+  const annGrossRev  = upliftConvs * revPerConv * 12;
 
   const cvrPct       = Math.min(baseConvs / totalLeads * 100, 100);
   const nonConv      = Math.max(0, totalLeads - baseConvs);
   g('cvr-pct').textContent  = cvrPct.toFixed(2)+'%';
   g('non-conv').textContent = Math.round(nonConv).toLocaleString();
 
+  // KPI 1: break-even conversions
   g('m1').textContent = fmtN(beConvs);
   g('m1').className   = 'kpi-v';
 
+  // KPI 0: annual gross revenue
+  if (revPerConv > 0 && upliftConvs > 0) {
+    g('m0').textContent = fmt$(annGrossRev, 0);
+    g('m0s').textContent = fmtConvs(upliftConvs)+' convs/mo × '+fmt$(revPerConv,0)+' × 12';
+  } else {
+    g('m0').textContent = '—';
+    g('m0s').textContent = 'enter revenue/conv to see';
+  }
+
+  // KPI 2: monthly net contribution
   g('m2').textContent = fmt$(monthlyNet, 0);
   g('m2').className   = 'kpi-v '+(monthlyNet > 0 ? 'ok' : monthlyNet < 0 ? 'bad' : '');
   g('m2s').textContent = monthlyNet <= 0
     ? '⚠ uplift doesn\'t cover platform cost yet'
     : fmt$(grossContr,0)+' gross − '+fmt$(platCost,0)+' platform';
 
+  // KPI 3: months to break-even
   g('m3').textContent = monthlyNet <= 0 ? 'Never' : fmtM(beMos);
   g('m3').className   = 'kpi-v '+(monthlyNet<=0?'bad':beMos<=3?'ok':beMos<=9?'warn':'');
 
+  // KPI 4: annual net ROI
   g('m4').textContent = fmt$(annROI, 0);
   g('m4').className   = 'kpi-v '+(annROI >= 0 ? 'ok' : 'bad');
 
+  // Footnote
   g('fn-tl').textContent     = Math.round(totalLeads).toLocaleString();
   g('fn-uplift').textContent = upliftPct.toFixed(1)+'%';
   g('fn-convs').textContent  = fmtConvs(upliftConvs);
@@ -449,7 +480,7 @@ function buildChart(pilotCost, monthlyNet, beMos) {
   });
 }
 
-['pc','mpc','tl','mc','cv'].forEach(id => g(id).addEventListener('input', calc));
+['pc','mpc','tl','mc','cv','rv'].forEach(id => g(id).addEventListener('input', calc));
 g('up').addEventListener('input', calc);
 calc();
 </script>
