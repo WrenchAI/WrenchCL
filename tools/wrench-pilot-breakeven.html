@@ -72,6 +72,8 @@ body {
 }
 
 .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 32px; }
+.cvr-stat { font-size: 11px; color: var(--text-muted); margin-top: 14px; padding: 8px 12px; background: var(--bg-elevated); border-radius: var(--r-sm); border: 1px solid var(--border-sub); font-family: var(--font-mono); }
+.cvr-stat strong { color: var(--text-sec); font-weight: 500; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-sec); }
 .field-hint { font-size: 10px; color: var(--text-muted); margin-top: -2px; }
@@ -147,12 +149,13 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
     >
     <div id="wm-fb" class="wordmark-fallback"><em>WRENCH</em>.AI</div>
     <div class="hdr-title">Pilot Break-Even</div>
-    <div class="hdr-sub">How many incremental conversions does the pilot need to generate?</div>
+    <div class="hdr-sub">Do the incremental conversions justify the cost of scoring every lead?</div>
   </div>
   <div class="formula">
-    <strong>Break-even (conversions)</strong> = Pilot cost ÷ Margin/conversion<br>
-    <strong>Months to break-even</strong> = Pilot cost ÷ (Uplift conversions/mo × Margin)<br>
-    <strong>Annual net ROI</strong> = (Monthly uplift × Margin × 12) − Pilot cost
+    <strong>Monthly gross</strong> = Uplift convs × Margin<br>
+    <strong>Monthly net</strong> = Monthly gross − Platform cost/mo<br>
+    <strong>Months to break-even</strong> = Pilot cost ÷ Monthly net<br>
+    <strong>Annual net ROI</strong> = (Monthly net × 12) − Pilot cost
   </div>
 </div>
 
@@ -162,10 +165,29 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
     <div class="field">
       <div class="field-lbl">Pilot cost — fixed investment</div>
-      <div class="field-hint">Total cost of the pilot engagement</div>
+      <div class="field-hint">One-time cost of the pilot engagement</div>
       <div class="num-wrap">
         <span class="pfx">$</span>
         <input type="number" id="pc" value="5000" min="0" step="500">
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-lbl">Monthly platform cost</div>
+      <div class="field-hint">Ongoing Wrench fee — scores all leads, converting or not</div>
+      <div class="num-wrap">
+        <span class="pfx">$</span>
+        <input type="number" id="mpc" value="2000" min="0" step="250">
+        <span class="pfx">/ mo</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-lbl">Total leads scored / month</div>
+      <div class="field-hint">Full pool Wrench processes each month</div>
+      <div class="num-wrap">
+        <input type="number" id="tl" value="1000" min="1" step="100">
+        <span class="pfx">leads</span>
       </div>
     </div>
 
@@ -188,8 +210,6 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
       </div>
     </div>
 
-    <div></div>
-
     <div class="slide-field">
       <div class="field-lbl">Projected uplift — <span id="uo" style="color:var(--accent);font-family:var(--font-mono);">0.1%</span></div>
       <div class="field-hint">Expected % increase in conversions from Wrench</div>
@@ -200,28 +220,29 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
     </div>
 
   </div>
+  <div class="cvr-stat">Baseline conversion rate: <strong id="cvr-pct">—</strong> &nbsp;·&nbsp; <strong id="non-conv">—</strong> non-converting leads/mo scored at your expense</div>
 </div>
 
 <div class="kpi-row">
   <div class="kpi">
     <div class="kpi-l">Break-even conversions</div>
     <div class="kpi-v" id="m1">—</div>
-    <div class="kpi-s">net-new conversions needed</div>
+    <div class="kpi-s">to recover pilot cost alone</div>
   </div>
   <div class="kpi">
-    <div class="kpi-l">Monthly uplift value</div>
+    <div class="kpi-l">Monthly net contribution</div>
     <div class="kpi-v" id="m2">—</div>
-    <div class="kpi-s">at projected uplift %</div>
+    <div class="kpi-s" id="m2s">uplift gross − platform cost</div>
   </div>
   <div class="kpi">
     <div class="kpi-l">Months to break-even</div>
     <div class="kpi-v" id="m3">—</div>
-    <div class="kpi-s">pilot cost ÷ monthly contribution</div>
+    <div class="kpi-s">pilot cost ÷ monthly net</div>
   </div>
   <div class="kpi">
     <div class="kpi-l">Annual net ROI</div>
     <div class="kpi-v" id="m4">—</div>
-    <div class="kpi-s">after pilot cost</div>
+    <div class="kpi-s">after pilot + platform costs</div>
   </div>
 </div>
 
@@ -237,12 +258,12 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
   <canvas id="chart"></canvas>
   <hr class="divider">
   <div class="footnote">
-    <strong>How to read this:</strong> Each month, Wrench generates <span id="fn-convs">—</span> additional conversions at <span id="fn-margin">—</span> margin each = <span id="fn-mo">—</span>/mo in incremental contribution. The pilot cost of <span id="fn-pilot">—</span> is recovered at month <span id="fn-be">—</span>.
+    <strong>How to read this:</strong> Wrench scores <span id="fn-tl">—</span> leads/mo. At <span id="fn-uplift">—</span> uplift, that generates <span id="fn-convs">—</span> additional conversions × <span id="fn-margin">—</span> margin = <span id="fn-gross">—</span>/mo gross. After the <span id="fn-mpc">—</span>/mo platform cost, monthly net is <span id="fn-net">—</span>. The <span id="fn-pilot">—</span> pilot cost is recovered at month <span id="fn-be">—</span>.
   </div>
 </div>
 
 <div class="footer">
-  Wrench.ai · <a href="https://wrench.ai" target="_blank">wrench.ai</a> · Pilot cost ÷ marginal contribution per conversion
+  Wrench.ai · <a href="https://wrench.ai" target="_blank">wrench.ai</a> · (Uplift × Margin) − Platform cost = Monthly net
 </div>
 
 <script>
@@ -269,49 +290,63 @@ function fmtM(m) {
   return (m/12).toFixed(1)+' yrs';
 }
 
+function fmtConvs(n) {
+  return n < 1 ? n.toFixed(2) : n < 10 ? n.toFixed(1) : Math.round(n).toLocaleString();
+}
+
 function calc() {
-  const pilotCost   = parseFloat(g('pc').value)||0;
-  const margin      = parseFloat(g('mc').value)||1;
-  const baseConvs   = parseFloat(g('cv').value)||1;
-  const upliftPct   = parseFloat(g('up').value)||0;
+  const pilotCost    = parseFloat(g('pc').value)||0;
+  const platCost     = parseFloat(g('mpc').value)||0;
+  const totalLeads   = parseFloat(g('tl').value)||1;
+  const margin       = parseFloat(g('mc').value)||1;
+  const baseConvs    = parseFloat(g('cv').value)||1;
+  const upliftPct    = parseFloat(g('up').value)||0;
 
   g('uo').textContent = g('uo2').textContent = upliftPct.toFixed(1)+'%';
 
-  const upliftConvs  = baseConvs * (upliftPct/100);       // additional conversions/mo
-  const monthlyContr = upliftConvs * margin;               // $ contribution/mo
-  const beConvs      = pilotCost / margin;                 // conversions needed total
-  const beMos        = monthlyContr > 0 ? pilotCost / monthlyContr : Infinity;
-  const annROI       = (monthlyContr * 12) - pilotCost;
+  const upliftConvs  = baseConvs * (upliftPct/100);
+  const grossContr   = upliftConvs * margin;
+  const monthlyNet   = grossContr - platCost;
+  const beConvs      = pilotCost / margin;
+  const beMos        = monthlyNet > 0 ? pilotCost / monthlyNet : Infinity;
+  const annROI       = (monthlyNet * 12) - pilotCost;
 
-  // KPI 1: break-even conversions
+  const cvrPct  = Math.min(baseConvs / totalLeads * 100, 100);
+  const nonConv = Math.max(0, totalLeads - baseConvs);
+  g('cvr-pct').textContent  = cvrPct.toFixed(2)+'%';
+  g('non-conv').textContent = Math.round(nonConv).toLocaleString();
+
   g('m1').textContent = fmtN(beConvs);
   g('m1').className   = 'kpi-v';
 
-  // KPI 2: monthly uplift value
-  g('m2').textContent = fmt$(monthlyContr, 0);
-  g('m2').className   = 'kpi-v '+(monthlyContr > 0 ? 'ok' : 'bad');
+  g('m2').textContent = fmt$(monthlyNet, 0);
+  g('m2').className   = 'kpi-v '+(monthlyNet > 0 ? 'ok' : monthlyNet < 0 ? 'bad' : '');
+  g('m2s').textContent = monthlyNet <= 0
+    ? '⚠ uplift doesn\'t cover platform cost yet'
+    : fmt$(grossContr,0)+' gross − '+fmt$(platCost,0)+' platform';
 
-  // KPI 3: months to break-even
-  g('m3').textContent = monthlyContr <= 0 ? 'Never' : fmtM(beMos);
-  g('m3').className   = 'kpi-v '+(monthlyContr<=0?'bad':beMos<=3?'ok':beMos<=9?'warn':'');
+  g('m3').textContent = monthlyNet <= 0 ? 'Never' : fmtM(beMos);
+  g('m3').className   = 'kpi-v '+(monthlyNet<=0?'bad':beMos<=3?'ok':beMos<=9?'warn':'');
 
-  // KPI 4: annual net ROI
   g('m4').textContent = fmt$(annROI, 0);
   g('m4').className   = 'kpi-v '+(annROI >= 0 ? 'ok' : 'bad');
 
-  // Footnote
-  g('fn-convs').textContent  = upliftConvs < 1 ? upliftConvs.toFixed(2) : upliftConvs < 10 ? upliftConvs.toFixed(1) : Math.round(upliftConvs).toLocaleString();
+  g('fn-tl').textContent     = Math.round(totalLeads).toLocaleString();
+  g('fn-uplift').textContent = upliftPct.toFixed(1)+'%';
+  g('fn-convs').textContent  = fmtConvs(upliftConvs);
   g('fn-margin').textContent = fmt$(margin, 0);
-  g('fn-mo').textContent     = fmt$(monthlyContr, 0);
+  g('fn-gross').textContent  = fmt$(grossContr, 0);
+  g('fn-mpc').textContent    = fmt$(platCost, 0);
+  g('fn-net').textContent    = fmt$(monthlyNet, 0);
   g('fn-pilot').textContent  = fmt$(pilotCost, 0);
-  g('fn-be').textContent     = monthlyContr <= 0 ? 'never' : fmtM(beMos);
+  g('fn-be').textContent     = monthlyNet <= 0 ? 'never (net is negative)' : fmtM(beMos);
 
-  buildChart(pilotCost, monthlyContr, beMos);
+  buildChart(pilotCost, monthlyNet, beMos);
 }
 
-function buildChart(pilotCost, monthlyContr, beMos) {
+function buildChart(pilotCost, monthlyNet, beMos) {
   const M = 24;
-  const netPts  = Array.from({length:M+1}, (_,m) => ({x:m, y:Math.round(-pilotCost + monthlyContr*m)}));
+  const netPts  = Array.from({length:M+1}, (_,m) => ({x:m, y:Math.round(-pilotCost + monthlyNet*m)}));
   const zeroPts = Array.from({length:M+1}, (_,m) => ({x:m, y:0}));
   const bePts   = Array.from({length:M+1}, (_,i) => ({x:i, y:null}));
 
@@ -411,8 +446,8 @@ function buildChart(pilotCost, monthlyContr, beMos) {
   });
 }
 
-['pc','mc','cv'].forEach(id => g(id).addEventListener('input', calc));
-['up'].forEach(id => g(id).addEventListener('input', calc));
+['pc','mpc','tl','mc','cv'].forEach(id => g(id).addEventListener('input', calc));
+g('up').addEventListener('input', calc);
 calc();
 </script>
 </body>
