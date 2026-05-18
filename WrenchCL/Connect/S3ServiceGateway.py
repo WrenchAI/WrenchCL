@@ -10,9 +10,10 @@ from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional, Union
 
+from botocore.exceptions import ClientError
+
 if TYPE_CHECKING:
     from botocore.config import Config
-    from botocore.exceptions import ClientError
     from botocore.response import StreamingBody
 
 from .. import logger
