@@ -36,6 +36,30 @@ dependencies = [
     "logspark>=0.10.1",
 ]
 
+[project.optional-dependencies]
+aws = [
+    "psycopg2>=2.9,<3.0",
+    "sshtunnel>=0.4,<1.0",
+    "boto3>=1.28,<2.0",
+    "botocore>=1.31,<2.0",
+    "paramiko==3.5.1",
+]
+trace = [
+    "ddtrace>=3.2.0,<3.3.0",
+]
+color = [
+    "colorama>=0.4,<1.0",
+]
+all = [
+    "psycopg2>=2.9,<3.0",
+    "sshtunnel>=0.4,<1.0",
+    "boto3>=1.28,<2.0",
+    "botocore>=1.31,<2.0",
+    "paramiko==3.5.1",
+    "ddtrace>=3.2.0,<3.3.0",
+    "colorama>=0.4,<1.0",
+]
+
 [dependency-groups]
 # ----------------------------
 # 🧱 Core Runtime + Operational

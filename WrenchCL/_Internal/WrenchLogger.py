@@ -45,6 +45,8 @@ class WrenchLogger(_BaseSparkLogger):
             show_thread_name,
             kwargs,
         )
+        if isinstance(level, str):
+            level = level.upper()
         handler = SparkJsonHandler() if (mode == "json" or deployment_mode) else SparkTerminalHandler()
         self.eject_filters()
         super().configure(level=level, handler=handler, no_freeze=True)
