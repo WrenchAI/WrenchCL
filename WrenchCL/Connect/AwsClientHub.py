@@ -29,7 +29,7 @@ class AwsClientHub:
 
 
         """
-        self.__config: Optional["_ConfigurationManager"] = None
+        self.__config: Optional[_ConfigurationManager] = None
         self.__env_path = env_path
         self.__kwargs = kwargs
         self.__db_client = None
@@ -60,7 +60,7 @@ class AwsClientHub:
         self.__config.initialize(env_path=env_path, **kwargs)
 
     @property
-    def config(self) -> "_ConfigurationManager":
+    def config(self) -> _ConfigurationManager:
         """Loaded configuration object."""
         self._initialize()
         return self.__config
@@ -107,6 +107,8 @@ class AwsClientHub:
 
     def _load_rds_secret(self):
         """Load the RDS secret from SecretsManager."""
+        if self.__config is None:
+            raise InvalidConfigurationException("Cannot load RDS secret: configuration not initialized.")
         parsed = {}
         try:
             secret = _fetch_secret_from_secretsmanager(

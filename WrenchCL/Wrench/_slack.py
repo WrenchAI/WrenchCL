@@ -3,7 +3,7 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
 import os
-from typing import Optional
+from typing import Any, Optional
 
 import requests
 
@@ -140,7 +140,7 @@ def slack_post(
 
     endpoint = f"{base_url}/dev/slack/post"
 
-    payload = {
+    payload: dict[str, Any] = {
         "channel": channel,
         "message": message,
         "level": level,

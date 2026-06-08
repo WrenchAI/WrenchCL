@@ -5,7 +5,7 @@ import contextvars
 import logging
 import uuid
 import warnings
-from typing import Any
+from typing import Any, Self
 
 from logspark.Core.SparkLogger import SparkLogger as _SparkLoggerDecorated
 from logspark.Handlers import SparkJsonHandler, SparkTerminalHandler
@@ -65,7 +65,7 @@ class WrenchLogger(_BaseSparkLogger):
         return _run_id_var.get()
 
     @property
-    def instance(self) -> "WrenchLogger":
+    def instance(self) -> Self:
         return self
 
     @property
@@ -74,7 +74,11 @@ class WrenchLogger(_BaseSparkLogger):
 
     @level.setter
     def level(self, value: int | str) -> None:
-        self.__dict__["level"] = logging._checkLevel(value)
+        if isinstance(value, str):
+            numeric = logging.getLevelName(value)
+            self.__dict__["level"] = numeric if isinstance(numeric, int) else logging.NOTSET
+        else:
+            self.__dict__["level"] = int(value)
 
     @property
     def streams(self) -> "_StreamsShim":
@@ -138,7 +142,7 @@ class _LevelCompat(int):
 class _StreamsShim:
     """Minimal shim for logger.streams.attach() used in AiAxis init."""
 
-    def __init__(self, logger: WrenchLogger) -> None:
+    def __init__(self, logger: Any) -> None:
         self._logger = logger
 
     def attach(
