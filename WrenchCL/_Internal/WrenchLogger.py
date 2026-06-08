@@ -130,6 +130,21 @@ class WrenchLogger(_BaseSparkLogger):
         kwargs["stacklevel"] = kwargs.get("stacklevel", 1) + 1
         self.info(text, **kwargs)
 
+    @property
+    def _internal(self) -> "_InternalLogShim":
+        return _InternalLogShim(self)
+
+
+class _InternalLogShim:
+    """Shim for logger._internal.log_internal() calls in Connect/Tools modules."""
+
+    def __init__(self, logger: Any) -> None:
+        self._logger = logger
+
+    def log_internal(self, *args: Any, **kwargs: Any) -> None:
+        msg = " ".join(str(a) for a in args)
+        self._logger.debug(msg, stacklevel=kwargs.get("stacklevel", 2) + 1)
+
 
 class _LevelCompat(int):
     """int subclass that exposes .value for WrenchCL compat (logger.level.value)."""
