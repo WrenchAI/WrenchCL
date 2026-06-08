@@ -2,6 +2,6 @@
 
 # Always available
 from ._MockPandas import pd
-from .cLogger import cLogger
+from .WrenchLogger import WrenchLogger
 
-__all__ = ["pd", "cLogger"]
+__all__ = ["pd", "WrenchLogger"]

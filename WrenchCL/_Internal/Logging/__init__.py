@@ -1,3 +1,1 @@
-#  Copyright (c) 2025.
-#  Author: Willem van der Schans.
-#  Licensed under the MIT License (https://opensource.org/license/mit).
+# Removed in WrenchCL v6 — replaced by WrenchCL._Internal.WrenchLogger

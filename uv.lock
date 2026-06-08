@@ -690,6 +690,15 @@ wheels = [
 ]
 
 [[package]]
+name = "logspark"
+version = "0.10.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/02/77/d7dc530a810e24817ce900923da36b099e3cddf3512a864152a5a2a9bd00/logspark-0.10.1.tar.gz", hash = "sha256:e15cbd43491b352a7306a4049aa3449e3ae4142e41f8fe45cf2093b462b08c15", size = 36902, upload-time = "2026-04-04T23:58:37.025Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a5/e6/0f80d021c10663b9375c6ed065068cc2f8eeb2c19909ed01452c9a20415b/logspark-0.10.1-py3-none-any.whl", hash = "sha256:3baa58bd18ac7c145d9c924e6793bff1d48d5413d01d47fe3942e2c168e84d71", size = 52427, upload-time = "2026-04-04T23:58:35.492Z" },
+]
+
+[[package]]
 name = "markdown"
 version = "3.10"
 source = { registry = "https://pypi.org/simple" }
@@ -1920,6 +1929,7 @@ dependencies = [
     { name = "ansi2txt" },
     { name = "filetype" },
     { name = "ftfy" },
+    { name = "logspark" },
     { name = "python-dotenv" },
     { name = "requests" },
 ]
@@ -2009,6 +2019,7 @@ requires-dist = [
     { name = "ansi2txt", specifier = ">=0.2.0,<1.0.0" },
     { name = "filetype", specifier = ">=1.2,<2.0" },
     { name = "ftfy", specifier = ">=6.3.1,<7.0.0" },
+    { name = "logspark", specifier = ">=0.10.1" },
     { name = "python-dotenv", specifier = ">=1.0,<2.0" },
     { name = "requests", specifier = ">=2.32,<3.0" },
 ]
