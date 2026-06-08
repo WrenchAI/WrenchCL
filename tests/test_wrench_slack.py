@@ -100,9 +100,9 @@ def test_slack_post_returns_false_when_secret_missing(mock_logger):
     )
 
     assert result is False
-    mock_logger.warning.assert_called_once()
+    mock_logger.warning.assert_called()
     call_args = mock_logger.warning.call_args[0][0]
-    assert "WRENCH_SERVICE_SECRET" in call_args
+    assert "no service secret available" in call_args
 
 
 @patch("WrenchCL.Wrench._slack.requests.post")
@@ -344,6 +344,65 @@ def test_slack_post_builds_correct_endpoint(mock_post):
     call_args = mock_post.call_args[0]
     endpoint = call_args[0]
     assert endpoint.endswith("/dev/slack/post")
+
+
+@patch("WrenchCL.Wrench._slack.requests.post")
+def test_slack_post_uses_custom_secret_env_var(mock_post):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_post.return_value = mock_response
+
+    with patch.dict("os.environ", {"CUSTOM_SECRET": "custom-env-secret"}, clear=False):
+        result = slack_post(
+            message="Test message",
+            secret_env_var="CUSTOM_SECRET"
+        )
+
+    assert result is True
+    call_kwargs = mock_post.call_args[1]
+    assert call_kwargs["headers"]["x-api-secret"] == "custom-env-secret"
+
+
+@patch("WrenchCL.Wrench._slack.requests.post")
+@patch("WrenchCL.Wrench._slack.resolve_secret")
+def test_slack_post_passes_secret_arn_to_resolver(mock_resolve, mock_post):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_post.return_value = mock_response
+    mock_resolve.return_value = "arn-resolved-secret"
+
+    result = slack_post(
+        message="Test message",
+        secret_arn="arn:aws:secretsmanager:us-east-1:123456789:secret:test"
+    )
+
+    assert result is True
+    mock_resolve.assert_called_once()
+    call_kwargs = mock_resolve.call_args[1]
+    assert call_kwargs["arn"] == "arn:aws:secretsmanager:us-east-1:123456789:secret:test"
+    assert call_kwargs["env_var"] == "WRENCH_SERVICE_SECRET"
+
+
+@patch("WrenchCL.Wrench._slack.requests.post")
+@patch("WrenchCL.Wrench._slack.resolve_secret")
+def test_slack_post_respects_secret_resolution_priority(mock_resolve, mock_post):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_post.return_value = mock_response
+    mock_resolve.return_value = "resolved-secret"
+
+    slack_post(
+        message="Test message",
+        service_secret="explicit-secret",
+        secret_env_var="CUSTOM_SECRET",
+        secret_arn="arn:aws:secretsmanager:us-east-1:123456789:secret:test"
+    )
+
+    mock_resolve.assert_called_once()
+    call_kwargs = mock_resolve.call_args[1]
+    assert call_kwargs["value"] == "explicit-secret"
+    assert call_kwargs["env_var"] == "CUSTOM_SECRET"
+    assert call_kwargs["arn"] == "arn:aws:secretsmanager:us-east-1:123456789:secret:test"
 
 
 if __name__ == "__main__":

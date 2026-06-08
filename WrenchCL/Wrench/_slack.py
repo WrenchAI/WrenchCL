@@ -8,6 +8,7 @@ from typing import Optional
 import requests
 
 from .. import logger
+from ._secret import resolve_secret
 
 
 def slack_post(
@@ -18,6 +19,8 @@ def slack_post(
     *,
     base_url: Optional[str] = None,
     service_secret: Optional[str] = None,
+    secret_env_var: str = "WRENCH_SERVICE_SECRET",
+    secret_arn: Optional[str] = None,
     timeout: int = 10,
 ) -> bool:
     """
@@ -56,11 +59,21 @@ def slack_post(
         the production API URL: https://api.v2.wrench.ai
 
     service_secret : str, optional
-        The service secret for authentication with the Wrench API. If not provided,
-        the function reads the WRENCH_SERVICE_SECRET environment variable. This secret
-        is typically injected by the ECS task definition via Terraform. If neither the
-        parameter nor the environment variable is available, the function logs a warning
-        and returns False without attempting the API call.
+        The service secret for authentication with the Wrench API. If provided and
+        non-empty, this value is used directly and takes priority over other sources.
+        Default is None.
+
+    secret_env_var : str, optional
+        The name of the environment variable to read for the service secret if
+        `service_secret` is not provided. The function reads `os.environ.get(secret_env_var)`
+        and uses it if available. This is the second priority after direct `service_secret`.
+        Default is "WRENCH_SERVICE_SECRET".
+
+    secret_arn : str, optional
+        The AWS Secrets Manager ARN to fetch the service secret from if both
+        `service_secret` and the environment variable fail to resolve. This is the
+        third priority and requires boto3 to be installed. Requires the service
+        to have IAM permissions to read secrets. Default is None.
 
     timeout : int, optional
         The request timeout in seconds. Default is 10 seconds.
@@ -110,14 +123,14 @@ def slack_post(
       of the response body.
     - Network errors and timeouts are caught and logged.
     """
-    if service_secret is None:
-        service_secret = os.environ.get("WRENCH_SERVICE_SECRET")
+    resolved_secret = resolve_secret(
+        value=service_secret,
+        env_var=secret_env_var,
+        arn=secret_arn,
+    )
 
-    if service_secret is None:
-        logger.warning(
-            "slack_post: WRENCH_SERVICE_SECRET not provided and not set in environment. "
-            "Message not sent."
-        )
+    if not resolved_secret:
+        logger.warning("slack_post: no service secret available — message not sent")
         return False
 
     if base_url is None:
@@ -137,7 +150,7 @@ def slack_post(
         payload["metadata"] = metadata
 
     headers = {
-        "x-api-secret": service_secret,
+        "x-api-secret": resolved_secret,
         "Content-Type": "application/json",
     }
 

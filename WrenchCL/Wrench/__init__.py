@@ -4,6 +4,7 @@
 
 """Wrench internal API helpers for service-to-service communication."""
 
+from ._secret import resolve_secret
 from ._slack import slack_post
 
-__all__ = ["slack_post"]
+__all__ = ["resolve_secret", "slack_post"]
