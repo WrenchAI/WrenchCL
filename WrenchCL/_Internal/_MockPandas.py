@@ -37,17 +37,17 @@ class _MockPandas:
 
         class types:
             @staticmethod
-            def is_object_dtype(column):
+            def is_object_dtype(_):
                 """Check if a column is an object type (always returns False)."""
                 return False  # Simplified mock behavior
 
             @staticmethod
-            def is_datetime64_any_dtype(column):
+            def is_datetime64_any_dtype(_):
                 """Check if a column is a datetime type (always returns False)."""
                 return False  # Simplified mock behavior
 
             @staticmethod
-            def is_timedelta64_dtype(column):
+            def is_timedelta64_dtype(_):
                 """Check if a column is a timedelta type (always returns False)."""
                 return False  # Simplified mock behavior
 
