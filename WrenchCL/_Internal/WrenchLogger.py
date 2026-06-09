@@ -17,6 +17,24 @@ _run_id_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "wrench_run_id",
     default=None,
 )
+_prefix_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "wrench_prefix",
+    default=None,
+)
+
+
+class _PrefixFilter(logging.Filter):
+    """Prepends the per-context prefix (e.g. HTTP method + path) to each log record.
+
+    Reads from _prefix_var which is async-safe via contextvars — each asyncio task
+    (i.e. each HTTP request) gets its own copy when set via logger.set_prefix().
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        prefix = _prefix_var.get()
+        if prefix:
+            record.msg = f"[{prefix}] {record.msg}"
+        return True
 
 
 @SingletonClass
@@ -50,9 +68,9 @@ class WrenchLogger(_BaseSparkLogger):
         handler = SparkJsonHandler() if (mode == "json" or deployment_mode) else SparkTerminalHandler()
         self.eject_filters()
         super().configure(level=level, handler=handler, no_freeze=True)
-        set_prefix = getattr(self, "set_prefix", None)
-        if prefix is not None and callable(set_prefix):
-            set_prefix(prefix)
+        self.addFilter(_PrefixFilter())
+        if prefix is not None:
+            self.set_prefix(prefix)
 
     def initiate_new_run(self) -> str:
         run_id = uuid.uuid4().hex[:8].upper()
@@ -131,6 +149,14 @@ class WrenchLogger(_BaseSparkLogger):
         )
         kwargs["stacklevel"] = kwargs.get("stacklevel", 1) + 1
         self.info(text, **kwargs)
+
+    def set_prefix(self, prefix: str | None) -> None:
+        """Set a per-context log prefix (e.g. HTTP method + path for request tagging).
+
+        The value is stored in a ContextVar, so each asyncio task (HTTP request)
+        gets its own isolated copy. Pass None to clear the prefix for the current context.
+        """
+        _prefix_var.set(prefix)
 
     @property
     def _internal(self) -> "_InternalLogShim":

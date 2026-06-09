@@ -134,3 +134,41 @@ def test_error_callable():
 
 def test_exception_callable_outside_except():
     logger.exception("test")
+
+
+def test_set_prefix_sets_contextvar():
+    """set_prefix() stores the value in the _prefix_var ContextVar."""
+    from WrenchCL._Internal.WrenchLogger import _prefix_var
+    logger.set_prefix("GET /api/v1/health")
+    assert _prefix_var.get() == "GET /api/v1/health"
+    logger.set_prefix(None)
+    assert _prefix_var.get() is None
+
+
+def test_prefix_filter_mutates_record():
+    """_PrefixFilter prepends the prefix to record.msg when a prefix is set."""
+    from WrenchCL._Internal.WrenchLogger import _prefix_var, _PrefixFilter
+    pf = _PrefixFilter()
+    record = logging.LogRecord("test", logging.INFO, "", 0, "plain message", (), None)
+    _prefix_var.set("POST /events")
+    pf.filter(record)
+    assert record.msg == "[POST /events] plain message"
+    _prefix_var.set(None)
+
+
+def test_prefix_filter_no_op_when_no_prefix():
+    """_PrefixFilter leaves record.msg unchanged when no prefix is set."""
+    from WrenchCL._Internal.WrenchLogger import _prefix_var, _PrefixFilter
+    _prefix_var.set(None)
+    pf = _PrefixFilter()
+    record = logging.LogRecord("test", logging.INFO, "", 0, "clean message", (), None)
+    pf.filter(record)
+    assert record.msg == "clean message"
+
+
+def test_configure_prefix_kwarg():
+    """configure(prefix=...) calls set_prefix() on the newly configured logger."""
+    from WrenchCL._Internal.WrenchLogger import _prefix_var
+    logger.configure(prefix="POST /boot")
+    assert _prefix_var.get() == "POST /boot"
+    logger.set_prefix(None)
