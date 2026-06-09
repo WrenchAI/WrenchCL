@@ -3,7 +3,7 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
 import os
-from typing import Optional
+from typing import Any, Optional
 
 from .. import logger
 
@@ -13,6 +13,7 @@ def resolve_secret(
     env_var: Optional[str] = "WRENCH_SERVICE_SECRET",
     arn: Optional[str] = None,
     region: str = "us-east-1",
+    boto_client: Optional[Any] = None,
 ) -> Optional[str]:
     """
     Resolve a secret from multiple sources with a defined priority order.
@@ -62,6 +63,14 @@ def resolve_secret(
         The AWS region to use when connecting to Secrets Manager for ARN resolution.
         This is passed directly to the boto3 client. Default is "us-east-1".
 
+    boto_client : any, optional
+        A pre-configured AWS Secrets Manager client (e.g. ``boto3.client("secretsmanager")``).
+        If provided, this client is used directly for ARN resolution and boto3 is not
+        imported by the library. If None, a client is created internally using the
+        default credential chain and the ``region`` parameter. Use this when your service
+        has a custom credential setup (assumed role, LocalStack, cross-account) that the
+        library's default client would not share. Default is None.
+
     Returns
     -------
     str or None
@@ -105,6 +114,12 @@ def resolve_secret(
         ... )
         >>> # Returns env var if set, otherwise attempts ARN fetch, otherwise None.
 
+    Caller-supplied boto3 client (custom credential chain or for testing):
+
+        >>> import boto3
+        >>> client = boto3.client("secretsmanager", region_name="us-east-1")
+        >>> secret = resolve_secret(arn="arn:aws:...", boto_client=client)
+
     Notes
     -----
     - Direct values and environment variables are preferred because they are
@@ -132,19 +147,20 @@ def resolve_secret(
         if auto_arn:
             arn = auto_arn
 
-    if arn is not None:
-        try:
-            import boto3
-        except ImportError:
-            logger.warning(
-                "resolve_secret: boto3 is required to fetch secrets by ARN. "
-                "Install WrenchCL[aws]."
-            )
-            return None
+    if arn:
+        if boto_client is None:
+            try:
+                import boto3
+            except ImportError:
+                logger.warning(
+                    "resolve_secret: boto3 is required to fetch secrets by ARN. "
+                    "Install WrenchCL[aws]."
+                )
+                return None
+            boto_client = boto3.client("secretsmanager", region_name=region)
 
         try:
-            client = boto3.client("secretsmanager", region_name=region)
-            response = client.get_secret_value(SecretId=arn)
+            response = boto_client.get_secret_value(SecretId=arn)
             secret_value = response.get("SecretString")
             if secret_value is not None and secret_value:
                 return secret_value

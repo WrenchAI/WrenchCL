@@ -324,7 +324,10 @@ class TestEdgeCases:
             assert result is None
 
     def test_empty_arn_parameter_skips_arn_check(self):
-        result = resolve_secret(value=None, env_var=None, arn="")
+        """resolve_secret(arn="") must not enter the boto3 path — empty string is falsy."""
+        with patch("WrenchCL.Wrench._secret.boto3", create=True) as mock_boto3:
+            result = resolve_secret(arn="")
+        mock_boto3.client.assert_not_called()
         assert result is None
 
     def test_none_arn_parameter_skips_arn_check(self):
@@ -334,6 +337,36 @@ class TestEdgeCases:
 
         mock_boto3.client.assert_not_called()
         assert result is None
+
+
+def test_boto_client_parameter_is_used_when_provided():
+    """When boto_client is passed, resolve_secret uses it instead of creating its own."""
+    mock_client = MagicMock()
+    mock_client.get_secret_value.return_value = {"SecretString": "my-secret"}
+    result = resolve_secret(arn="arn:aws:secretsmanager:us-east-1:123:secret:test", boto_client=mock_client)
+    assert result == "my-secret"
+    mock_client.get_secret_value.assert_called_once_with(SecretId="arn:aws:secretsmanager:us-east-1:123:secret:test")
+
+
+def test_boto_client_skips_boto3_import():
+    """When boto_client is provided, boto3 is never imported by the library."""
+    mock_client = MagicMock()
+    mock_client.get_secret_value.return_value = {"SecretString": "my-secret"}
+    original = sys.modules.pop("boto3", None)
+    try:
+        result = resolve_secret(arn="arn:aws:secretsmanager:us-east-1:123:secret:test", boto_client=mock_client)
+        assert result == "my-secret"
+    finally:
+        if original is not None:
+            sys.modules["boto3"] = original
+
+
+def test_boto_client_exception_is_caught():
+    """Exceptions from a caller-supplied boto_client are caught and return None."""
+    mock_client = MagicMock()
+    mock_client.get_secret_value.side_effect = Exception("AccessDenied")
+    result = resolve_secret(arn="arn:aws:secretsmanager:us-east-1:123:secret:test", boto_client=mock_client)
+    assert result is None
 
 
 if __name__ == "__main__":

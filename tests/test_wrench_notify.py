@@ -481,3 +481,87 @@ class TestAutoArnIntegration:
 
         assert result == "uuid-123"
         mock_resolve.assert_called_once()
+
+
+class TestJobRegisterExtractionEdgeCases:
+    def test_job_register_non_dict_response_returns_none(self):
+        """job_register returns None and warns when response body is not a JSON object."""
+        with patch("WrenchCL.Wrench._notify.resolve_secret", return_value="secret"), \
+             patch("requests.post") as mock_post:
+            mock_post.return_value.ok = True
+            mock_post.return_value.json.return_value = ["not", "a", "dict"]
+            result = job_register("workspace-123", "test", "source")
+        assert result is None
+
+    def test_job_register_data_none_response(self):
+        """job_register returns None when response has data=null and no job_id."""
+        with patch("WrenchCL.Wrench._notify.resolve_secret", return_value="secret"), \
+             patch("requests.post") as mock_post:
+            mock_post.return_value.ok = True
+            mock_post.return_value.json.return_value = {"data": None}
+            result = job_register("workspace-123", "test", "source")
+        assert result is None
+
+    def test_job_register_data_dict_with_job_id(self):
+        """job_register extracts job_id from nested data dict."""
+        with patch("WrenchCL.Wrench._notify.resolve_secret", return_value="secret"), \
+             patch("requests.post") as mock_post:
+            mock_post.return_value.ok = True
+            mock_post.return_value.json.return_value = {"data": {"job_id": "abc-123"}}
+            result = job_register("workspace-123", "test", "source")
+        assert result == "abc-123"
+
+    def test_job_register_data_non_dict_truthy_falls_back_to_root(self):
+        """job_register falls back to root dict when data is truthy but not a dict."""
+        with patch("WrenchCL.Wrench._notify.resolve_secret", return_value="secret"), \
+             patch("requests.post") as mock_post:
+            mock_post.return_value.ok = True
+            mock_post.return_value.json.return_value = {"data": "unexpected-string", "job_id": "root-456"}
+            result = job_register("workspace-123", "test", "source")
+        assert result == "root-456"
+
+
+class TestJobUpdateAndCloseNoneJobId:
+    def test_job_update_returns_false_when_job_id_is_none(self):
+        """job_update returns False immediately when job_id is None."""
+        with patch("requests.patch") as mock_patch:
+            result = job_update(None, progress=50)
+        assert result is False
+        mock_patch.assert_not_called()
+
+    def test_job_close_returns_false_when_job_id_is_none(self):
+        """job_close returns False immediately when job_id is None."""
+        with patch("requests.post") as mock_post:
+            result = job_close(None, "workspace-123", 200, "done", "source")
+        assert result is False
+        mock_post.assert_not_called()
+
+
+class TestJobRegisterIntegration:
+    def test_job_register_uses_real_resolve_secret_with_env_var(self):
+        """Integration: job_register calls real resolve_secret, not a mock, with env var."""
+        env = {"WRENCH_SERVICE_SECRET": "real-secret", "WRENCH_API_BASE_URL": "https://api.test.wrench.ai"}
+        with patch.dict(os.environ, env), \
+             patch("requests.post") as mock_post:
+            mock_post.return_value.ok = True
+            mock_post.return_value.json.return_value = {"job_id": "integration-job-id"}
+            result = job_register("workspace-123", "test message", "source")
+        assert result == "integration-job-id"
+        call_headers = mock_post.call_args[1]["headers"]
+        assert call_headers.get("x-api-secret") == "real-secret"
+
+    def test_job_register_uses_real_resolve_secret_with_boto_client(self):
+        """Integration: job_register via auto-ARN uses real resolve_secret with caller-supplied boto_client."""
+        mock_boto_client = MagicMock()
+        mock_boto_client.get_secret_value.return_value = {"SecretString": "arn-fetched-secret"}
+        env = {"WRENCH_SERVICE_SECRET": "",
+               "WRENCH_SERVICE_SECRET_ARN": "arn:aws:secretsmanager:us-east-1:123:secret:test",
+               "WRENCH_API_BASE_URL": "https://api.test.wrench.ai"}
+        with patch.dict(os.environ, env), \
+             patch("requests.post") as mock_post:
+            mock_post.return_value.ok = True
+            mock_post.return_value.json.return_value = {"job_id": "arn-job-id"}
+            result = job_register("workspace-123", "test message", "source",
+                                  boto_client=mock_boto_client)
+        assert result == "arn-job-id"
+        mock_boto_client.get_secret_value.assert_called_once()

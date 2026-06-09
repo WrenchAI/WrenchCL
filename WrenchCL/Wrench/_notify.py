@@ -23,7 +23,7 @@ Secret resolution uses the same priority as slack_post:
 """
 
 import os
-from typing import Optional
+from typing import Any, Optional
 
 import requests
 
@@ -43,6 +43,7 @@ def job_register(
     service_secret: Optional[str] = None,
     secret_env_var: str = "WRENCH_SERVICE_SECRET",
     secret_arn: Optional[str] = None,
+    boto_client: Optional[Any] = None,
     timeout: int = 10,
 ) -> Optional[str]:
     """
@@ -72,7 +73,7 @@ def job_register(
     str or None
         The job_id UUID string on success, None on failure.
     """
-    resolved_secret = resolve_secret(value=service_secret, env_var=secret_env_var, arn=secret_arn)
+    resolved_secret = resolve_secret(value=service_secret, env_var=secret_env_var, arn=secret_arn, boto_client=boto_client)
     if not resolved_secret:
         logger.warning("job_register: no service secret available — job not registered")
         return None
@@ -101,7 +102,14 @@ def job_register(
         )
         if response.ok:
             data = response.json()
-            job_id = (data.get("data") or data).get("job_id")
+            if not isinstance(data, dict):
+                logger.warning(
+                    f"job_register: response OK but body is not a JSON object "
+                    f"(got {type(data).__name__})"
+                )
+                return None
+            inner = data.get("data")
+            job_id = inner.get("job_id") if isinstance(inner, dict) else data.get("job_id")
             if job_id:
                 return str(job_id)
             logger.warning("job_register: response OK but no job_id in body")
@@ -117,7 +125,7 @@ def job_register(
 
 
 def job_update(
-    job_id: str,
+    job_id: Optional[str],
     progress: int,
     description: Optional[str] = None,
     *,
@@ -126,6 +134,7 @@ def job_update(
     service_secret: Optional[str] = None,
     secret_env_var: str = "WRENCH_SERVICE_SECRET",
     secret_arn: Optional[str] = None,
+    boto_client: Optional[Any] = None,
     timeout: int = 10,
 ) -> bool:
     """
@@ -148,7 +157,7 @@ def job_update(
     if not job_id:
         return False
 
-    resolved_secret = resolve_secret(value=service_secret, env_var=secret_env_var, arn=secret_arn)
+    resolved_secret = resolve_secret(value=service_secret, env_var=secret_env_var, arn=secret_arn, boto_client=boto_client)
     if not resolved_secret:
         logger.warning("job_update: no service secret available — progress not sent")
         return False
@@ -182,7 +191,7 @@ def job_update(
 
 
 def job_close(
-    job_id: str,
+    job_id: Optional[str],
     workspace_id: str,
     status_code: int,
     message: str,
@@ -193,6 +202,7 @@ def job_close(
     service_secret: Optional[str] = None,
     secret_env_var: str = "WRENCH_SERVICE_SECRET",
     secret_arn: Optional[str] = None,
+    boto_client: Optional[Any] = None,
     timeout: int = 10,
 ) -> bool:
     """
@@ -221,7 +231,7 @@ def job_close(
     if not job_id:
         return False
 
-    resolved_secret = resolve_secret(value=service_secret, env_var=secret_env_var, arn=secret_arn)
+    resolved_secret = resolve_secret(value=service_secret, env_var=secret_env_var, arn=secret_arn, boto_client=boto_client)
     if not resolved_secret:
         logger.warning("job_close: no service secret available — job not closed")
         return False
