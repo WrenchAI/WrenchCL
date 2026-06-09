@@ -29,7 +29,12 @@ def resolve_secret(
     2. Environment variable: If `value` is None or empty, the environment variable
        specified by `env_var` is checked. If it exists and is non-empty, its value
        is returned.
-    3. AWS Secrets Manager ARN: If both `value` and the environment variable fail to
+    3. Auto-derived ARN environment variable: If `env_var` is provided and empty,
+       the function checks for `{env_var}_ARN` (e.g., if env_var="WRENCH_SERVICE_SECRET",
+       it checks "WRENCH_SERVICE_SECRET_ARN"). If this ARN env var is set, it is used
+       for AWS Secrets Manager fetch. This enables services using ARN-only patterns
+       without requiring callers to pass explicit ARN parameters.
+    4. AWS Secrets Manager ARN: If both `value` and the environment variables fail to
        resolve, the function attempts to fetch the secret from AWS Secrets Manager
        using the provided ARN and region.
 
@@ -79,6 +84,12 @@ def resolve_secret(
         >>> print(secret)
         "env-secret"
 
+    Auto-ARN convention (ARN injected via env var):
+
+        >>> os.environ["WRENCH_SERVICE_SECRET_ARN"] = "arn:aws:secretsmanager:us-east-1:123456789:secret:my-secret"
+        >>> secret = resolve_secret(env_var="WRENCH_SERVICE_SECRET")
+        >>> # Fetches from SM because WRENCH_SERVICE_SECRET is empty but _ARN is set
+
     ARN resolution (requires boto3):
 
         >>> secret = resolve_secret(arn="arn:aws:secretsmanager:us-east-1:123456789:secret:my-secret")
@@ -114,6 +125,12 @@ def resolve_secret(
         env_value = os.environ.get(env_var)
         if env_value is not None and env_value:
             return env_value
+
+    # Auto-derive ARN from env var name convention when no explicit ARN was passed
+    if arn is None and env_var is not None:
+        auto_arn = os.environ.get(f"{env_var}_ARN")
+        if auto_arn:
+            arn = auto_arn
 
     if arn is not None:
         try:
