@@ -221,6 +221,102 @@ class TestLogging:
         assert "no secret could be resolved" in call_args
 
 
+class TestAutoArnFallback:
+    def test_auto_arn_fallback_when_env_var_empty(self):
+        mock_boto3 = MagicMock()
+        mock_client = MagicMock()
+        mock_boto3.client.return_value = mock_client
+        mock_client.get_secret_value.return_value = {"SecretString": "auto-arn-secret"}
+
+        with patch.dict("os.environ", {"WRENCH_SERVICE_SECRET_ARN": "arn:aws:secretsmanager:us-east-1:123456789:secret:test"}, clear=False):
+            if "WRENCH_SERVICE_SECRET" in os.environ:
+                del os.environ["WRENCH_SERVICE_SECRET"]
+            with patch.dict(sys.modules, {"boto3": mock_boto3}):
+                result = resolve_secret(env_var="WRENCH_SERVICE_SECRET")
+
+        assert result == "auto-arn-secret"
+        mock_boto3.client.assert_called_once_with("secretsmanager", region_name="us-east-1")
+
+    def test_auto_arn_fallback_with_custom_region(self):
+        mock_boto3 = MagicMock()
+        mock_client = MagicMock()
+        mock_boto3.client.return_value = mock_client
+        mock_client.get_secret_value.return_value = {"SecretString": "auto-arn-secret"}
+
+        with patch.dict("os.environ", {"WRENCH_SERVICE_SECRET_ARN": "arn:aws:secretsmanager:us-west-2:123456789:secret:test"}, clear=False):
+            if "WRENCH_SERVICE_SECRET" in os.environ:
+                del os.environ["WRENCH_SERVICE_SECRET"]
+            with patch.dict(sys.modules, {"boto3": mock_boto3}):
+                result = resolve_secret(env_var="WRENCH_SERVICE_SECRET", region="us-west-2")
+
+        assert result == "auto-arn-secret"
+        mock_boto3.client.assert_called_once_with("secretsmanager", region_name="us-west-2")
+
+    def test_auto_arn_does_not_override_explicit_arn(self):
+        mock_boto3 = MagicMock()
+        mock_client = MagicMock()
+        mock_boto3.client.return_value = mock_client
+        mock_client.get_secret_value.return_value = {"SecretString": "explicit-arn-secret"}
+
+        with patch.dict("os.environ", {"WRENCH_SERVICE_SECRET_ARN": "arn:aws:secretsmanager:us-east-1:111111111:secret:auto"}, clear=False):
+            if "WRENCH_SERVICE_SECRET" in os.environ:
+                del os.environ["WRENCH_SERVICE_SECRET"]
+            with patch.dict(sys.modules, {"boto3": mock_boto3}):
+                result = resolve_secret(
+                    env_var="WRENCH_SERVICE_SECRET",
+                    arn="arn:aws:secretsmanager:us-east-1:123456789:secret:explicit"
+                )
+
+        assert result == "explicit-arn-secret"
+        mock_client.get_secret_value.assert_called_once_with(SecretId="arn:aws:secretsmanager:us-east-1:123456789:secret:explicit")
+
+    def test_auto_arn_does_not_apply_when_env_var_has_value(self):
+        mock_boto3 = MagicMock()
+        with patch.dict("os.environ", {
+            "WRENCH_SERVICE_SECRET": "env-secret",
+            "WRENCH_SERVICE_SECRET_ARN": "arn:aws:secretsmanager:us-east-1:123456789:secret:test"
+        }, clear=False):
+            with patch.dict(sys.modules, {"boto3": mock_boto3}):
+                result = resolve_secret(env_var="WRENCH_SERVICE_SECRET")
+
+        assert result == "env-secret"
+        mock_boto3.client.assert_not_called()
+
+    def test_auto_arn_with_custom_env_var_name(self):
+        mock_boto3 = MagicMock()
+        mock_client = MagicMock()
+        mock_boto3.client.return_value = mock_client
+        mock_client.get_secret_value.return_value = {"SecretString": "custom-auto-arn-secret"}
+
+        with patch.dict("os.environ", {"CUSTOM_SECRET_ARN": "arn:aws:secretsmanager:us-east-1:123456789:secret:custom"}, clear=False):
+            if "CUSTOM_SECRET" in os.environ:
+                del os.environ["CUSTOM_SECRET"]
+            with patch.dict(sys.modules, {"boto3": mock_boto3}):
+                result = resolve_secret(env_var="CUSTOM_SECRET")
+
+        assert result == "custom-auto-arn-secret"
+
+    def test_auto_arn_skipped_when_env_var_is_none(self):
+        mock_boto3 = MagicMock()
+        with patch.dict("os.environ", {"WRENCH_SERVICE_SECRET_ARN": "arn:aws:secretsmanager:us-east-1:123456789:secret:test"}, clear=False):
+            with patch.dict(sys.modules, {"boto3": mock_boto3}):
+                result = resolve_secret(env_var=None)
+
+        assert result is None
+        mock_boto3.client.assert_not_called()
+
+    def test_auto_arn_returns_none_when_arn_env_var_empty(self):
+        mock_boto3 = MagicMock()
+        with patch.dict("os.environ", {"WRENCH_SERVICE_SECRET_ARN": ""}, clear=False):
+            if "WRENCH_SERVICE_SECRET" in os.environ:
+                del os.environ["WRENCH_SERVICE_SECRET"]
+            with patch.dict(sys.modules, {"boto3": mock_boto3}):
+                result = resolve_secret(env_var="WRENCH_SERVICE_SECRET")
+
+        assert result is None
+        mock_boto3.client.assert_not_called()
+
+
 class TestEdgeCases:
     def test_none_env_var_parameter_skips_env_var_check(self):
         with patch.dict("os.environ", {"WRENCH_SERVICE_SECRET": "env-secret"}, clear=False):
