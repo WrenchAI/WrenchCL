@@ -34,6 +34,7 @@ dependencies = [
     "ansi2txt>=0.2.0,<1.0.0",
     "ftfy>=6.3.1,<7.0.0",
     "logspark[json]>=0.10.2",
+    "python-json-logger>=2.0,<4.0",
 ]
 
 [project.optional-dependencies]
