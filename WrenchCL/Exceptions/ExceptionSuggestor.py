@@ -5,7 +5,7 @@ import inspect
 import re
 from collections.abc import Mapping
 from difflib import get_close_matches
-from typing import TYPE_CHECKING, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Union, cast
 
 if TYPE_CHECKING:
     import pandas
@@ -53,7 +53,7 @@ class ExceptionSuggestor:
     def suggest_for_pandas_column(
         cls, missing_column: str, dataframe_columns: Iterable[str]
     ) -> Optional[str]:
-        return cls.suggest_similar(
+        return cast(Optional[str], cls.suggest_similar(
             missing_key=missing_column,
             available_keys=dataframe_columns,
             n_suggestions=1,
@@ -61,11 +61,11 @@ class ExceptionSuggestor:
             case_insensitive=True,
             return_message=True,
             custom_message="Column '{}' not found. Did you mean: {}?".format(missing_column, "{}"),
-        )
+        ))
 
     @classmethod
     def suggest_for_dict_key(cls, missing_key: str, dict_keys: Iterable[str]) -> Optional[str]:
-        return cls.suggest_similar(
+        return cast(Optional[str], cls.suggest_similar(
             missing_key=missing_key,
             available_keys=dict_keys,
             n_suggestions=3,
@@ -73,13 +73,13 @@ class ExceptionSuggestor:
             case_insensitive=True,
             return_message=True,
             custom_message="Key '{}' not found. Possible matches: {}".format(missing_key, "{}"),
-        )
+        ))
 
     @classmethod
     def suggest_for_cli_option(
         cls, invalid_option: str, valid_options: Iterable[str]
     ) -> Optional[str]:
-        return cls.suggest_similar(
+        return cast(Optional[str], cls.suggest_similar(
             missing_key=invalid_option,
             available_keys=valid_options,
             n_suggestions=3,
@@ -89,13 +89,13 @@ class ExceptionSuggestor:
             custom_message="Unrecognized option '{}'. Did you mean: {}?".format(
                 invalid_option, "{}"
             ),
-        )
+        ))
 
     @classmethod
     def suggest_for_api_field(
         cls, missing_field: str, valid_fields: Iterable[str]
     ) -> Optional[str]:
-        return cls.suggest_similar(
+        return cast(Optional[str], cls.suggest_similar(
             missing_key=missing_field,
             available_keys=valid_fields,
             n_suggestions=2,
@@ -103,7 +103,7 @@ class ExceptionSuggestor:
             case_insensitive=True,
             return_message=True,
             custom_message="Field '{}' not found. Closest matches: {}".format(missing_field, "{}"),
-        )
+        ))
 
     @classmethod
     def _is_pandas_df(cls, obj):
@@ -113,7 +113,7 @@ class ExceptionSuggestor:
             if isinstance(obj, pd.DataFrame):
                 return True
         except ImportError:
-            pd = None
+            pd = None  # type: ignore
             pass
 
         try:
@@ -122,7 +122,7 @@ class ExceptionSuggestor:
             if isinstance(obj, _MockPandas.DataFrame):
                 return True
         except ImportError:
-            _MockPandas = None
+            _MockPandas = None  # type: ignore
             pass
 
         return False
@@ -167,7 +167,7 @@ class ExceptionSuggestor:
     def suggest(
         cls,
         obj: Union[BaseException, "pandas.DataFrame", dict, tuple, set, list, object],
-        missing_key: str = None,
+        missing_key: Optional[str] = None,
     ) -> Optional[str]:
         """
         Auto-detect object type and route to appropriate suggestion method.
@@ -177,17 +177,19 @@ class ExceptionSuggestor:
         elif missing_key is None and isinstance(obj, BaseException):
             return cls._suggest_for_exception(obj)
 
+        assert missing_key is not None
+
         if cls._is_pandas_df(obj):
-            return cls.suggest_for_pandas_column(missing_key, obj.columns)
+            return cls.suggest_for_pandas_column(missing_key, obj.columns)  # type: ignore
 
         elif isinstance(obj, Mapping):
-            return cls.suggest_for_dict_key(missing_key, obj.keys())
+            return cls.suggest_for_dict_key(missing_key, obj.keys())  # type: ignore
 
         elif isinstance(obj, (list, tuple, set)):
-            return cls.suggest_for_cli_option(missing_key, obj)
+            return cls.suggest_for_cli_option(missing_key, obj)  # type: ignore
 
         else:
-            return cls.suggest_similar(
+            return cast(Optional[str], cls.suggest_similar(
                 missing_key=missing_key,
                 available_keys=dir(obj),
                 n_suggestions=2,
@@ -197,4 +199,4 @@ class ExceptionSuggestor:
                 custom_message="Attribute '{}' not found. Closest matches: {}".format(
                     missing_key, "{}"
                 ),
-            )
+            ))

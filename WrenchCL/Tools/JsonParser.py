@@ -50,6 +50,7 @@ def parse_json(
         if verbose:
             logger._internal.log_internal(f"Starting JSON parsing. Max depth: {max_depth}")
         parsed_json = recur_parse_json(response, max_depth=max_depth, verbose=verbose)
+        assert isinstance(parsed_json, dict)
         if print_tree:
             show_json_tree(parsed_json)
         return parsed_json
@@ -151,9 +152,9 @@ def recur_parse_json(
 
     if not isinstance(d, dict) and depth == 0:
         raise TypeError(f"Expected dictionary but got {type(d).__name__}")
-    elif not isinstance(d, dict) and depth != 0:
+    elif not isinstance(d, dict):
         return d
-    else:
+    elif isinstance(d, dict):
         for k, v in d.items():
             if isinstance(v, dict):
                 d[k] = recur_parse_json(v, depth=depth + 1, max_depth=max_depth, verbose=verbose)
@@ -177,6 +178,7 @@ def recur_parse_json(
                     f"{indent}>Parsed key '{k}': to type {type(d[k]).__name__}"
                 )
         return d
+    return d
 
 
 def list_loader(v: Any, depth: int = 0, max_depth: int = 25, verbose=False) -> list:

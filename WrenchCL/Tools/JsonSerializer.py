@@ -3,11 +3,12 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 import json
 import re
+from collections.abc import Callable
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 from uuid import UUID
 
 
@@ -83,8 +84,8 @@ class RobustJSONEncoder(json.JSONEncoder):
     JSONEncoder subclass that uses robust_serializer for unsupported objects.
     """
 
-    def default(self, obj: Any) -> Any:
-        return robust_serializer(obj)
+    def default(self, o: object) -> Any:
+        return robust_serializer(o)
 
 
 class single_quote_decoder(json.JSONDecoder):
@@ -111,9 +112,9 @@ class single_quote_decoder(json.JSONDecoder):
         {'name': 'John', 'age': 30, 'city': 'New York'}
     """
 
-    def __init__(self, object_hook=None, *args, **kwargs):
+    def __init__(self, object_hook: Optional[Callable[[dict[str, Any]], Any]] = None, *args, **kwargs):
         super().__init__(object_hook=object_hook, *args, **kwargs)
-        self.object_hook = object_hook
+        self.object_hook = object_hook  # type: ignore
 
     def decode(self, s, *args, **kwargs):
         # Remove everything before ```json or ```python, including the marker itself
@@ -167,3 +168,4 @@ class single_quote_decoder(json.JSONDecoder):
 
                 # Escape it to \"
                 js_str = js_str[:prev_quote_index] + "\\" + js_str[prev_quote_index:]
+        raise json.JSONDecodeError("Failed to parse JSON string", js_str, prev_pos)

@@ -1,18 +1,19 @@
 #  Copyright (c) 2024-2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
-from typing import Any
+import importlib.util
+from typing import TYPE_CHECKING, Any, Optional
 
-from .._Internal._MockPandas import _MockPandas
-
-try:
+if TYPE_CHECKING:
     import pandas as pd
-except ImportError:
-    pd = _MockPandas()
+elif importlib.util.find_spec("pandas") is not None:
+    import pandas as pd  # type: ignore[assignment]
+else:
+    from .._Internal._MockPandas import _MockPandas as pd  # type: ignore[assignment]
 
 
 def standardize_none(
-    data: Any, none_like_values: set = None, evaluate_as_string: bool = False
+    data: Any, none_like_values: Optional[set[str]] = None, evaluate_as_string: bool = False
 ) -> Any:
     """
     Recursively standardizes mistyped None values to proper None.

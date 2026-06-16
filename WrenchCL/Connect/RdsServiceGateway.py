@@ -2,6 +2,7 @@
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
+import importlib.util
 import json
 import math
 from datetime import datetime, timedelta
@@ -9,7 +10,12 @@ from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
 from uuid import UUID
 
 if TYPE_CHECKING:
+    import pandas as pd
     from mypy_boto3_rds.client import RDSClient
+elif importlib.util.find_spec("pandas") is not None:
+    import pandas as pd  # type: ignore[assignment]
+else:
+    from .._Internal._MockPandas import _MockPandas as pd  # type: ignore[assignment]
 
 import psycopg2
 import psycopg2.extensions
@@ -17,15 +23,8 @@ import psycopg2.extras
 from psycopg2.pool import ThreadedConnectionPool
 
 from .. import logger
-from .._Internal._MockPandas import _MockPandas
 from ..Decorators.SingletonClass import SingletonClass
 from .AwsClientHub import AwsClientHub
-
-try:
-    import pandas as pd
-except ImportError:
-    pd = _MockPandas()
-DataFrame = pd.DataFrame
 
 
 @SingletonClass
@@ -57,7 +56,7 @@ class RdsServiceGateway:
 
         if self.multithreaded:
             # Initialize a threaded connection pool using the URI
-            self.pool: Optional[psycopg2.pool] = ThreadedConnectionPool(
+            self.pool: Optional[ThreadedConnectionPool] = ThreadedConnectionPool(
                 minconn=min_pool_size, maxconn=max_pool_size, dsn=self.db_uri
             )
         else:
@@ -76,6 +75,7 @@ class RdsServiceGateway:
         :rtype: psycopg2.extensions.connection
         """
         if self.multithreaded:
+            assert self.pool is not None
             return self.pool.getconn()
         return self.connection
 
@@ -86,6 +86,7 @@ class RdsServiceGateway:
 
         """
         if self.multithreaded:
+            assert self.pool is not None
             self.pool.putconn(conn)
 
     def get_data(
@@ -175,7 +176,7 @@ class RdsServiceGateway:
 
         try:
             # Convert payload into a tuple if it's a single value or list
-            payload = self.convert_payload(payload)
+            payload = self.convert_payload(payload)  # type: ignore
             logger._internal.log_internal(f"Converted payload: {payload}")
 
             if isinstance(payload, tuple):
@@ -301,7 +302,7 @@ class RdsServiceGateway:
         :return: A tuple with converted values.
         :rtype: Tuple[Any, ...]
         """
-        if isinstance(payload, DataFrame):
+        if isinstance(payload, pd.DataFrame):
             return self._convert_dataframe_types(payload)
         else:
             return tuple(self._convert_value(val) for val in payload)

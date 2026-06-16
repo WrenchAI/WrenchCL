@@ -40,7 +40,7 @@ def get_file_type(
 
     if isinstance(file_source, (str, Path)):
         if validate_base64(file_source):
-            base64_data = base64.b64decode(file_source)
+            base64_data = base64.b64decode(str(file_source))
         else:
             mime_type, _ = mimetypes.guess_type(str(file_source))
             if mime_type:

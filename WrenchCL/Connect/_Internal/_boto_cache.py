@@ -25,7 +25,7 @@ try:
         return client
 
 except ImportError:
-    _get_boto3_session = None
-    _fetch_secret_from_secretsmanager = None
-    _get_s3_client = None
-    Config = None
+    _get_boto3_session = None  # type: ignore
+    _fetch_secret_from_secretsmanager = None  # type: ignore
+    _get_s3_client = None  # type: ignore
+    Config = None  # type: ignore

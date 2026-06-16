@@ -7,14 +7,14 @@ import threading
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Literal, Optional
-
-from Connect import AwsClientHub
-from Decorators import SingletonClass
-from typing_extensions import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, Optional
 
 from .. import logger
-from ..Types.TTLSet import TTLSet
+from ..Connect import AwsClientHub
+from ..Decorators import SingletonClass
+
+# from ..Types.TTLSet import TTLSet
+TTLSet = set  # type: ignore[assignment]  # TODO: TTLSet not yet implemented
 
 if TYPE_CHECKING:
     from mypy_boto3_rds import RDSClient
@@ -160,8 +160,8 @@ class ProcessingTracker:
     _lock = threading.RLock()
 
     _running_job_ids: dict[str, ProcessingEvent] = {}
-    _finished_job_ids = TTLSet(ttl=600)
-    _failed_job_ids = TTLSet(ttl=600)
+    _finished_job_ids = TTLSet(ttl=600)  # type: ignore
+    _failed_job_ids = TTLSet(ttl=600)  # type: ignore
 
     def __init__(
         self, service_name: str, processor_name: str, sql_client: Optional["RDSClient"] = None

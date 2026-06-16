@@ -63,6 +63,7 @@ class AwsClientHub:
     def config(self) -> _ConfigurationManager:
         """Loaded configuration object."""
         self._initialize()
+        assert self.__config is not None
         return self.__config
 
     @property
@@ -126,9 +127,11 @@ class AwsClientHub:
         """Initialize the database client, applying PGHOST/PGPORT override or setting up an SSH tunnel if configured."""
         try:
             if self.config and isinstance(self.config, _ConfigurationManager):
+                db_port = self.config.pgport_override or self.config.db_port
+                assert db_port is not None
                 config = {
                     "PGHOST": self.config.pghost_override or self.config.db_host,
-                    "PGPORT": int(self.config.pgport_override or self.config.db_port),
+                    "PGPORT": int(db_port),
                     "PGDATABASE": self.config.db_name,
                     "PGUSER": self.config.db_user,
                     "PGPASSWORD": self.config.db_pass,
@@ -138,7 +141,7 @@ class AwsClientHub:
                     self.config.ssh_user,
                     self.config.pem_path or self.config.ssh_password,
                 ]):
-                    config["SSH_TUNNEL"] = {
+                    config["SSH_TUNNEL"] = {  # type: ignore
                         "SSH_SERVER": self.config.ssh_server,
                         "SSH_PORT": self.config.ssh_port,
                         "SSH_USER": self.config.ssh_user,
@@ -181,7 +184,7 @@ class AwsClientHub:
             password=config["PGPASSWORD"],
         )
 
-    def get_secret(self, secret_id: str = None) -> Union[dict, str, None]:
+    def get_secret(self, secret_id: Optional[str] = None) -> Union[dict, str, None]:
         """
         Retrieve a secret by ARN or default from config.
 

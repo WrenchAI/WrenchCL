@@ -1,7 +1,7 @@
 #  Copyright (c) 2025.
 #  Author: Willem van der Schans.
 #  Licensed under the MIT License (https://opensource.org/license/mit).
-from typing import Any, Type
+from typing import Any, Optional, Type
 
 
 class _SingletonViolationException(Exception):
@@ -9,7 +9,7 @@ class _SingletonViolationException(Exception):
     Raised when a class using @SingletonClass improperly defines its own __new__ method.
     """
 
-    def __init__(self, cls: Type[Any] = None) -> None:
+    def __init__(self, cls: Optional[Type[Any]] = None) -> None:
         cls_name = getattr(cls, "__name__", "<unknown class>")
         msg = (
             f"Singleton violation in '{cls_name}':\n"

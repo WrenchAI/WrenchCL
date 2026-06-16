@@ -3,11 +3,12 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 import warnings
 from functools import wraps
+from typing import Optional
 
 __depr_tracker__ = set()
 
 
-def Deprecated(message: str = None):
+def Deprecated(message: Optional[str] = None):
     """
     Wraps a function with a decorator that warns the user the function is Deprecated. It also allows
     an optional custom message to be displayed when the function is used.

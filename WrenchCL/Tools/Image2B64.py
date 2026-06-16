@@ -3,6 +3,7 @@
 #  Licensed under the MIT License (https://opensource.org/license/mit).
 
 import base64
+import binascii
 import hashlib
 from io import BytesIO
 
@@ -68,5 +69,5 @@ def validate_base64(b64_string):
         # Decode the base64 string
         base64.b64decode(b64_string, validate=True)
         return True
-    except (base64.binascii.Error, ValueError):
+    except (binascii.Error, ValueError):
         return False

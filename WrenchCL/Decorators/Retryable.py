@@ -17,8 +17,8 @@ if TYPE_CHECKING:
 try:
     from botocore.exceptions import BotoCoreError, ClientError
 except ImportError:
-    ClientError = Exception  # Fallback to base Exception
-    BotoCoreError = Exception
+    ClientError = Exception  # type: ignore
+    BotoCoreError = Exception  # type: ignore
 
 
 def Retryable(_func=None, *, max_retries=2, retry_on_exceptions=None, delay=2, verbose=False):

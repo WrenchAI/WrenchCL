@@ -44,7 +44,7 @@ class S3ServiceGateway:
         logger._internal.log_internal("S3ServiceGateway initialized with S3 client.")
 
     @staticmethod
-    def _get_mime_extension(mime_type: str) -> str:
+    def _get_mime_extension(mime_type: str) -> Optional[str]:
         """Get the file extension for a given MIME type."""
         return mimetypes.guess_extension(mime_type)
 
@@ -112,9 +112,9 @@ class S3ServiceGateway:
             if not self.test_mode:
                 self.s3_client.upload_fileobj(file_obj, bucket_name, object_key)
         elif hasattr(file, "read") and callable(file.read):
-            if file.seek(0, 2) == 0:  # Move to the end of the file and check the position
+            if file.seek(0, 2) == 0:  # type: ignore
                 raise ValueError("The file-like object is empty.")
-            file.seek(0)  # Move back to the beginning of the file
+            file.seek(0)  # type: ignore
             logger.info(
                 f"Uploading file-like object to bucket: {bucket_name} as object: {object_key}"
             )
@@ -274,7 +274,7 @@ class S3ServiceGateway:
                 raise
 
     @Retryable()
-    def list_objects(self, bucket_name: str, prefix: str = None) -> list:
+    def list_objects(self, bucket_name: str, prefix: Optional[str] = None) -> list:
         """
         Lists objects in an S3 bucket, optionally filtered by a prefix.
 

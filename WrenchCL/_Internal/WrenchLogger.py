@@ -7,12 +7,11 @@ import uuid
 import warnings
 from typing import Any, Self
 
-from logspark.Core.SparkLogger import SparkLogger as _SparkLoggerDecorated
+from logspark.Core.SparkLogger import SparkLogger
 from logspark.Handlers import SparkJsonHandler, SparkTerminalHandler
 
 from WrenchCL.Decorators import SingletonClass
 
-_BaseSparkLogger = _SparkLoggerDecorated.__bases__[0]
 _run_id_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "wrench_run_id",
     default=None,
@@ -38,8 +37,8 @@ class _PrefixFilter(logging.Filter):
 
 
 @SingletonClass
-class WrenchLogger(_BaseSparkLogger):
-    def configure(
+class WrenchLogger(SparkLogger):
+    def configure(  # type: ignore
         self,
         mode: str | None = None,
         level: str | int = "INFO",

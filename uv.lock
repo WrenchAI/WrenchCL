@@ -691,11 +691,11 @@ wheels = [
 
 [[package]]
 name = "logspark"
-version = "0.11.0"
+version = "0.12.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/8f/d6/389a80a3304a649a2b91a44864a6bcd40d0bec9d48566bd8a5f63ed2e409/logspark-0.11.0.tar.gz", hash = "sha256:8b253400049e5047da14c1e65f2cef47828e15caa54da1b3eb60bf966dc1449e", size = 38157, upload-time = "2026-06-12T20:33:29.692Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/60/8b/71a141480c3bf1175ead68c2b6a688eb348d55dbe409611653bcef6f6466/logspark-0.12.0.tar.gz", hash = "sha256:952beba95970a6e6849ebd112e1ba0922f959bb02f5dc8accc620dc7b8e4f459", size = 38837, upload-time = "2026-06-16T23:29:25.374Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/54/d9/1bf737feb13ba6339fc27f27c82f2c228a22924b25a3f52471c80020ac78/logspark-0.11.0-py3-none-any.whl", hash = "sha256:37d873d5396b0f5de3561933189b7bd881658f5ebdcd660d349610fc0a3b9131", size = 53849, upload-time = "2026-06-12T20:33:28.359Z" },
+    { url = "https://files.pythonhosted.org/packages/f0/14/6c07d6072e840adddac849554464cee67ee84c62117bf007743006048348/logspark-0.12.0-py3-none-any.whl", hash = "sha256:c5e5739b6e4a838a52b55ce0ea20c80427ccc962acfc280ffcad2860d336a054", size = 55063, upload-time = "2026-06-16T23:29:24.144Z" },
 ]
 
 [package.optional-dependencies]
@@ -2104,7 +2104,7 @@ requires-dist = [
     { name = "ddtrace", marker = "extra == 'trace'", specifier = ">=3.2.0,<3.3.0" },
     { name = "filetype", specifier = ">=1.2,<2.0" },
     { name = "ftfy", specifier = ">=6.3.1,<7.0.0" },
-    { name = "logspark", extras = ["json"], specifier = "~=0.11.0" },
+    { name = "logspark", extras = ["json"], specifier = "~=0.12.0" },
     { name = "paramiko", marker = "extra == 'all'", specifier = "==3.5.1" },
     { name = "paramiko", marker = "extra == 'aws'", specifier = "==3.5.1" },
     { name = "psycopg2", marker = "extra == 'all'", specifier = ">=2.9,<3.0" },

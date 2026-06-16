@@ -123,17 +123,18 @@ class TestOptionalImports:
 
     def test_aws_import_fails_missing_boto3(self, clean_imports):
         """Test import fails when boto3 is missing."""
-        sys.modules.pop("boto3", None)
-        original_import = builtins.__import__
+        import importlib.util as _iutil
+        original_find_spec = _iutil.find_spec
 
-        def mock_import(name, *args, **kwargs):
+        def mock_find_spec(name, *args, **kwargs):
             if name == 'boto3':
-                raise ImportError("No module named 'boto3'")
-            return original_import(name, *args, **kwargs)
+                return None
+            return original_find_spec(name, *args, **kwargs)
 
-        with patch('builtins.__import__', side_effect=mock_import):
+        sys.modules.pop('boto3', None)
+        with patch('importlib.util.find_spec', side_effect=mock_find_spec):
             with pytest.raises(ImportError) as exc_info:
-                from WrenchCL.Connect import AwsClientHub  # <-- added fix
+                from WrenchCL.Connect import AwsClientHub
 
             error_msg = str(exc_info.value)
             assert "AWS functionality requires additional dependencies" in error_msg
@@ -143,17 +144,18 @@ class TestOptionalImports:
 
     def test_aws_import_fails_missing_psycopg2(self, clean_imports):
         """Test import fails when psycopg2 is missing."""
-        sys.modules.pop("psycopg2", None)
-        original_import = builtins.__import__
+        import importlib.util as _iutil
+        original_find_spec = _iutil.find_spec
 
-        def mock_import(name, *args, **kwargs):
-            if name == 'psycopg2':
-                raise ImportError("No module named 'psycopg2'")
-            return original_import(name, *args, **kwargs)
+        def mock_find_spec(name, *args, **kwargs):
+            if 'psycopg2' in name:
+                return None
+            return original_find_spec(name, *args, **kwargs)
 
-        with patch('builtins.__import__', side_effect=mock_import):
+        sys.modules.pop('psycopg2', None)
+        with patch('importlib.util.find_spec', side_effect=mock_find_spec):
             with pytest.raises(ImportError) as exc_info:
-                from WrenchCL.Connect import AwsClientHub  # <-- added fix
+                from WrenchCL.Connect import AwsClientHub
 
             error_msg = str(exc_info.value)
             assert "AWS functionality requires additional dependencies" in error_msg
@@ -188,17 +190,18 @@ class TestOptionalImports:
 
     @pytest.mark.parametrize("missing_module", ["boto3", "psycopg2", "paramiko", "sshtunnel"])
     def test_specific_missing_modules(self, clean_imports, missing_module):
-        sys.modules.pop(missing_module, None)
-        original_import = builtins.__import__
+        import importlib.util as _iutil
+        original_find_spec = _iutil.find_spec
 
-        def mock_import(name, *args, **kwargs):
+        def mock_find_spec(name, *args, **kwargs):
             if missing_module in name:
-                raise ImportError(f"No module named '{missing_module}'")
-            return original_import(name, *args, **kwargs)
+                return None
+            return original_find_spec(name, *args, **kwargs)
 
-        with patch('builtins.__import__', side_effect=mock_import):
+        sys.modules.pop(missing_module, None)
+        with patch('importlib.util.find_spec', side_effect=mock_find_spec):
             with pytest.raises(ImportError) as exc_info:
-                from WrenchCL.Connect import AwsClientHub  # <-- added fix
+                from WrenchCL.Connect import AwsClientHub
 
             error_msg = str(exc_info.value)
             assert "pip install 'WrenchCL[aws]'" in error_msg

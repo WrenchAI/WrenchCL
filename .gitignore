@@ -1,3 +1,4 @@
+uv.toml
 /resources/secrets/
 /resources/data/
 /resources/logs/
@@ -11,3 +12,11 @@
 /wrench-code-library.iml
 /WrenchCL.iml
 /site/*
+/.hypothesis
+/.kiro
+/legacy_logging_reference
+/benchmark_report.html
+/benchmark_report_generator.py
+/benchmark_results.json
+logging_v2_demo.py
+test_logging_visual.py
