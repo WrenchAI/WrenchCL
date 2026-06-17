@@ -28,7 +28,7 @@ if _missing:
         f"AWS functionality requires additional dependencies.\n"
         f"Missing Packages:\n  -{missing_str}\n"
         f"Install with: pip install 'WrenchCL[aws]'"
-    )
+    ) from None
 
 from .AwsClientHub import AwsClientHub
 from .Lambda import handle_lambda_response
