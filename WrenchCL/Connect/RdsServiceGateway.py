@@ -54,6 +54,8 @@ class RdsServiceGateway:
         self.client_manager = AwsClientHub()
         self.config = self.client_manager.config
         self.db_uri = self.client_manager.db_uri
+        self._min_pool_size = min_pool_size
+        self._max_pool_size = max_pool_size
 
         if self.multithreaded:
             # Initialize a threaded connection pool using the URI
@@ -63,6 +65,54 @@ class RdsServiceGateway:
         else:
             # Establish a single connection if multithreading is not enabled
             self.connection: Optional["RDSClient"] = self.client_manager.db
+
+    def reconnect(self) -> None:
+        """Re-establish the configured database connection or connection pool."""
+        if self.test_mode:
+            logger.info("Test mode active; skipping database reconnect.")
+            return
+
+        logger.info("Reconnecting to the RDS database.")
+        if self.multithreaded:
+            try:
+                self.pool.closeall()
+            except (psycopg2.OperationalError, psycopg2.InterfaceError):
+                pass
+            self.pool = ThreadedConnectionPool(
+                minconn=self._min_pool_size,
+                maxconn=self._max_pool_size,
+                dsn=self.db_uri,
+            )
+        else:
+            psycopg2.extras.register_uuid()
+            new_conn = psycopg2.connect(self.db_uri)
+            old_conn = self.connection
+            if old_conn is not None and old_conn is not new_conn:
+                try:
+                    old_conn.close()
+                except (psycopg2.OperationalError, psycopg2.InterfaceError):
+                    pass
+            self.connection = new_conn
+        logger.info("RDS database reconnect complete.")
+
+    @staticmethod
+    def _is_connection_level_error(exc: BaseException) -> bool:
+        """Return whether an exception indicates that the database connection is stale."""
+        if isinstance(exc, (psycopg2.OperationalError, psycopg2.InterfaceError)):
+            return True
+        if isinstance(exc, psycopg2.Error):
+            return False
+        message = str(exc).lower()
+        return any(
+            phrase in message
+            for phrase in (
+                "connection already closed",
+                "server closed the connection",
+                "ssl connection has been closed",
+                "connection not open",
+                "terminating connection",
+            )
+        )
 
     def set_test_mode(self, test_mode: bool = False):
         logger.warning("Test mode activated, database commits will not be commited.")
@@ -100,38 +150,62 @@ class RdsServiceGateway:
         """
         Fetch data from the database based on the input query and parameters.
         """
-        conn = self.get_connection()
-        try:
-            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                if show_query:
+        def _attempt() -> Optional[Any]:
+            conn = self.get_connection()
+            try:
+                with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                    if show_query:
+                        logger._internal.log_internal(
+                            "Mogrified Query:\n", cursor.mogrify(query, payload)
+                        )
+                    else:
+                        logger._internal.log_internal(
+                            "Mogrified Query:\n", cursor.mogrify(query, payload)
+                        )
+                    cursor.execute(query, payload)
+                    data = cursor.fetchall() if fetchall else cursor.fetchone()
                     logger._internal.log_internal(
-                        "Mogrified Query:\n", cursor.mogrify(query, payload)
+                        "Fetched data\n: %s", str(data)[:100] if fetchall else str(data)
                     )
+                if return_dict and data is not None:
+                    return [dict(row) for row in data] if fetchall else dict(data)
+                elif data is None:
+                    raise ValueError("None returned")
                 else:
-                    logger._internal.log_internal(
-                        "Mogrified Query:\n", cursor.mogrify(query, payload)
-                    )
-                cursor.execute(query, payload)
-                data = cursor.fetchall() if fetchall else cursor.fetchone()
-                logger._internal.log_internal(
-                    "Fetched data\n: %s", str(data)[:100] if fetchall else str(data)
-                )
-            if return_dict and data is not None:
-                return [dict(row) for row in data] if fetchall else dict(data)
-            elif data is None:
-                raise ValueError("None returned")
-            else:
-                return data
+                    return data
+            except Exception as e:
+                try:
+                    conn.rollback()
+                except (psycopg2.OperationalError, psycopg2.InterfaceError):
+                    pass
+                if self._is_connection_level_error(e):
+                    raise e
+                if raise_on_error:
+                    logger.warning(f"Error executing query: {e}")
+                    raise e
+                else:
+                    logger._internal.log_internal(f"Query returned None: {e}")
+                    return None
+            finally:
+                self.release_connection(conn)
+
+        try:
+            return _attempt()
         except Exception as e:
-            conn.rollback()
-            if raise_on_error:
-                logger.warning(f"Error executing query: {e}")
-                raise e
-            else:
-                logger._internal.log_internal(f"Query returned None: {e}")
-                return None
-        finally:
-            self.release_connection(conn)
+            if not self._is_connection_level_error(e):
+                raise
+            try:
+                self.reconnect()
+                return _attempt()
+            except Exception as retry_error:
+                if not self._is_connection_level_error(retry_error):
+                    raise
+                if raise_on_error:
+                    logger.warning(f"Error executing query: {retry_error}")
+                    raise retry_error
+                else:
+                    logger._internal.log_internal(f"Query returned None: {retry_error}")
+                    return None
 
     def update_database(
         self,
@@ -165,108 +239,132 @@ class RdsServiceGateway:
             ValueError: If column order is missing for DataFrame payloads or if the payload has incompatible data for batch processing.
             psycopg2.DataError: If no data was committed in batch processing.
         """
-        conn = self.get_connection()
+        original_payload = payload
 
-        if self.test_mode:
-            test_mode = True
+        def _attempt() -> Optional[List[tuple]]:
+            nonlocal test_mode
+            conn = self.get_connection()
+            if self.test_mode:
+                test_mode = True
 
-        if test_mode:
-            logger.warning("Running RDSServiceGateway in test mode.")
+            if test_mode:
+                logger.warning("Running RDSServiceGateway in test mode.")
+
+            try:
+                # Convert payload into a tuple if it's a single value or list
+                payload = original_payload
+                payload = self.convert_payload(payload)
+                logger._internal.log_internal(f"Converted payload: {payload}")
+
+                if isinstance(payload, tuple):
+                    logger._internal.log_internal("Payload is a single tuple.")
+                    # Execute query for single tuple payload
+                    with conn.cursor() as cursor:
+                        cursor.execute(query, payload)
+                        return_value = cursor.fetchall() if returning else None
+                        if not test_mode:
+                            conn.commit()
+                            logger._internal.log_internal("Transaction committed successfully.")
+                        else:
+                            conn.rollback()
+                            logger._internal.log_internal("Transaction rolled back in test mode.")
+                        return return_value
+
+                elif isinstance(payload, list) and all(isinstance(item, tuple) for item in payload):
+                    logger._internal.log_internal("Payload is a list of tuples.")
+                    # Execute batch query for list of tuples payload
+                    with conn.cursor() as cursor:
+                        psycopg2.extras.execute_values(
+                            cursor, query, payload, page_size=self.config.db_batch_size
+                        )
+                        return_value = cursor.fetchall() if returning else None
+                        if not test_mode:
+                            conn.commit()
+                            logger._internal.log_internal("Transaction committed successfully.")
+                        else:
+                            conn.rollback()
+                            logger._internal.log_internal("Transaction rolled back in test mode.")
+                        return return_value
+
+                elif isinstance(payload, pd.DataFrame) and column_order:
+                    logger._internal.log_internal("Payload is a DataFrame with specified column order.")
+                    # Batch processing for DataFrame payloads with specified column order
+                    if returning:
+                        raise ValueError(
+                            "Returning values not compatible with batch processing, please use dictionary input"
+                        )
+                    if not set(column_order).issubset(payload.columns):
+                        missing_columns = set(column_order) - set(payload.columns)
+                        raise ValueError(
+                            f"The following columns are missing from the payload: {missing_columns}"
+                        )
+
+                    with conn.cursor() as cursor:
+                        data_batch = []
+                        batch_counter = 1
+                        total_batches = math.ceil(len(payload) / self.config.db_batch_size)
+
+                        for i, row in enumerate(payload.itertuples(index=False, name="Row")):
+                            data_batch.append(tuple(getattr(row, col) for col in column_order))
+
+                            if len(data_batch) == self.config.db_batch_size or i == len(payload) - 1:
+                                psycopg2.extras.execute_values(
+                                    cursor, query, data_batch, page_size=self.config.db_batch_size
+                                )
+                                data_batch = []
+                                logger._internal.log_internal(
+                                    f"Processed batch {batch_counter}/{total_batches} successfully"
+                                )
+                                batch_counter += 1
+
+                        if batch_counter == 1:
+                            raise psycopg2.DataError("Nothing to commit")
+
+                        if not test_mode:
+                            conn.commit()
+                            logger._internal.log_internal("Transaction committed successfully.")
+                        else:
+                            conn.rollback()
+                            logger._internal.log_internal("Transaction rolled back in test mode.")
+
+            except Exception as e:
+                try:
+                    conn.rollback()
+                except (psycopg2.OperationalError, psycopg2.InterfaceError):
+                    pass
+                if isinstance(e, IndexError):
+                    try:
+                        logger.warning(
+                            f"Error processing batch: IndexError | Got {query.count('%s')} placeholders and {len(payload)} values. {e}"
+                        )
+                    except Exception as nested_exception:
+                        logger.warning(
+                            f"Error processing batch: {str(e)}; Nested error: {str(nested_exception)}",
+                            exc_info=True,
+                        )
+                else:
+                    logger.warning(f"Error processing batch: {str(e)}", exc_info=True)
+                if self._is_connection_level_error(e):
+                    raise e
+                if raise_on_error:
+                    raise e
+            finally:
+                self.release_connection(conn)
 
         try:
-            # Convert payload into a tuple if it's a single value or list
-            payload = self.convert_payload(payload)
-            logger._internal.log_internal(f"Converted payload: {payload}")
-
-            if isinstance(payload, tuple):
-                logger._internal.log_internal("Payload is a single tuple.")
-                # Execute query for single tuple payload
-                with conn.cursor() as cursor:
-                    cursor.execute(query, payload)
-                    return_value = cursor.fetchall() if returning else None
-                    if not test_mode:
-                        conn.commit()
-                        logger._internal.log_internal("Transaction committed successfully.")
-                    else:
-                        conn.rollback()
-                        logger._internal.log_internal("Transaction rolled back in test mode.")
-                    return return_value
-
-            elif isinstance(payload, list) and all(isinstance(item, tuple) for item in payload):
-                logger._internal.log_internal("Payload is a list of tuples.")
-                # Execute batch query for list of tuples payload
-                with conn.cursor() as cursor:
-                    psycopg2.extras.execute_values(
-                        cursor, query, payload, page_size=self.config.db_batch_size
-                    )
-                    return_value = cursor.fetchall() if returning else None
-                    if not test_mode:
-                        conn.commit()
-                        logger._internal.log_internal("Transaction committed successfully.")
-                    else:
-                        conn.rollback()
-                        logger._internal.log_internal("Transaction rolled back in test mode.")
-                    return return_value
-
-            elif isinstance(payload, pd.DataFrame) and column_order:
-                logger._internal.log_internal("Payload is a DataFrame with specified column order.")
-                # Batch processing for DataFrame payloads with specified column order
-                if returning:
-                    raise ValueError(
-                        "Returning values not compatible with batch processing, please use dictionary input"
-                    )
-                if not set(column_order).issubset(payload.columns):
-                    missing_columns = set(column_order) - set(payload.columns)
-                    raise ValueError(
-                        f"The following columns are missing from the payload: {missing_columns}"
-                    )
-
-                with conn.cursor() as cursor:
-                    data_batch = []
-                    batch_counter = 1
-                    total_batches = math.ceil(len(payload) / self.config.db_batch_size)
-
-                    for i, row in enumerate(payload.itertuples(index=False, name="Row")):
-                        data_batch.append(tuple(getattr(row, col) for col in column_order))
-
-                        if len(data_batch) == self.config.db_batch_size or i == len(payload) - 1:
-                            psycopg2.extras.execute_values(
-                                cursor, query, data_batch, page_size=self.config.db_batch_size
-                            )
-                            data_batch = []
-                            logger._internal.log_internal(
-                                f"Processed batch {batch_counter}/{total_batches} successfully"
-                            )
-                            batch_counter += 1
-
-                    if batch_counter == 1:
-                        raise psycopg2.DataError("Nothing to commit")
-
-                    if not test_mode:
-                        conn.commit()
-                        logger._internal.log_internal("Transaction committed successfully.")
-                    else:
-                        conn.rollback()
-                        logger._internal.log_internal("Transaction rolled back in test mode.")
-
+            return _attempt()
         except Exception as e:
-            conn.rollback()
-            if isinstance(e, IndexError):
-                try:
-                    logger.warning(
-                        f"Error processing batch: IndexError | Got {query.count('%s')} placeholders and {len(payload)} values. {e}"
-                    )
-                except Exception as nested_exception:
-                    logger.warning(
-                        f"Error processing batch: {str(e)}; Nested error: {str(nested_exception)}",
-                        exc_info=True,
-                    )
-            else:
-                logger.warning(f"Error processing batch: {str(e)}", exc_info=True)
-            if raise_on_error:
-                raise e
-        finally:
-            self.release_connection(conn)
+            if not self._is_connection_level_error(e):
+                raise
+            try:
+                self.reconnect()
+                return _attempt()
+            except Exception as retry_error:
+                if not self._is_connection_level_error(retry_error):
+                    raise
+                if raise_on_error:
+                    raise retry_error
+                return None
 
     def format_sql_query(self, query: str, payload: tuple) -> None:
         """
