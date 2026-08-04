@@ -130,7 +130,7 @@ def test_rds_single_reconnect_swaps_connection_and_skips_in_test_mode(mock_hub_c
 
     assert svc.connection is new_conn
     old_conn.close.assert_called_once_with()
-    mock_connect.assert_called_once_with("postgresql://u:p@h:5432/d")
+    mock_connect.assert_called_once_with("postgresql://u:p@h:5432/d", connect_timeout=10)
 
     svc.set_test_mode(True)
     svc.reconnect()
@@ -169,7 +169,7 @@ def test_rds_single_get_data_reconnects_once(mock_hub_cls, mock_connect):
     svc = RdsServiceGateway(multithreaded=False)
     assert svc.get_data("SELECT * FROM foo", payload=None) == [{"id": 1}]
 
-    mock_connect.assert_called_once_with("postgresql://u:p@h:5432/d")
+    mock_connect.assert_called_once_with("postgresql://u:p@h:5432/d", connect_timeout=10)
     old_conn.rollback.assert_called_once_with()
 
 
@@ -238,3 +238,42 @@ def test_rds_pool_get_data_returns_healthy_connection(mock_hub_cls, mock_pool_cl
 
     mock_pool.putconn.assert_called_once_with(healthy_conn, close=False)
     mock_pool.closeall.assert_not_called()
+
+
+# ─────────────────────────────────────────────────────────────
+# connect_timeout — pool/connection construction must fail fast
+# ─────────────────────────────────────────────────────────────
+
+
+@patch("WrenchCL.Connect.RdsServiceGateway.ThreadedConnectionPool")
+@patch("WrenchCL.Connect.RdsServiceGateway.AwsClientHub")
+def test_rds_pool_uses_default_connect_timeout(mock_hub_cls, mock_pool_cls):
+    mock_hub_cls.return_value = _mock_rds_hub()
+    mock_pool_cls.return_value = MagicMock()
+
+    RdsServiceGateway(multithreaded=True)
+
+    assert mock_pool_cls.call_args.kwargs["connect_timeout"] == 10
+
+
+@patch("WrenchCL.Connect.RdsServiceGateway.ThreadedConnectionPool")
+@patch("WrenchCL.Connect.RdsServiceGateway.AwsClientHub")
+def test_rds_pool_honours_custom_connect_timeout(mock_hub_cls, mock_pool_cls):
+    mock_hub_cls.return_value = _mock_rds_hub()
+    mock_pool_cls.return_value = MagicMock()
+
+    RdsServiceGateway(multithreaded=True, min_pool_size=2, max_pool_size=100, connect_timeout=7)
+
+    assert mock_pool_cls.call_args.kwargs["connect_timeout"] == 7
+
+
+@patch("WrenchCL.Connect.RdsServiceGateway.ThreadedConnectionPool")
+@patch("WrenchCL.Connect.RdsServiceGateway.AwsClientHub")
+def test_rds_pool_connect_timeout_floored_at_libpq_minimum(mock_hub_cls, mock_pool_cls):
+    mock_hub_cls.return_value = _mock_rds_hub()
+    mock_pool_cls.return_value = MagicMock()
+
+    # libpq rejects connect_timeout < 2; values below are coerced up to the floor.
+    RdsServiceGateway(multithreaded=True, connect_timeout=0)
+
+    assert mock_pool_cls.call_args.kwargs["connect_timeout"] == 2

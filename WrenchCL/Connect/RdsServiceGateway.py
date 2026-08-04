@@ -36,7 +36,11 @@ class RdsServiceGateway:
     """
 
     def __init__(
-        self, multithreaded: bool = False, min_pool_size: int = 1, max_pool_size: int = 10
+        self,
+        multithreaded: bool = False,
+        min_pool_size: int = 1,
+        max_pool_size: int = 10,
+        connect_timeout: int = 10,
     ):
         """
         Initializes the RdsServiceGateway by establishing a connection or connection pool
@@ -53,6 +57,9 @@ class RdsServiceGateway:
         self.test_mode = False
         self._min_pool_size = min_pool_size
         self._max_pool_size = max_pool_size
+        # libpq connect_timeout (seconds, min 2) so pool/connection construction fails
+        # fast instead of blocking forever when the DB is unreachable or saturated.
+        self._connect_timeout = max(2, int(connect_timeout))
         self.client_manager = AwsClientHub()
         self.config = self.client_manager.config
         self.db_uri = self.client_manager.db_uri
@@ -60,7 +67,10 @@ class RdsServiceGateway:
         if self.multithreaded:
             # Initialize a threaded connection pool using the URI
             self.pool: Optional[ThreadedConnectionPool] = ThreadedConnectionPool(
-                minconn=min_pool_size, maxconn=max_pool_size, dsn=self.db_uri
+                minconn=min_pool_size,
+                maxconn=max_pool_size,
+                dsn=self.db_uri,
+                connect_timeout=self._connect_timeout,
             )
         else:
             # Establish a single connection if multithreading is not enabled
@@ -86,11 +96,12 @@ class RdsServiceGateway:
                 minconn=self._min_pool_size,
                 maxconn=self._max_pool_size,
                 dsn=self.db_uri,
+                connect_timeout=self._connect_timeout,
             )
             return
 
         psycopg2.extras.register_uuid()
-        new = psycopg2.connect(self.db_uri)
+        new = psycopg2.connect(self.db_uri, connect_timeout=self._connect_timeout)
         old = self.connection
         if old is not None and old is not new:
             try:
