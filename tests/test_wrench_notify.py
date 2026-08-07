@@ -324,6 +324,48 @@ class TestJobUpdate:
         payload = call_kwargs["json"]
         assert payload["workspace_id"] == "ws-456"
 
+    @patch("WrenchCL.Wrench._notify.requests.patch")
+    def test_job_update_includes_all_lifecycle_fields(self, mock_patch):
+        mock_response = MagicMock()
+        mock_response.ok = True
+        mock_patch.return_value = mock_response
+
+        job_update(
+            job_id="uuid-123",
+            progress=50,
+            input_rows=10,
+            output_rows=8,
+            status_note="done step",
+            ext_refs={"k": "v"},
+            service_secret="test-secret"
+        )
+
+        call_kwargs = mock_patch.call_args[1]
+        payload = call_kwargs["json"]
+        assert payload["input_rows"] == 10
+        assert payload["output_rows"] == 8
+        assert payload["status_note"] == "done step"
+        assert payload["ext_refs"] == {"k": "v"}
+
+    @patch("WrenchCL.Wrench._notify.requests.patch")
+    def test_job_update_omits_lifecycle_fields_when_not_provided(self, mock_patch):
+        mock_response = MagicMock()
+        mock_response.ok = True
+        mock_patch.return_value = mock_response
+
+        job_update(
+            job_id="uuid-123",
+            progress=50,
+            service_secret="test-secret"
+        )
+
+        call_kwargs = mock_patch.call_args[1]
+        payload = call_kwargs["json"]
+        assert "input_rows" not in payload
+        assert "output_rows" not in payload
+        assert "status_note" not in payload
+        assert "ext_refs" not in payload
+
 
 class TestJobClose:
     @patch("WrenchCL.Wrench._notify.requests.post")
@@ -455,6 +497,32 @@ class TestJobClose:
         call_kwargs = mock_post.call_args[1]
         payload = call_kwargs["json"]
         assert payload["notify"] is True
+
+    @patch("WrenchCL.Wrench._notify.requests.post")
+    def test_job_close_includes_all_lifecycle_fields(self, mock_post):
+        mock_response = MagicMock()
+        mock_response.ok = True
+        mock_post.return_value = mock_response
+
+        job_close(
+            job_id="uuid-123",
+            workspace_id="ws-1",
+            status_code=200,
+            message="done",
+            source="elt",
+            input_rows=5,
+            output_rows=5,
+            status_note="ok",
+            ext_refs={"a": 1},
+            service_secret="test-secret"
+        )
+
+        call_kwargs = mock_post.call_args[1]
+        payload = call_kwargs["json"]
+        assert payload["input_rows"] == 5
+        assert payload["output_rows"] == 5
+        assert payload["status_note"] == "ok"
+        assert payload["ext_refs"] == {"a": 1}
 
 
 class TestAutoArnIntegration:
