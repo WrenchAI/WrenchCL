@@ -130,6 +130,10 @@ def job_update(
     description: Optional[str] = None,
     *,
     workspace_id: Optional[str] = None,
+    status_note: Optional[str] = None,
+    input_rows: Optional[int] = None,
+    output_rows: Optional[int] = None,
+    ext_refs: Optional[dict] = None,
     base_url: Optional[str] = None,
     service_secret: Optional[str] = None,
     secret_env_var: str = "WRENCH_SERVICE_SECRET",
@@ -148,6 +152,16 @@ def job_update(
         Progress percentage 0–100.
     description : str, optional
         Human-readable progress label shown alongside the percentage.
+    workspace_id : str, optional
+        The workspace (client) UUID.
+    status_note : str, optional
+        Status note to include in the update.
+    input_rows : int, optional
+        Number of input rows processed.
+    output_rows : int, optional
+        Number of output rows produced.
+    ext_refs : dict, optional
+        External references dictionary.
 
     Returns
     -------
@@ -170,6 +184,14 @@ def job_update(
         payload["progress_description"] = description
     if workspace_id is not None:
         payload["workspace_id"] = str(workspace_id)
+    if status_note is not None:
+        payload["status_note"] = status_note
+    if input_rows is not None:
+        payload["input_rows"] = input_rows
+    if output_rows is not None:
+        payload["output_rows"] = output_rows
+    if ext_refs is not None:
+        payload["ext_refs"] = ext_refs
 
     try:
         response = requests.patch(
@@ -198,6 +220,10 @@ def job_close(
     source: str,
     *,
     notify: bool = True,
+    status_note: Optional[str] = None,
+    input_rows: Optional[int] = None,
+    output_rows: Optional[int] = None,
+    ext_refs: Optional[dict] = None,
     base_url: Optional[str] = None,
     service_secret: Optional[str] = None,
     secret_env_var: str = "WRENCH_SERVICE_SECRET",
@@ -222,6 +248,14 @@ def job_close(
         Same source string used in job_register.
     notify : bool
         Whether to create a user-visible notification. Default True.
+    status_note : str, optional
+        Status note to include in the close event.
+    input_rows : int, optional
+        Number of input rows processed.
+    output_rows : int, optional
+        Number of output rows produced.
+    ext_refs : dict, optional
+        External references dictionary.
 
     Returns
     -------
@@ -247,6 +281,14 @@ def job_close(
         "source": source,
         "notify": notify,
     }
+    if status_note is not None:
+        payload["status_note"] = status_note
+    if input_rows is not None:
+        payload["input_rows"] = input_rows
+    if output_rows is not None:
+        payload["output_rows"] = output_rows
+    if ext_refs is not None:
+        payload["ext_refs"] = ext_refs
 
     try:
         response = requests.post(
