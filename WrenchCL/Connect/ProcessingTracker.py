@@ -14,7 +14,11 @@ from ..Connect import AwsClientHub
 from ..Decorators import SingletonClass
 
 # from ..Types.TTLSet import TTLSet
-TTLSet = set  # type: ignore[assignment]  # TODO: TTLSet not yet implemented
+class TTLSet(set):  # type: ignore[override]
+    """Stub for TTLSet — accepts ttl kwarg, behaves as a plain set until TTLSet is implemented."""
+
+    def __init__(self, *args: object, ttl: int = 0, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)
 
 if TYPE_CHECKING:
     from mypy_boto3_rds import RDSClient
