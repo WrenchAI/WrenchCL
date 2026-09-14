@@ -1,0 +1,58 @@
+name: Request a Robo CTO review
+
+# Robo CTO reviews on `review_requested` for a specific reviewer, so a PR that
+# nobody asks about is never reviewed. Between 2026-09-10 and today that meant
+# only two of nine PRs in this repository entered the pipeline at all, and both
+# of those were requested by hand.
+#
+# This asks on the PR's behalf. It does not review anything itself.
+#
+# Deliberately not `synchronize`: a review per push would burn the credential's
+# rate limit on drafts in progress, and cc-creds rotates precisely because that
+# limit is reachable. Re-request by hand for a fresh review, or remove and
+# re-add the reviewer.
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  request:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # A draft is not ready to be read, and the reviewer cannot review its own
+    # pull request -- GitHub blocks that, so asking would fail noisily for no
+    # benefit. Two accounts exist to avoid exactly that block.
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.user.login != 'Wrench-Review-Bot'
+    steps:
+      - name: Request Wrench-Review-Bot
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          REVIEWER: Wrench-Review-Bot
+        run: |
+          set -euo pipefail
+
+          # Already requested is a success, not a retry: re-posting the same
+          # reviewer is a no-op and emits no webhook, so the pipeline would see
+          # nothing and the step would look like it had worked.
+          if gh api "repos/${REPO}/pulls/${PR}" \
+               --jq '.requested_reviewers[].login' | grep -qx "${REVIEWER}"; then
+            echo "${REVIEWER} is already requested on #${PR}; nothing to do"
+            exit 0
+          fi
+
+          gh api -X POST "repos/${REPO}/pulls/${PR}/requested_reviewers" \
+            -f "reviewers[]=${REVIEWER}" --jq '.requested_reviewers[].login'
+
+          echo "Requested ${REVIEWER} on #${PR}"
+          echo
+          echo "If no review appears, check the webhook delivery rather than this"
+          echo "step: deliveries that arrive concurrently have been timing out at"
+          echo "GitHub's ten-second limit, and GitHub gives up after one attempt."
