@@ -42,3 +42,14 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  # The single required check named `ci` (WrenchAI baseline). Fails when any gated job did not succeed.
+  ci:
+    name: ci
+    needs: [test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baseline result
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
